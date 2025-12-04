@@ -34,20 +34,23 @@
 
 ## Overview
 
-Shared Python libraries for ByronWilliamsCPA projects - JWT auth, GCS utilities, and more
+Shared Python libraries for ByronWilliamsCPA projects. This is a **UV workspace monorepo** containing multiple independently-versioned packages.
 
-This project provides:
-- Core functionality for shared python libraries for byronwilliamscpa projects - jwt auth, gcs utilities, and more
-- Production-ready code with comprehensive testing
-- Well-documented API and architecture
-- Security-first development practices
+## Packages
+
+| Package | Description | Installation |
+|---------|-------------|--------------|
+| [byronwilliamscpa-cloudflare-auth](packages/cloudflare-auth/) | JWT validation and Cloudflare Access integration middleware | `pip install "git+ssh://git@github.com/ByronWilliamsCPA/python-libs.git#subdirectory=packages/cloudflare-auth"` |
+| [byronwilliamscpa-gcs-utilities](packages/gcs-utilities/) | Google Cloud Storage utilities and helpers | `pip install "git+ssh://git@github.com/ByronWilliamsCPA/python-libs.git#subdirectory=packages/cloudflare-auth"` |
 
 ## Features
 
+- **UV Workspaces**: Modern monorepo with independent package versioning
 - **High Quality**: 80%+ test coverage enforced via CI
 - **Type Safe**: Full type hints with BasedPyright strict mode
 - **Well Documented**: Clear docstrings and comprehensive guides
 - **Developer Friendly**: Pre-commit hooks, automated formatting, linting
+- **Per-Package CI**: Only tests changed packages for faster feedback
 - **Security First**: Dependency scanning, security analysis, SBOM generation
 
 ## Quick Start

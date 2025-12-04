@@ -19,11 +19,10 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 
-# Core production dependencies
+# Root workspace has no direct production dependencies
+# All production deps are in individual packages (packages/*/pyproject.toml)
 dependencies = [
-    "pydantic>=2.0.0",
-    "pydantic-settings>=2.0.0",
-    "python-dotenv>=1.0.0",
+    # Shared utilities only - packages define their own deps
     "structlog>=23.1.0",
     "rich>=13.5.0",
     # Cross-Version Compatibility Dependencies
@@ -130,7 +129,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
+# Root package is for shared utilities only; main code is in packages/*
 packages = ["src/python_libs"]
+# Note: Individual packages (packages/*/pyproject.toml) define their own build targets
 
 # Ruff Configuration - Consolidated Linting & Formatting
 [tool.ruff]
@@ -265,7 +266,7 @@ max-returns = 6        # Return statement limit
 convention = "google"
 
 [tool.ruff.lint.isort]
-known-first-party = ["python_libs"]
+known-first-party = ["python_libs", "cloudflare_auth", "gcs_utilities"]
 
 [tool.ruff.lint.per-file-ignores]
 # Module init files
@@ -397,7 +398,7 @@ pythonPlatform = "All"
 typeCheckingMode = "strict"
 
 # Source paths
-include = ["src"]
+include = ["src", "packages/cloudflare-auth/src", "packages/gcs-utilities/src"]
 exclude = [
     "**/__pycache__",
     "**/node_modules",
@@ -460,8 +461,8 @@ deprecateTypingAliases = true          # Warn on deprecated typing module aliase
 # Pytest Configuration
 [tool.pytest.ini_options]
 minversion = "7.0"
-testpaths = ["tests"]
-pythonpath = [".", "src"]
+testpaths = ["tests", "packages/cloudflare-auth/tests", "packages/gcs-utilities/tests"]
+pythonpath = [".", "src", "packages/cloudflare-auth/src", "packages/gcs-utilities/src"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -625,6 +626,15 @@ ignore_names = [
 [tool.uv]
 # Note: UV now recommends using [dependency-groups] instead of dev-dependencies
 # We use [project.optional-dependencies] for dev dependencies (PEP 621 standard)
+
+# UV Workspace Configuration - enables monorepo with multiple packages
+[tool.uv.workspace]
+members = ["packages/*"]
+
+# Workspace source references - allow packages to depend on each other
+[tool.uv.sources]
+byronwilliamscpa-cloudflare-auth = { workspace = true }
+byronwilliamscpa-gcs-utilities = { workspace = true }
 
 # Package Index Configuration
 # Google Assured OSS as primary source with PyPI fallback
