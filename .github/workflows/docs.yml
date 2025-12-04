@@ -1,0 +1,55 @@
+# Documentation Workflow
+# Builds and deploys MkDocs documentation to GitHub Pages.
+#
+# Features:
+#   - MkDocs Material theme build
+#   - GitHub Pages deployment on push to main
+#   - PR preview builds
+name: Documentation
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write  # For GitHub Pages deployment
+  pages: write
+  id-token: write
+
+# Standalone documentation workflow
+jobs:
+  docs:
+    name: Build & Deploy Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@582b2d78a0f5913301dcc87c4e93301fdd2b6711 # v4.1.1
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Build documentation
+        run: uv run mkdocs build --strict
+
+      - name: Deploy to GitHub Pages
+        if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
+        run: uv run mkdocs gh-deploy --force
