@@ -1,0 +1,144 @@
+# IP Range Groups Configuration
+# ==============================
+# This file defines IP range groups that are synced to Cloudflare IP lists.
+# Each group becomes a Cloudflare list that can be referenced in Access policies.
+#
+# Usage:
+#   python -m cloudflare_api.ip_groups.cli sync          # Sync all groups
+#   python -m cloudflare_api.ip_groups.cli sync -g github  # Sync specific group
+#   python -m cloudflare_api.ip_groups.cli preview github  # Preview changes
+#   python -m cloudflare_api.ip_groups.cli list            # List all groups
+
+version: "1.0"
+
+# How long to cache fetched IPs (in seconds)
+# Dynamic sources (GitHub, AWS, etc.) are fetched at most once per TTL
+cache_ttl_seconds: 3600  # 1 hour
+
+# Optional prefix for all Cloudflare list names
+# Useful for namespacing: "myapp-" would create lists like "myapp-github-actions"
+cloudflare_list_prefix: ""
+
+groups:
+  # ============================================================================
+  # Home/Office Network
+  # ============================================================================
+  - name: home-network
+    cloudflare_list_name: home-network
+    description: "Home and office IP addresses"
+    enabled: true
+    tags: ["trusted", "internal"]
+    sources:
+      - type: static
+        ips:
+          - "203.0.113.50"        # Home IP (replace with your IP)
+          - "198.51.100.0/24"     # Office network (replace with your range)
+
+  # ============================================================================
+  # GitHub Actions
+  # ============================================================================
+  # GitHub's IP ranges for webhooks, actions, and other services
+  # See: https://api.github.com/meta
+  - name: github
+    cloudflare_list_name: github-ips
+    description: "GitHub Actions and webhook IPs"
+    enabled: true
+    tags: ["ci-cd", "github"]
+    sources:
+      - type: github
+        # Services to include (comment out to include all)
+        services:
+          - actions      # GitHub Actions runners
+          - hooks        # Webhook delivery IPs
+          - dependabot   # Dependabot IPs
+        # Optional: filter by IP version
+        # ip_version: 4  # Only IPv4
+
+  # ============================================================================
+  # Google Cloud
+  # ============================================================================
+  # Google Cloud Platform IP ranges
+  # See: https://www.gstatic.com/ipranges/cloud.json
+  - name: google-cloud
+    cloudflare_list_name: gcp-ips
+    description: "Google Cloud Platform IPs"
+    enabled: true
+    tags: ["cloud", "gcp"]
+    sources:
+      - type: google_cloud
+        # Optional: filter by region
+        # regions:
+        #   - us-central1
+        #   - us-east1
+        # Optional: filter by IP version
+        ip_version: 4
+
+  # ============================================================================
+  # AWS
+  # ============================================================================
+  # Amazon Web Services IP ranges
+  # See: https://ip-ranges.amazonaws.com/ip-ranges.json
+  - name: aws
+    cloudflare_list_name: aws-ips
+    description: "AWS service IPs"
+    enabled: false  # Disabled by default (very large range)
+    tags: ["cloud", "aws"]
+    sources:
+      - type: aws
+        # Filter by service (recommended - full list is huge)
+        services:
+          - CLOUDFRONT
+          - API_GATEWAY
+        # Filter by region
+        regions:
+          - us-east-1
+          - us-west-2
+        ip_version: 4
+
+  # ============================================================================
+  # CI/CD Combined
+  # ============================================================================
+  # Combine multiple sources into one list
+  - name: ci-cd
+    cloudflare_list_name: ci-cd-ips
+    description: "All CI/CD service IPs"
+    enabled: true
+    tags: ["ci-cd"]
+    sources:
+      # GitHub Actions
+      - type: github
+        services:
+          - actions
+      # Could add more CI services here:
+      # - type: url
+      #   url: "https://circleci.com/ips.txt"
+
+  # ============================================================================
+  # Custom URL Source
+  # ============================================================================
+  # Fetch IPs from any URL that returns IP addresses
+  - name: custom-service
+    cloudflare_list_name: custom-service-ips
+    description: "IPs from custom service"
+    enabled: false
+    sources:
+      # Plain text format (one IP per line)
+      - type: url
+        url: "https://example.com/allowed-ips.txt"
+
+      # JSON format with JSONPath extraction
+      # - type: url
+      #   url: "https://api.example.com/ip-ranges"
+      #   json_path: "ranges[*].cidr"
+
+  # ============================================================================
+  # Cloudflare IPs
+  # ============================================================================
+  # Cloudflare's own IP ranges (useful for certain configurations)
+  - name: cloudflare
+    cloudflare_list_name: cloudflare-ips
+    description: "Cloudflare network IPs"
+    enabled: false
+    sources:
+      - type: cloudflare
+        ip_version: 4  # IPv4 only
