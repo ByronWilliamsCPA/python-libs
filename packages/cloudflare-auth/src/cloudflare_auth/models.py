@@ -22,7 +22,7 @@ from typing import Any
 
 from pydantic import BaseModel, EmailStr, Field
 
-from src.cloudflare_auth.whitelist import UserTier
+from cloudflare_auth.whitelist import UserTier
 
 
 class CloudflareJWTClaims(BaseModel):

@@ -36,7 +36,7 @@ import httpx
 import jwt
 from jwt import PyJWKClient
 
-from src.cloudflare_auth.models import CloudflareJWTClaims
+from cloudflare_auth.models import CloudflareJWTClaims
 from src.config.settings import CloudflareSettings, get_cloudflare_settings
 
 

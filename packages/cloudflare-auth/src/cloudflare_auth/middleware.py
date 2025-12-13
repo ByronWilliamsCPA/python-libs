@@ -33,7 +33,7 @@ Called by:
 
 Example:
     from fastapi import FastAPI, Request
-    from src.cloudflare_auth import setup_cloudflare_auth
+    from cloudflare_auth import setup_cloudflare_auth
 
     app = FastAPI()
     setup_cloudflare_auth(app)
@@ -54,10 +54,10 @@ from fastapi import HTTPException, Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
-from src.cloudflare_auth.models import CloudflareUser
-from src.cloudflare_auth.rate_limiter import InMemoryRateLimiter
-from src.cloudflare_auth.utils import get_client_ip, sanitize_email, sanitize_ip, sanitize_path
-from src.cloudflare_auth.validators import CloudflareJWTValidator
+from cloudflare_auth.models import CloudflareUser
+from cloudflare_auth.rate_limiter import InMemoryRateLimiter
+from cloudflare_auth.utils import get_client_ip, sanitize_email, sanitize_ip, sanitize_path
+from cloudflare_auth.validators import CloudflareJWTValidator
 from src.config.settings import CloudflareSettings, get_cloudflare_settings
 
 
@@ -445,7 +445,7 @@ def setup_cloudflare_auth(
 
     Example:
         from fastapi import FastAPI
-        from src.cloudflare_auth import setup_cloudflare_auth
+        from cloudflare_auth import setup_cloudflare_auth
 
         app = FastAPI()
 
@@ -511,7 +511,7 @@ def get_current_user(request: Request) -> CloudflareUser:
 
     Example:
         from fastapi import Depends
-        from src.cloudflare_auth import get_current_user, CloudflareUser
+        from cloudflare_auth import get_current_user, CloudflareUser
 
         @app.get("/me")
         async def get_me(user: CloudflareUser = Depends(get_current_user)):
@@ -547,7 +547,7 @@ def get_current_user_optional(request: Request) -> CloudflareUser | None:
 
     Example:
         from fastapi import Depends
-        from src.cloudflare_auth import get_current_user_optional, CloudflareUser
+        from cloudflare_auth import get_current_user_optional, CloudflareUser
 
         @app.get("/info")
         async def get_info(user: CloudflareUser | None = Depends(get_current_user_optional)):

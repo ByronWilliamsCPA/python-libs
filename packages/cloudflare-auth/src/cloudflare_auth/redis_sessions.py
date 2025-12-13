@@ -19,7 +19,7 @@ Dependencies:
     - secrets: For secure session ID generation
 
 Example:
-    from src.cloudflare_auth.redis_sessions import RedisSessionManager
+    from cloudflare_auth.redis_sessions import RedisSessionManager
 
     session_manager = RedisSessionManager(
         redis_url="redis://localhost:6379/0",

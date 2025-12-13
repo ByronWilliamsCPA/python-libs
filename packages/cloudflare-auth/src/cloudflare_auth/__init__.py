@@ -11,7 +11,7 @@ behind Cloudflare Access tunnels, including:
 
 Quick Start:
     from fastapi import FastAPI, Depends
-    from src.cloudflare_auth import (
+    from cloudflare_auth import (
         setup_cloudflare_auth_enhanced,
         CloudflareUser,
         get_current_user,
@@ -35,23 +35,23 @@ Quick Start:
         return {"message": "Admin access granted"}
 """
 
-from src.cloudflare_auth.middleware import CloudflareAuthMiddleware, get_current_user, get_current_user_optional
-from src.cloudflare_auth.middleware_enhanced import (
+from cloudflare_auth.middleware import CloudflareAuthMiddleware, get_current_user, get_current_user_optional
+from cloudflare_auth.middleware_enhanced import (
     CloudflareAuthMiddlewareEnhanced,
     require_admin,
     require_tier,
     setup_cloudflare_auth_enhanced,
 )
-from src.cloudflare_auth.models import CloudflareJWTClaims, CloudflareUser
-from src.cloudflare_auth.security_helpers import (
+from cloudflare_auth.models import CloudflareJWTClaims, CloudflareUser
+from cloudflare_auth.security_helpers import (
     AuditLogger,
     SecurityHeadersMiddleware,
     create_session_cleanup_task,
     get_audit_logger,
 )
-from src.cloudflare_auth.sessions import SimpleSessionManager
-from src.cloudflare_auth.validators import CloudflareJWTValidator
-from src.cloudflare_auth.whitelist import (
+from cloudflare_auth.sessions import SimpleSessionManager
+from cloudflare_auth.validators import CloudflareJWTValidator
+from cloudflare_auth.whitelist import (
     EmailWhitelistValidator,
     UserTier,
     WhitelistManager,
@@ -60,7 +60,7 @@ from src.cloudflare_auth.whitelist import (
 
 # Optional Redis session manager (requires redis package)
 try:
-    from src.cloudflare_auth.redis_sessions import RedisSessionManager
+    from cloudflare_auth.redis_sessions import RedisSessionManager
     _REDIS_AVAILABLE = True
 except ImportError:
     RedisSessionManager = None  # type: ignore

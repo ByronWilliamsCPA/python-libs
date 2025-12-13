@@ -23,7 +23,7 @@ from typing import Any
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from src.cloudflare_auth.sessions import SimpleSessionManager
+from cloudflare_auth.sessions import SimpleSessionManager
 
 
 logger = logging.getLogger(__name__)

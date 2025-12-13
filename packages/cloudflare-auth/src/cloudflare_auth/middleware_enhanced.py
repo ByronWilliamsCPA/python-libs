@@ -26,7 +26,7 @@ Called by:
 
 Example:
     from fastapi import FastAPI
-    from src.cloudflare_auth import setup_cloudflare_auth_enhanced
+    from cloudflare_auth import setup_cloudflare_auth_enhanced
 
     app = FastAPI()
     setup_cloudflare_auth_enhanced(
@@ -43,13 +43,13 @@ from typing import Any
 from fastapi import HTTPException, Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from src.cloudflare_auth.csrf import CSRFProtection
-from src.cloudflare_auth.models import CloudflareUser
-from src.cloudflare_auth.rate_limiter import InMemoryRateLimiter
-from src.cloudflare_auth.sessions import SimpleSessionManager
-from src.cloudflare_auth.utils import get_client_ip, sanitize_email, sanitize_ip, sanitize_path
-from src.cloudflare_auth.validators import CloudflareJWTValidator
-from src.cloudflare_auth.whitelist import EmailWhitelistValidator, UserTier
+from cloudflare_auth.csrf import CSRFProtection
+from cloudflare_auth.models import CloudflareUser
+from cloudflare_auth.rate_limiter import InMemoryRateLimiter
+from cloudflare_auth.sessions import SimpleSessionManager
+from cloudflare_auth.utils import get_client_ip, sanitize_email, sanitize_ip, sanitize_path
+from cloudflare_auth.validators import CloudflareJWTValidator
+from cloudflare_auth.whitelist import EmailWhitelistValidator, UserTier
 from src.config.settings import CloudflareSettings, get_cloudflare_settings
 
 
@@ -396,7 +396,7 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
         Returns:
             CloudflareUser instance
         """
-        from src.cloudflare_auth.models import CloudflareJWTClaims
+        from cloudflare_auth.models import CloudflareJWTClaims
 
         # Create minimal claims for session-based auth
         claims = CloudflareJWTClaims(
