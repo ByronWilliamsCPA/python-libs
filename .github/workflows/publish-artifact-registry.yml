@@ -108,7 +108,7 @@ jobs:
         with:
           client-id: ${{ secrets.INFISICAL_CLIENT_ID }}
           client-secret: ${{ secrets.INFISICAL_CLIENT_SECRET }}
-          project-id: ${{ secrets.INFISICAL_PROJECT_ID }}
+          project-slug: ${{ secrets.INFISICAL_PROJECT_SLUG }}
           env-slug: prod
           export-type: env
 
