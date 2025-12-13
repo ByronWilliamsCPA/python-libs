@@ -1,5 +1,5 @@
 {
-  "template": "/home/byron/dev/cookiecutter-python-template",
+  "template": "https://github.com/ByronWilliamsCPA/cookiecutter-python-template",
   "commit": "ed9f899a0397975176940534242f30c2ed4be152",
   "checkout": null,
   "context": {
@@ -103,7 +103,7 @@
       "repo_url": "https://github.com/ByronWilliamsCPA/python-libs",
       "docs_url": "https://python-libs.readthedocs.io",
       "pypi_package_name": "python-libs",
-      "_template": "/home/byron/dev/cookiecutter-python-template",
+      "_template": "https://github.com/ByronWilliamsCPA/cookiecutter-python-template",
       "_commit": "ed9f899a0397975176940534242f30c2ed4be152"
     }
   },
