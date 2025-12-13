@@ -170,10 +170,14 @@ jobs:
         run: |
           echo "🚀 Publishing to Artifact Registry..."
 
-          # Use gcloud credential helper for authentication
+          # Get access token from gcloud for authentication
+          ACCESS_TOKEN=$(gcloud auth print-access-token)
+
+          # Use uv publish with token authentication
           uv publish \
             --publish-url "$AR_URL" \
-            --keyring-provider subprocess \
+            --username oauth2accesstoken \
+            --password "$ACCESS_TOKEN" \
             dist/*
 
           echo "✅ Published ${{ steps.parse.outputs.package }} v${{ steps.parse.outputs.version }}"
