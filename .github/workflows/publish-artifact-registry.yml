@@ -7,7 +7,7 @@
 #   - cloudflare-api-v1.0.0
 #   - gemini-image-v1.0.0
 #
-# Secrets are fetched from Infisical for enhanced security.
+# Secrets are stored in GitHub Secrets (Infisical integration planned for future).
 name: Publish to Artifact Registry
 
 on:
@@ -103,32 +103,35 @@ jobs:
           fi
           echo "✅ Version verified: $PKG_VERSION"
 
-      - name: Fetch secrets from Infisical
-        uses: Infisical/secrets-action@v1.0.15
-        with:
-          client-id: ${{ secrets.INFISICAL_CLIENT_ID }}
-          client-secret: ${{ secrets.INFISICAL_CLIENT_SECRET }}
-          project-slug: ${{ secrets.INFISICAL_PROJECT_SLUG }}
-          env-slug: prod
-          domain: https://infisical.williamshome.family
-          export-type: env
+      # TODO: Re-enable Infisical once Cloudflare Access authentication is configured
+      # - name: Fetch secrets from Infisical
+      #   uses: Infisical/secrets-action@v1.0.15
+      #   with:
+      #     client-id: ${{ secrets.INFISICAL_CLIENT_ID }}
+      #     client-secret: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+      #     project-slug: ${{ secrets.INFISICAL_PROJECT_SLUG }}
+      #     env-slug: prod
+      #     domain: https://infisical.williamshome.family
+      #     export-type: env
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ env.GCP_SA_KEY_BASE64 }}
+          credentials_json: ${{ secrets.GCP_SA_KEY_BASE64 }}
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Configure Artifact Registry authentication
+        env:
+          GCP_SA_KEY_BASE64: ${{ secrets.GCP_SA_KEY_BASE64 }}
         run: |
           # Decode the base64 credentials and configure keyring
           echo "$GCP_SA_KEY_BASE64" | base64 -d > /tmp/gcp-key.json
           gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
 
           # Get the repository URL
-          AR_URL="https://${AR_LOCATION:-us-central1}-python.pkg.dev/${GCP_PROJECT_ID:-assured-oss-457903}/${AR_REPOSITORY:-python-libs}/"
+          AR_URL="https://us-central1-python.pkg.dev/assured-oss-457903/python-libs/"
           echo "AR_URL=$AR_URL" >> "$GITHUB_ENV"
           echo "📦 Registry URL: $AR_URL"
 
