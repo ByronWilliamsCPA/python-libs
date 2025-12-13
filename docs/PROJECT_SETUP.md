@@ -43,7 +43,7 @@ Your project was generated with the following configuration:
 # Create a new repository on GitHub, then:
 git remote add origin https://github.com/ByronWilliamsCPA/python-libs.git
 git push -u origin main
-```
+```text
 
 ### 3. Install Dependencies
 
@@ -56,7 +56,7 @@ uv sync --all-extras
 
 # Install pre-commit hooks
 uv run pre-commit install
-```
+```text
 
 ### 4. Verify Setup
 
@@ -69,7 +69,7 @@ uv run ruff check .
 
 # Run type checking
 uv run basedpyright src/
-```
+```text
 
 ### 5. Generate Project Planning Documents
 
@@ -78,7 +78,7 @@ Use Claude Code to generate comprehensive planning documents for your project:
 ```bash
 # Open Claude Code and describe your project, then run:
 /plan <your detailed project description>
-```
+```text
 
 See [Project Planning with Claude Code](#project-planning-with-claude-code) below for the complete workflow.
 
@@ -92,7 +92,7 @@ This template includes an integrated AI-assisted project planning workflow that 
 
 The planning workflow generates 4 core documents, then synthesizes them into a comprehensive project plan:
 
-```
+```text
 Project Description
         │
         ▼
@@ -128,7 +128,7 @@ Project Description
 │   Step 3: Start Development           │
 │   /git/milestone start                │
 └───────────────────────────────────────┘
-```
+```text
 
 ### Step 1: Generate Planning Documents
 
@@ -140,18 +140,18 @@ Describe your project and generate the 4 core documents:
 The main users are individuals tracking expenses.
 Core features: expense tracking, budget categories, monthly reports.
 Technical constraints: must work offline, SQLite for storage.
-```
+```text
 
 **Or provide a more detailed description:**
 
-```
+```text
 Generate planning documents for this project:
 
 I'm building a REST API for inventory management. Target users are
 small business owners. Core features include product CRUD, stock
 tracking, low-stock alerts, and reporting. Must integrate with
 existing PostgreSQL database and support OAuth2 authentication.
-```
+```text
 
 **What gets created:**
 
@@ -177,7 +177,7 @@ After the 4 documents are generated, synthesize them into an actionable plan:
 ```bash
 # Request synthesis
 "Synthesize my planning documents into a project plan"
-```
+```text
 
 **The project-plan-synthesizer agent will:**
 
@@ -222,14 +222,14 @@ cat docs/planning/PROJECT-PLAN.md
 # - Phase deliverables match your expectations
 # - Git branch types align with semantic release
 # - Success criteria are measurable
-```
+```text
 
 **Start development with the milestone workflow:**
 
 ```bash
 # Start Phase 0 (creates branch, sets up tracking)
 /git/milestone start feat/phase-0-foundation
-```
+```text
 
 **This will:**
 
@@ -253,29 +253,29 @@ When you complete a phase:
 
 # 4. Start next phase
 /git/milestone start feat/phase-1-core
-```
+```text
 
 ### Using Planning Documents During Development
 
 **Load context for a task:**
 
-```
+```text
 Load context from project-vision.md sections 2-3 and adr/adr-001-*.md,
 then implement [feature] per tech-spec.md section [X].
-```
+```text
 
 **Validate code against specs:**
 
-```
+```text
 Review this code against tech-spec.md section 6 (security).
 Flag any violations.
-```
+```text
 
 **Check phase progress:**
 
-```
+```text
 Review PROJECT-PLAN.md Phase 1 deliverables and update status.
-```
+```text
 
 ### Document Update Guidelines
 
@@ -314,7 +314,7 @@ The OpenSSF Best Practices badge requires manual project registration:
 
 ```markdown
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/YOUR_PROJECT_ID/badge)](https://www.bestpractices.dev/en/projects/YOUR_PROJECT_ID)
-```
+```text
 
 **Tip**: Many questions can be answered "Met" based on this template's default configuration (CI/CD, security scanning, documentation, etc.).
 
@@ -347,7 +347,7 @@ cruft check
 
 # See what would change
 cruft diff
-```
+```text
 
 ### Apply Template Updates
 
@@ -358,7 +358,7 @@ cruft update
 # If there are conflicts, resolve them manually
 # Then mark as resolved:
 cruft update --skip
-```
+```text
 
 ### Best Practices for Updates
 
@@ -381,7 +381,7 @@ git add <resolved-files>
 
 # Complete the update
 cruft update --skip
-```
+```text
 
 ---
 
@@ -455,7 +455,7 @@ After registration, add this badge to your README's "Quality & Security" section
 
 ```markdown
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/YOUR_ID/badge)](https://www.bestpractices.dev/en/projects/YOUR_ID)
-```
+```text
 
 ---
 
@@ -475,7 +475,7 @@ uv run python scripts/setup_github_protection.py
 
 # Or specify custom settings
 uv run python scripts/setup_github_protection.py --enforce-admins --require-code-owner-reviews
-```
+```text
 
 The script configures:
 
@@ -522,7 +522,7 @@ reuse lint
 
 # Add license headers to new files
 reuse addheader --license MIT --copyright "Byron Williams" <file>
-```
+```text
 
 ---
 
@@ -539,7 +539,7 @@ reuse addheader --license MIT --copyright "Byron Williams" <file>
    git push origin v1.0.0
    ```
 
-4. **Create GitHub Release** from the tag
+1. **Create GitHub Release** from the tag
 
 ### Dependency Updates
 
@@ -556,7 +556,7 @@ This project enforces:
 
 ### Project Structure
 
-```
+```text
 python_libs/
 ├── src/python_libs/    # Main package
 │   ├── core/                               # Core functionality
@@ -566,7 +566,7 @@ python_libs/
 ├── .github/workflows/                      # CI/CD workflows
 ├── pyproject.toml                          # Project configuration
 └── README.md                               # Project readme
-```
+```text
 
 ---
 

@@ -41,7 +41,7 @@ For EACH document, follow this generate-review-refine cycle:
 
 After writing each document, request expert review:
 
-```
+```text
 mcp__zen__consensus with gemini-3-pro-preview:
 
 Review this [Document Type] for Python Libs.

@@ -4,7 +4,7 @@ This project uses **org-level reusable workflows** for consistency and maintaina
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │  python_libs        │
 │  (This Repository)                      │
@@ -43,7 +43,7 @@ This project uses **org-level reusable workflows** for consistency and maintaina
 │  │ • python-publish-pypi.yml          │ │
 │  └───────────────────────────────────┘ │
 └─────────────────────────────────────────┘
-```
+```text
 
 ## Workflow Descriptions
 
@@ -182,7 +182,7 @@ jobs:
       python-versions: '["3.10", "3.11", "3.12"]'  # Test multiple versions
       coverage-threshold: 85                        # Higher threshold
       basedpyright-strict: true                      # Strict type checking
-```
+```text
 
 ---
 
@@ -199,7 +199,7 @@ act -j security
 
 # Test with specific event
 act push -j ci
-```
+```text
 
 ---
 
@@ -211,9 +211,9 @@ act push -j ci
 
 **Solution**: Ensure the org-level `.github` repository exists and workflows are at:
 
-```
+```text
 ByronWilliamsCPA/.github/.github/workflows/*.yml
-```
+```text
 
 ### Permission Denied
 

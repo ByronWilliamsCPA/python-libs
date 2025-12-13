@@ -99,6 +99,6 @@ gitleaks detect --source .
 
 ## Invocation
 
-```
+```text
 /security or via Task tool with subagent_type='security-auditor'
 ```

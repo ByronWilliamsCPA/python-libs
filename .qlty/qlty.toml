@@ -5,13 +5,47 @@
 # For configuration reference: https://qlty.sh/d/qlty-toml
 config_version = "0"
 
+# File patterns to completely exclude from all analysis
+exclude_patterns = [
+    "*_min.*",
+    "*-min.*",
+    "*.min.*",
+    "*.log",
+    "**/__pycache__/**",
+    "**/*.pyc",
+    "**/*.pyo",
+    "**/.pytest_cache/**",
+    "**/.mypy_cache/**",
+    "**/.ruff_cache/**",
+    "**/node_modules/**",
+    "**/.venv/**",
+    "**/venv/**",
+    "**/build/**",
+    "**/dist/**",
+    "**/*.egg-info/**",
+    "**/data/**",
+    "**/models/**",
+    "**/.git/**",
+    "**/testdata/**",
+    "**/vendor/**",
+    "**/tests/fixtures/**",
+]
+
+# Patterns to identify test files for enhanced analysis
+test_patterns = [
+    "**/tests/**",
+    "**/test_*.py",
+    "**/*_test.py",
+    "**/*.test.*",
+    "**/*.spec.*",
+]
+
 # Default source for plugin definitions
 [[source]]
 name = "default"
 default = true
 
 # Note: File exclude and test patterns are configured at the top-level
-# exclude_patterns and test_patterns are not supported in [[source]] blocks
 
 # ============================================================================
 # Python Linting and Formatting - Ruff
@@ -93,7 +127,7 @@ name = "ruff"
 drivers = ["lint"]
 
 # Python security with Bandit (comment mode - subprocess use is intentional for validation)
-# Note: B101 (assert) warnings in tests are expected - nosec comments inline or ignored
+# Note: B101 (assert) warnings in tests are expected and run in comment mode
 # Note: Bandit configured in pyproject.toml to skip tests directory
 [[plugin]]
 name = "bandit"

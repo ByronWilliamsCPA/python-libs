@@ -65,7 +65,7 @@ pip install byronwilliamscpa-gemini-image
 
 # Or install from git (development)
 pip install "git+ssh://git@github.com/ByronWilliamsCPA/python-libs.git#subdirectory=packages/cloudflare-auth"
-```
+```text
 
 ## Features
 
@@ -97,7 +97,7 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 pip install uv
 # or
 pipx install uv
-```
+```text
 
 ### Installation
 
@@ -111,7 +111,7 @@ uv sync --all-extras
 
 # Setup pre-commit hooks (required)
 uv run pre-commit install
-```
+```text
 
 ### Basic Usage
 
@@ -123,7 +123,7 @@ from python_libs import YourModule
 module = YourModule()
 result = module.process()
 print(result)
-```
+```text
 
 ## Google Assured OSS Integration
 
@@ -142,14 +142,14 @@ This project uses **Google Assured OSS** as the primary package source, with PyP
 
    ```bash
    cp .env.example .env
-   ```
+   ```text
 
 2. **Configure Google Cloud Project**:
 
    ```bash
    # Edit .env and set your GCP project ID
    GOOGLE_CLOUD_PROJECT=your-gcp-project-id
-   ```
+   ```text
 
 3. **Setup Authentication** (choose one method):
 
@@ -159,7 +159,7 @@ This project uses **Google Assured OSS** as the primary package source, with PyP
    # Download service account key from GCP Console
    # Set the file path in .env
    GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-key.json
-   ```
+   ```text
 
    **Option B: Base64 Encoded Credentials** (CI/CD recommended)
 
@@ -169,7 +169,7 @@ This project uses **Google Assured OSS** as the primary package source, with PyP
 
    # Set the base64 string in .env
    GOOGLE_APPLICATION_CREDENTIALS_B64=<paste-base64-here>
-   ```
+   ```text
 
 4. **Validate Configuration**:
 
@@ -179,7 +179,7 @@ This project uses **Google Assured OSS** as the primary package source, with PyP
 
    # Or use nox
    nox -s assuredoss
-   ```
+   ```text
 
 ### Service Account Permissions
 
@@ -194,7 +194,7 @@ To use only PyPI (not recommended for production):
 ```bash
 # In .env file
 USE_ASSURED_OSS=false
-```
+```text
 
 ### Troubleshooting
 
@@ -239,7 +239,7 @@ qlty check
 
 # Or use pre-commit
 uv run pre-commit run --all-files
-```
+```text
 
 ### Code Quality Standards
 
@@ -281,7 +281,7 @@ This project includes standardized Claude Code configuration via git subtree:
 
 **Directory Structure**:
 
-```
+```text
 .claude/
 ├── claude.md          # Project-specific Claude guidelines
 └── standard/          # Standard Claude configuration (git subtree)
@@ -289,7 +289,7 @@ This project includes standardized Claude Code configuration via git subtree:
     ├── commands/      # Custom slash commands
     ├── skills/        # Reusable skills
     └── agents/        # Specialized agents
-```
+```text
 
 **Updating Standards**:
 
@@ -300,7 +300,7 @@ This project includes standardized Claude Code configuration via git subtree:
 # Or manually
 git subtree pull --prefix .claude/standard \
     https://github.com/williaby/.claude.git main --squash
-```
+```text
 
 **What's Included**:
 
@@ -326,7 +326,7 @@ uv run pytest --cov=python_libs --cov-report=term-missing
 
 # Run tests in parallel
 uv run pytest -n auto
-```
+```text
 
 ### Quality Checks with Qlty
 
@@ -347,7 +347,7 @@ qlty fmt
 
 # View current configuration
 qlty config show
-```
+```text
 
 **Qlty runs all these tools in a single pass:**
 
@@ -401,11 +401,11 @@ uv run bandit -r src
 
 # Dependency vulnerabilities
 qlty check --plugin osv_scanner
-```
+```text
 
 ## Project Structure
 
-```
+```text
 python-libs/
 ├── packages/                             # UV workspace packages
 │   ├── cloudflare-auth/                  # JWT/Cloudflare Access middleware
@@ -431,7 +431,7 @@ python-libs/
 ├── pyproject.toml                        # Root workspace config
 ├── README.md                             # This file
 └── CONTRIBUTING.md                       # Contribution guidelines
-```
+```text
 
 ## Documentation
 
@@ -471,7 +471,7 @@ uv run pytest -v -m integration
 
 # Run with coverage requirements
 uv run pytest --cov=python_libs --cov-fail-under=80
-```
+```text
 
 ## Security
 
@@ -515,9 +515,9 @@ Packages are published to **GCP Artifact Registry** (not PyPI) for enhanced supp
 
 The publishing process uses GitHub Actions triggered by version tags, with secrets managed securely via Infisical:
 
-```
+```text
 Developer → Push Tag → GitHub Actions → Infisical → GCP Auth → Artifact Registry
-```
+```text
 
 <details>
 <summary><b>View PlantUML Sequence Diagram</b></summary>
@@ -593,7 +593,7 @@ note left of Infisical
 end note
 
 @enduml
-```
+```text
 
 </details>
 
@@ -613,7 +613,7 @@ See also: [docs/diagrams/publish-workflow.puml](docs/diagrams/publish-workflow.p
    git tag gemini-image-v1.0.0
 
    git push origin --tags
-   ```
+   ```text
 
 4. **GitHub Actions** automatically:
    - Fetches GCP credentials from Infisical
@@ -671,7 +671,7 @@ git commit -m "feat!: redesign API for better ergonomics
 
 BREAKING CHANGE: API has been redesigned for improved usability.
 See migration guide in docs/migration/v2.0.0.md"
-```
+```text
 
 **Configuration:** See `[tool.semantic_release]` in `pyproject.toml` for settings.
 
@@ -693,7 +693,7 @@ cruft diff
 # Or use cruft directly (requires manual cleanup)
 cruft update
 python scripts/cleanup_conditional_files.py
-```
+```text
 
 ### Important: Cruft Update Limitations
 
@@ -710,7 +710,7 @@ python scripts/cleanup_conditional_files.py
 
 # Or preview what would be removed
 python scripts/cleanup_conditional_files.py --dry-run
-```
+```text
 
 ### Conditional Files
 

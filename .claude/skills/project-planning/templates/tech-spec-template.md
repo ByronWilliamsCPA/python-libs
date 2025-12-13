@@ -39,7 +39,7 @@
 [Monolith | Microservices | Serverless | etc] - See [ADR-XXX]
 
 ### Component Diagram
-```
+```text
 
 ┌─────────────────────────────────────────┐
 │              [Component]                │
@@ -52,7 +52,7 @@
 │            [Data Layer]                 │
 └─────────────────────────────────────────┘
 
-```
+```text
 
 ### Component Responsibilities
 | Component | Purpose | Key Functions |
@@ -71,7 +71,7 @@ class [Entity]:
     [field]: [type]
     created_at: datetime
     updated_at: datetime
-```
+```text
 
 ### Relationships
 
@@ -93,7 +93,7 @@ class [Entity]:
   "[field]": "[type]",
   "[field]": "[type]"
 }
-```
+```text
 
 ## 5. CLI Specification (if applicable)
 
@@ -166,7 +166,7 @@ class [Entity]:
 - [Architecture Decisions](./adr/)
 - [Development Roadmap](./roadmap.md)
 
-```
+```text
 
 ## Generation Notes
 
