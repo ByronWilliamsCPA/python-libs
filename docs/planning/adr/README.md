@@ -27,7 +27,9 @@ ADRs document significant architectural decisions along with their context and c
 
 | ADR | Title | Status | Date |
 |-----|-------|--------|------|
-| *No ADRs yet* | Generate with `/plan` command | - | - |
+| [ADR-001](./adr-001-monorepo-architecture.md) | UV Workspace Monorepo Architecture | Accepted | 2025-12-04 |
+| [ADR-002](./adr-002-framework-agnostic-design.md) | Framework-Agnostic Core with Optional Adapters | Accepted | 2025-12-04 |
+| [ADR-003](./adr-003-distribution-strategy.md) | Private Package Distribution Strategy | Accepted | 2025-12-04 |
 
 ## Creating ADRs
 
