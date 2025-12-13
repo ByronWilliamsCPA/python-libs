@@ -104,7 +104,7 @@ jobs:
           echo "✅ Version verified: $PKG_VERSION"
 
       - name: Fetch secrets from Infisical
-        uses: Infisical/secrets-action@dd8d8c9c7f7a71b62c9c736e50d397e224c95ff5 # v1.0.7
+        uses: Infisical/secrets-action@v1.0.15
         with:
           client-id: ${{ secrets.INFISICAL_CLIENT_ID }}
           client-secret: ${{ secrets.INFISICAL_CLIENT_SECRET }}
