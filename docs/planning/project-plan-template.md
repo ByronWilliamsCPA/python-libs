@@ -81,7 +81,7 @@ Python Libs is a [brief description of what the project does]. This document out
 
 [Describe the overall system design]
 
-```
+```text
 ┌─────────────────────────────────────┐
 │   Component/Module 1                 │
 ├─────────────────────────────────────┤
@@ -95,7 +95,7 @@ Python Libs is a [brief description of what the project does]. This document out
 │   • Responsibility 1                 │
 │   • Responsibility 2                 │
 └─────────────────────────────────────┘
-```
+```text
 
 ### Module Responsibilities
 
@@ -121,11 +121,11 @@ Python Libs is a [brief description of what the project does]. This document out
 
 [Describe how data flows through the system]
 
-```
+```text
 Input → Processing → Output
   ↓         ↓          ↓
 Step1    Step2       Step3
-```
+```text
 
 ---
 
@@ -160,7 +160,7 @@ docs/phase-4-documentation # Documentation (no release)
 
 # Or manually for simple phases
 git checkout -b feat/phase-1-core
-```
+```text
 
 **Phase Completion Workflow**:
 

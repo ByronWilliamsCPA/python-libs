@@ -58,7 +58,7 @@ Analyze the current branch and prepare a PR description following the project te
 
 **Description**:
 
-```
+```markdown
 ## Summary
 
 Add OAuth2 authentication flow supporting Google and GitHub providers.

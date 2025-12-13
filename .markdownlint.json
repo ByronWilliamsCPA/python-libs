@@ -1,9 +1,19 @@
 {
   "default": true,
   "MD013": false,
+  "MD024": false,
+  "MD029": false,
   "MD033": false,
   "MD041": false,
+  "MD051": false,
+  "MD055": false,
+  "MD060": false,
   "line-length": false,
   "no-inline-html": false,
-  "first-line-heading": false
+  "first-line-heading": false,
+  "headings": false,
+  "ol-prefix": false,
+  "table-column-style": false,
+  "table-pipe-style": false,
+  "link-fragments": false
 }

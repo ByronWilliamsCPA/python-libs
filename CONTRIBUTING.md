@@ -44,11 +44,11 @@ curl https://qlty.sh | bash
 # Verify installation
 uv run pytest -v
 qlty check
-```
+```text
 
 ### Project Structure
 
-```
+```text
 python_libs/
 ├── src/python_libs/       # Main package
 │   ├── __init__.py
@@ -62,7 +62,7 @@ python_libs/
 │   ├── planning/                         # Project planning
 │   └── guides/                           # User guides
 └── pyproject.toml                        # Dependencies & config
-```
+```text
 
 ## Development Workflow
 
@@ -77,7 +77,7 @@ git checkout -b fix/issue-description
 
 # For documentation
 git checkout -b docs/documentation-update
-```
+```text
 
 ### Branch Naming Convention
 
@@ -114,7 +114,7 @@ uv run pre-commit run --all-files
 
 # Run tests with coverage
 uv run pytest --cov=python_libs --cov-report=term-missing
-```
+```text
 
 **Note**: Qlty consolidates all quality tools (Ruff, BasedPyright, Bandit, Markdownlint, etc.) into a single fast CLI. See [`.qlty/qlty.toml`](.qlty/qlty.toml) for configuration.
 
@@ -177,7 +177,7 @@ def process_data(
         ValueError: If data format is not supported
     """
     pass
-```
+```text
 
 ### Documentation
 
@@ -229,7 +229,7 @@ uv run pytest --cov=python_libs --cov-report=html
 
 # Run specific test file
 uv run pytest tests/unit/test_module.py -v
-```
+```text
 
 ### Writing Tests
 
@@ -253,7 +253,7 @@ def test_module_processes_data(tmp_path: Path):
 
     assert result is not None
     assert result["status"] == "success"
-```
+```text
 
 ## Commit Convention
 
@@ -261,13 +261,13 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/) specifica
 
 ### Commit Message Format
 
-```
+```text
 <type>(<scope>): <subject>
 
 <body>
 
 <footer>
-```
+```text
 
 ### Types
 
@@ -305,7 +305,7 @@ feat(core)!: redesign API for better ergonomics
 
 BREAKING CHANGE: API has been redesigned for improved usability.
 See migration guide in docs/migration/v1.0.0.md
-```
+```text
 
 ## Pull Request Process
 
@@ -326,23 +326,23 @@ See migration guide in docs/migration/v1.0.0.md
    git push origin feature/your-feature-name
    ```
 
-2. **Create Pull Request** on GitHub with:
+1. **Create Pull Request** on GitHub with:
    - **Clear title**: Following conventional commit format
    - **Description**: What changes were made and why
    - **Issue reference**: `Fixes #123` or `Refs #456`
    - **Testing notes**: How reviewers can test the changes
    - **Breaking changes**: Clearly documented (if applicable)
 
-3. **Wait for CI checks**:
+2. **Wait for CI checks**:
    - All GitHub Actions workflows must pass
    - Test coverage must meet requirements
 
-4. **Address review feedback**:
+3. **Address review feedback**:
    - Respond to all reviewer comments
    - Push additional commits to the same branch
    - Request re-review when ready
 
-5. **Merge**:
+4. **Merge**:
    - Maintainer will merge when approved
    - Follow conventional commits for final commit message
 

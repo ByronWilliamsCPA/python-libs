@@ -50,7 +50,7 @@ Determine:
 
 Follow conventional commits format:
 
-```
+```text
 <type>(<scope>): <subject>
 
 <body>
@@ -139,7 +139,7 @@ Looking at your staged changes:
 
 **Suggested commit**:
 
-```
+```text
 feat(auth): add OAuth token refresh
 
 Implement automatic token refresh when access token expires.
@@ -158,7 +158,7 @@ Shall I commit with this message?
 
 **Suggested commit**:
 
-```
+```text
 feat(api)!: change response envelope format
 
 BREAKING CHANGE: API responses now use { data, meta, errors }
@@ -193,7 +193,7 @@ Want me to help stage and commit each separately?
 
 Always include Claude attribution for AI-assisted commits:
 
-```
+```text
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>

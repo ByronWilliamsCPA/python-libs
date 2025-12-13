@@ -28,7 +28,7 @@ This directory contains the essential planning documents for Python Libs.
 
 # 4. Start development
 /git/milestone start feat/phase-0-foundation
-```
+```text
 
 ## Documents
 
@@ -43,24 +43,24 @@ This directory contains the essential planning documents for Python Libs.
 
 ### Starting a Session
 
-```
+```text
 Load context from:
 - project-vision.md sections 2-3
 - adr/adr-001-*.md
 - tech-spec.md section [relevant section]
 
 Then implement [feature].
-```
+```text
 
 ### Validating Code
 
-```
+```text
 Review this code against:
 - tech-spec.md section 6 (security)
 - adr/adr-002-*.md (relevant decision)
 
 Flag any violations.
-```
+```text
 
 ### Updating Documents
 
@@ -73,7 +73,7 @@ Update documents when:
 
 ## Document Relationships
 
-```
+```text
 ┌─────────────────────────────┐
 │   Project Vision & Scope    │  ← WHAT & WHY
 └──────────────┬──────────────┘
@@ -92,7 +92,7 @@ Update documents when:
 ┌─────────────────────────────┐
 │  Development Roadmap        │  ← WHEN
 └─────────────────────────────┘
-```
+```text
 
 ## More Information
 

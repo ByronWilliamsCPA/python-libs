@@ -49,7 +49,7 @@ uv run mutmut run --paths-to-mutate=src/
 
 # Run property-based tests
 uv run pytest --hypothesis-show-statistics
-```
+```text
 
 ## Coverage Standards
 
@@ -59,7 +59,7 @@ uv run pytest --hypothesis-show-statistics
 
 ## Test Organization
 
-```
+```text
 tests/
 ├── unit/           # Unit tests (fast, isolated)
 ├── integration/    # Integration tests (may use external services)
@@ -67,7 +67,7 @@ tests/
 ├── security/      # Security-focused tests
 ├── performance/   # Performance and load tests
 └── conftest.py    # Shared fixtures
-```
+```text
 
 ## Testing Patterns
 
@@ -83,7 +83,7 @@ def test_example():
 
     # Assert
     assert result == expected_output
-```
+```text
 
 ### Fixtures
 
@@ -94,4 +94,4 @@ def sample_data():
 
 def test_with_fixture(sample_data):
     assert sample_data["key"] == "value"
-```
+```text

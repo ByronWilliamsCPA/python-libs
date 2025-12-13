@@ -16,7 +16,7 @@ Run this workflow AFTER generating all planning documents:
 # Verify documents exist (not placeholders)
 ls -la docs/planning/
 # Should show: project-vision.md, tech-spec.md, roadmap.md, adr/
-```
+```text
 
 ## Arguments
 
@@ -45,7 +45,7 @@ if [ "$adr_count" -eq 0 ]; then
     exit 1
 fi
 echo "✅ Found $adr_count ADR(s)"
-```
+```text
 
 ### 2. Extract Information
 
@@ -101,7 +101,7 @@ For each phase in the roadmap, determine the appropriate branch type:
 
 **Branch Naming**:
 
-```
+```text
 {type}/phase-{number}-{short-slug}
 
 Examples:
@@ -110,7 +110,7 @@ feat/phase-1-core-features
 feat/phase-2-advanced
 perf/phase-3-optimization
 docs/phase-4-documentation
-```
+```text
 
 ### 4. Generate PROJECT-PLAN.md
 
@@ -158,14 +158,14 @@ source_documents:
 **Start a phase**:
 ```bash
 /git/milestone start {branch-name}
-```
+```text
 
 **Complete a phase**:
 
 ```bash
 /git/milestone complete
 /git/pr-prepare --include_wtd=true
-```
+```text
 
 ## Phased Development
 
@@ -187,7 +187,7 @@ source_documents:
 
 ```bash
 /git/milestone start {branch-name}
-```
+```text
 
 ---
 
@@ -240,8 +240,8 @@ source_documents:
    /git/milestone start feat/phase-0-foundation
    ```
 
-3. Track progress with TodoWrite
-4. Complete phases with PR workflow
+1. Track progress with TodoWrite
+2. Complete phases with PR workflow
 
 ## Document References
 
@@ -250,7 +250,7 @@ source_documents:
 - [Development Roadmap](./roadmap.md)
 - [Architecture Decisions](./adr/)
 
-```
+```text
 
 ### 5. Create Initial TODO List
 
@@ -273,7 +273,7 @@ Generate TodoWrite items for Phase 0:
 - [ ] Tests passing
 - [ ] Pre-commit checks pass
 - [ ] Create PR via /git/pr-prepare
-```
+```text
 
 ### 6. Optional: Start First Phase
 
@@ -285,13 +285,13 @@ If `--start-phase` argument provided:
 
 # Or if on main already:
 git checkout -b feat/phase-0-foundation
-```
+```text
 
 ## Output Summary
 
 After synthesis:
 
-```
+```text
 ✅ Created docs/planning/PROJECT-PLAN.md
 
 📊 Plan Summary:
@@ -304,33 +304,33 @@ After synthesis:
 
 🚀 Next: Review plan, then run:
    /git/milestone start feat/phase-0-foundation
-```
+```text
 
 ## Error Handling
 
 ### Missing Documents
 
-```
+```text
 ❌ Missing required documents:
    - project-vision.md (placeholder)
    - tech-spec.md (placeholder)
 
 Run first: /plan <your project description>
-```
+```text
 
 ### Conflicting Information
 
-```
+```text
 ⚠️ Inconsistency detected:
    - Roadmap Phase 1 duration: 3 weeks
    - Tech Spec estimates: 5 weeks
 
 Please clarify timeline before synthesis.
-```
+```text
 
 ### No ADRs Found
 
-```
+```text
 ⚠️ No Architecture Decision Records found.
 
 Consider creating ADR for:
@@ -339,7 +339,7 @@ Consider creating ADR for:
 - Key framework decisions
 
 Use: /adr create <decision-title>
-```
+```text
 
 ## Related Commands
 
