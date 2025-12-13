@@ -1,0 +1,104 @@
+# .github/workflows/publish.yml
+# Publishes packages to GCP Artifact Registry when tags are pushed
+# Secrets are fetched from Infisical
+# Uses Assured OSS dependencies for supply chain security
+
+name: Publish Package
+
+on:
+  push:
+    tags:
+      - 'cloudflare-auth-v*'
+      - 'gcs-utilities-v*'
+
+permissions:
+  contents: read
+
+env:
+  INFISICAL_DOMAIN: https://secrets.byronwilliamscpa.com
+  INFISICAL_PROJECT: python-libs
+  INFISICAL_ENV: prod
+  ARTIFACT_REGISTRY_URL: https://us-central1-python.pkg.dev/assured-oss-457903/python-libs/
+
+jobs:
+  determine-package:
+    runs-on: ubuntu-latest
+    outputs:
+      package_dir: ${{ steps.parse.outputs.package_dir }}
+      package_name: ${{ steps.parse.outputs.package_name }}
+      version: ${{ steps.parse.outputs.version }}
+    steps:
+      - name: Parse tag
+        id: parse
+        run: |
+          TAG="${{ github.ref_name }}"
+          echo "Processing tag: $TAG"
+
+          if [[ "$TAG" == cloudflare-auth-v* ]]; then
+            echo "package_dir=packages/cloudflare-auth" >> $GITHUB_OUTPUT
+            echo "package_name=byronwilliamscpa-cloudflare-auth" >> $GITHUB_OUTPUT
+            echo "version=${TAG#cloudflare-auth-v}" >> $GITHUB_OUTPUT
+          elif [[ "$TAG" == gcs-utilities-v* ]]; then
+            echo "package_dir=packages/gcs-utilities" >> $GITHUB_OUTPUT
+            echo "package_name=byronwilliamscpa-gcs-utilities" >> $GITHUB_OUTPUT
+            echo "version=${TAG#gcs-utilities-v}" >> $GITHUB_OUTPUT
+          else
+            echo "::error::Unknown tag format: $TAG"
+            exit 1
+          fi
+
+  build-and-publish:
+    needs: determine-package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Fetch secrets from Infisical
+        uses: Infisical/secrets-action@v1.0.7
+        with:
+          client-id: ${{ secrets.INFISICAL_CLIENT_ID }}
+          client-secret: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+          env-slug: ${{ env.INFISICAL_ENV }}
+          project-slug: ${{ env.INFISICAL_PROJECT }}
+          domain: ${{ env.INFISICAL_DOMAIN }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@6b9c6063abd6010835644d4c2e1bef4cf5cd0fca # v6.0.1
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Verify version matches tag
+        working-directory: ${{ needs.determine-package.outputs.package_dir }}
+        run: |
+          TOML_VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          TAG_VERSION="${{ needs.determine-package.outputs.version }}"
+          if [[ "$TOML_VERSION" != "$TAG_VERSION" ]]; then
+            echo "::error::Version mismatch! pyproject.toml=$TOML_VERSION, tag=$TAG_VERSION"
+            exit 1
+          fi
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@71f986410dfbc7added4569d411d040a91dc6935 # v2.1.8
+        with:
+          credentials_json: ${{ env.GCP_SA_KEY_BASE64 }}
+
+      - name: Install keyring for Artifact Registry
+        run: pip install keyrings.google-artifactregistry-auth
+
+      - name: Build package
+        working-directory: ${{ needs.determine-package.outputs.package_dir }}
+        run: uv build
+
+      - name: Publish to Artifact Registry
+        working-directory: ${{ needs.determine-package.outputs.package_dir }}
+        run: uv publish --publish-url ${{ env.ARTIFACT_REGISTRY_URL }}
+
+      - name: Job summary
+        run: |
+          echo "## 📦 Published: ${{ needs.determine-package.outputs.package_name }} v${{ needs.determine-package.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Registry: \`us-central1-python.pkg.dev/assured-oss-457903/python-libs\`" >> $GITHUB_STEP_SUMMARY
