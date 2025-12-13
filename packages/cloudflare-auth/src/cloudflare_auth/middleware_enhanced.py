@@ -36,22 +36,26 @@ Example:
     )
 """
 
-from collections.abc import Callable
 import logging
+from collections.abc import Callable
 from typing import Any
 
 from fastapi import HTTPException, Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from cloudflare_auth.config import CloudflareSettings, get_cloudflare_settings
 from cloudflare_auth.csrf import CSRFProtection
 from cloudflare_auth.models import CloudflareUser
 from cloudflare_auth.rate_limiter import InMemoryRateLimiter
 from cloudflare_auth.sessions import SimpleSessionManager
-from cloudflare_auth.utils import get_client_ip, sanitize_email, sanitize_ip, sanitize_path
+from cloudflare_auth.utils import (
+    get_client_ip,
+    sanitize_email,
+    sanitize_ip,
+    sanitize_path,
+)
 from cloudflare_auth.validators import CloudflareJWTValidator
 from cloudflare_auth.whitelist import EmailWhitelistValidator, UserTier
-from src.config.settings import CloudflareSettings, get_cloudflare_settings
-
 
 logger = logging.getLogger(__name__)
 
@@ -131,11 +135,10 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
             self.csrf_protection = None
 
         # Validate configuration
-        if self.settings.cloudflare_enabled and require_auth:
-            if not whitelist_validator:
-                logger.warning(
-                    "No whitelist validator provided - all authenticated users will be allowed"
-                )
+        if self.settings.cloudflare_enabled and require_auth and not whitelist_validator:
+            logger.warning(
+                "No whitelist validator provided - all authenticated users will be allowed"
+            )
 
         logger.info(
             "Initialized enhanced Cloudflare auth middleware "
@@ -216,21 +219,18 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(
-                "Unexpected error during authentication: %s",
-                str(e),
-                exc_info=True,
-            )
+            logger.exception("Unexpected error during authentication")
             if self.require_auth:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="Authentication service error",
                 ) from e
-            else:
-                request.state.user = None
-                return await call_next(request)
+            request.state.user = None
+            return await call_next(request)
 
-    async def _authenticate_request(self, request: Request) -> CloudflareUser | None:
+    async def _authenticate_request(  # noqa: C901, PLR0912
+        self, request: Request
+    ) -> CloudflareUser | None:
         """Authenticate request using JWT and whitelist.
 
         Args:
@@ -383,9 +383,7 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
         return user
 
     def _user_from_session(
-        self,
-        session: dict[str, Any],
-        session_id: str
+        self, session: dict[str, Any], session_id: str
     ) -> CloudflareUser:
         """Recreate CloudflareUser from session data.
 
@@ -405,7 +403,8 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
             aud=[self.settings.cloudflare_audience_tag],
             sub=session.get("email", ""),
             iat=int(session["created_at"].timestamp()),
-            exp=int(session["last_accessed"].timestamp()) + self.session_manager.session_timeout,
+            exp=int(session["last_accessed"].timestamp())
+            + self.session_manager.session_timeout,
         )
 
         tier = UserTier.from_string(session.get("user_tier", "limited"))
@@ -667,6 +666,7 @@ def require_tier(minimum_tier: UserTier) -> Callable:
         async def premium(user: CloudflareUser = Depends(require_full)):
             return {"message": "Premium content"}
     """
+
     def dependency(request: Request) -> CloudflareUser:
         user = get_current_user(request)
 

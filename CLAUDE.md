@@ -28,7 +28,7 @@ This feedback will be shared with the template team to improve the cookiecutter 
 **Name**: Python Libs
 **Description**: Shared Python libraries for ByronWilliamsCPA projects - JWT auth, GCS utilities, and more
 **Author**: Byron Williams <byronawilliams@gmail.com>
-**Repository**: https://github.com/ByronWilliamsCPA/python-libs
+**Repository**: <https://github.com/ByronWilliamsCPA/python-libs>
 **Created**: 2025-12-04
 
 ### Technology Stack
@@ -39,6 +39,7 @@ This feedback will be shared with the template team to improve the cookiecutter 
 - **Testing**: pytest, coverage
 - **Security**: Bandit, Safety
 - **Documentation**: MkDocs Material
+
 ---
 
 <!--
@@ -149,6 +150,7 @@ When working on this project, always suggest appropriate security measures:
 - **Dependencies**: Suggest vulnerability scanning (`safety check`, `pip-audit`)
 - **APIs**: Suggest authentication, rate limiting, input validation
 - **Data**: Suggest encryption at rest and in transit, access controls
+
 ### 2. Never Bypass Security Issues
 
 - **ALL security findings** from scanners (Semgrep, SonarQube, Bandit, Checkov) should be addressed, not dismissed
@@ -172,11 +174,13 @@ When working on this project, always suggest appropriate security measures:
 For deployment on FIPS-enabled systems (Ubuntu LTS with fips-updates, government systems, healthcare, finance):
 
 **Prohibited algorithms** (will fail in FIPS mode):
+
 - MD5, MD4, SHA-1 (for security purposes)
 - DES, 3DES, RC2, RC4, Blowfish
 - Non-approved key exchange methods
 
 **Required patterns**:
+
 ```python
 # ✗ WRONG - Will fail on FIPS systems
 import hashlib
@@ -190,11 +194,13 @@ h = hashlib.sha256(data)
 ```
 
 **Check FIPS compatibility**:
+
 ```bash
 uv run python scripts/check_fips_compatibility.py --fix-hints
 ```
 
 **Problematic packages** (need verification or replacement):
+
 - `bcrypt` → Use `passlib` with PBKDF2 or `argon2-cffi`
 - `pycrypto` → Use `pycryptodome` with FIPS mode
 - Verify `cryptography` version >= 3.4.6 with OpenSSL FIPS provider
@@ -444,6 +450,7 @@ docs/                       # MkDocs documentation
 - Configuration: Use Pydantic Settings with `.env` files
 - Logging: Structured logging via `src/python_libs/utils/logging.py`
 - Error Handling: Custom exceptions in `src/python_libs/core/exceptions.py`
+
 ### Exception Hierarchy
 
 Use the centralized exception hierarchy for consistent error handling:
@@ -592,6 +599,7 @@ uv run pytest tests/unit/test_example.py::test_function_name -v
 - BasedPyright type checking
 - Security scans (no high/critical)
 - Pre-commit hooks
+
 ---
 
 ## Third-Party Integrations

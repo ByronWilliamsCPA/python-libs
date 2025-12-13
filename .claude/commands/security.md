@@ -9,6 +9,7 @@ Run security validation including environment checks, vulnerability scanning, an
 ```
 
 **Arguments:**
+
 - `scope` (optional): `all`, `env`, `scan`, `deps` (default: `all`)
 
 ## Workflow
@@ -21,6 +22,7 @@ Run security validation including environment checks, vulnerability scanning, an
 ## Commands Executed
 
 ### Environment Validation
+
 ```bash
 # Check GPG key
 gpg --list-secret-keys
@@ -33,6 +35,7 @@ git config --get user.signingkey
 ```
 
 ### Code Scanning
+
 ```bash
 # Bandit security scanner
 uv run bandit -r src/ -c pyproject.toml
@@ -42,6 +45,7 @@ uv run semgrep scan --config auto src/
 ```
 
 ### Dependency Audit
+
 ```bash
 # Check for vulnerable dependencies
 uv run pip-audit
@@ -51,6 +55,7 @@ uv run safety check
 ```
 
 ### Secrets Detection
+
 ```bash
 # Gitleaks scan
 gitleaks detect --source .
@@ -69,6 +74,7 @@ trufflehog filesystem .
 ## OWASP Compliance
 
 Focus on preventing:
+
 - A01: Broken Access Control
 - A03: Injection
 - A07: Authentication Failures

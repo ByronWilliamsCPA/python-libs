@@ -9,6 +9,7 @@ Run code quality checks including formatting, linting, and type checking.
 ```
 
 **Arguments:**
+
 - `scope` (optional): `all`, `format`, `lint`, `types` (default: `all`)
 
 ## Workflow
@@ -21,22 +22,26 @@ Run code quality checks including formatting, linting, and type checking.
 ## Commands Executed
 
 ### Format
+
 ```bash
 uv run black --check .
 uv run ruff format --check .
 ```
 
 ### Lint
+
 ```bash
 uv run ruff check .
 ```
 
 ### Types
+
 ```bash
 uv run basedpyright src/
 ```
 
 ### All (Pre-commit)
+
 ```bash
 uv run pre-commit run --all-files
 ```
@@ -50,6 +55,7 @@ uv run pre-commit run --all-files
 ## Fix Issues
 
 To automatically fix formatting and some lint issues:
+
 ```bash
 uv run black .
 uv run ruff check --fix .

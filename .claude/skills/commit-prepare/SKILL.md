@@ -10,6 +10,7 @@ Automatically prepare commit messages following conventional commits standard.
 ## Activation
 
 This skill activates on keywords:
+
 - "commit", "prepare commit", "commit this"
 - "commit message", "write commit"
 - "stage and commit", "commit changes"
@@ -38,6 +39,7 @@ git diff --stat
 ### 2. Analyze Changes
 
 Determine:
+
 - **Type**: feat, fix, docs, refactor, test, chore, perf, ci
 - **Scope**: Which component/module is affected (optional)
 - **Breaking**: Are there breaking changes?
@@ -79,6 +81,7 @@ Follow conventional commits format:
 ### 4. Handle Staging
 
 If there are unstaged changes, ask:
+
 - "Stage all changes?" (`git add .`)
 - "Stage specific files?" (list them)
 - "Review changes first?" (show diff)
@@ -111,6 +114,7 @@ EOF
 ### 6. Post-Commit
 
 After successful commit:
+
 - Show `git log -1` to confirm
 - Suggest `git push` if ready
 - Mention if more changes remain unstaged
@@ -122,16 +126,19 @@ After successful commit:
 **User**: "commit these changes"
 
 **Claude**:
+
 ```bash
 git status
 git diff --cached
 ```
 
 Looking at your staged changes:
+
 - Modified `src/auth/oauth.py` - added token refresh logic
 - Modified `tests/test_auth.py` - added refresh tests
 
 **Suggested commit**:
+
 ```
 feat(auth): add OAuth token refresh
 
@@ -150,6 +157,7 @@ Shall I commit with this message?
 **Claude**: I see you've changed the API response format. This is a breaking change.
 
 **Suggested commit**:
+
 ```
 feat(api)!: change response envelope format
 
@@ -168,11 +176,13 @@ This marks it as a breaking change with `!`. Proceed?
 **User**: "commit this"
 
 **Claude**: I see changes to multiple unrelated areas:
+
 1. Bug fix in `parser.py`
 2. New feature in `export.py`
 3. Updated docs
 
 Recommend splitting into separate commits:
+
 1. `fix(parser): handle empty input gracefully`
 2. `feat(export): add CSV export option`
 3. `docs: update export documentation`

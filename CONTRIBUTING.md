@@ -15,7 +15,7 @@ Thank you for your interest in contributing to Python Libs! This document provid
 
 ## Code of Conduct
 
-This project adheres to the [ByronWilliamsCPA organization Code of Conduct](https://github.com/ByronWilliamsCPA/.github/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to byronawilliams@gmail.com.
+This project adheres to the [ByronWilliamsCPA organization Code of Conduct](https://github.com/ByronWilliamsCPA/.github/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to <byronawilliams@gmail.com>.
 
 ## Getting Started
 
@@ -321,6 +321,7 @@ See migration guide in docs/migration/v1.0.0.md
 ### Submitting a Pull Request
 
 1. **Push your branch**:
+
    ```bash
    git push origin feature/your-feature-name
    ```
@@ -383,7 +384,7 @@ Use the feature request template and include:
 - **General Questions**: Open a [GitHub Discussion](https://github.com/ByronWilliamsCPA/python-libs/discussions)
 - **Bug Reports**: Open a [GitHub Issue](https://github.com/ByronWilliamsCPA/python-libs/issues)
 - **Security Issues**: See [ByronWilliamsCPA Security Policy](https://github.com/ByronWilliamsCPA/.github/blob/main/SECURITY.md)
-- **Email**: byronawilliams@gmail.com
+- **Email**: <byronawilliams@gmail.com>
 
 ## Recognition
 

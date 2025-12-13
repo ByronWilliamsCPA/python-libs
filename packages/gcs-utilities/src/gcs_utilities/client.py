@@ -62,7 +62,7 @@ class GCSClient:
         bucket_name: str | None = None,
         project_id: str | None = None,
         auto_create_bucket: bool = False,
-    ):
+    ) -> None:
         """Initialize GCS client.
 
         Args:
@@ -88,7 +88,8 @@ class GCSClient:
         try:
             self.client = storage.Client(project=self.project_id)
         except (GoogleCloudError, ValueError, OSError) as e:
-            raise GCSAuthError(f"Failed to initialize GCS client: {e}") from e
+            msg = f"Failed to initialize GCS client: {e}"
+            raise GCSAuthError(msg) from e
 
         # Get or create bucket if specified
         if self.bucket_name:
@@ -119,10 +120,11 @@ class GCSClient:
         b64_key = service_account_key_b64 or os.getenv("GCP_SA_KEY")
 
         if not b64_key:
-            raise GCSConfigError(
+            msg = (
                 "No service account credentials provided. "
                 "Set GCP_SA_KEY environment variable or pass service_account_key_b64 parameter."
             )
+            raise GCSConfigError(msg)
 
         try:
             # Decode base64 to get JSON content
@@ -134,7 +136,9 @@ class GCSClient:
                 self.project_id = sa_data.get("project_id") or os.getenv("GCP_PROJECT")
 
             # Write to temporary file with secure permissions
-            with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
+            with tempfile.NamedTemporaryFile(
+                mode="w", delete=False, suffix=".json"
+            ) as f:
                 f.write(json_content)
                 self._credentials_path = f.name
 
@@ -152,9 +156,11 @@ class GCSClient:
             logger.info(f"GCS credentials configured for project: {self.project_id}")
 
         except (base64.binascii.Error, json.JSONDecodeError) as e:
-            raise GCSAuthError(f"Invalid service account key format: {e}") from e
+            msg = f"Invalid service account key format: {e}"
+            raise GCSAuthError(msg) from e
         except (OSError, ValueError) as e:
-            raise GCSAuthError(f"Failed to setup credentials: {e}") from e
+            msg = f"Failed to setup credentials: {e}"
+            raise GCSAuthError(msg) from e
 
     def _get_or_create_bucket(self, auto_create: bool = False) -> storage.Bucket:
         """Get bucket or optionally create it if it doesn't exist.
@@ -176,15 +182,17 @@ class GCSClient:
                     logger.info(f"Creating bucket: {self.bucket_name}")
                     bucket = self.client.create_bucket(self.bucket_name)
                 else:
-                    raise GCSNotFoundError(
+                    msg = (
                         f"Bucket '{self.bucket_name}' does not exist. "
                         "Set auto_create_bucket=True to create it automatically."
                     )
+                    raise GCSNotFoundError(msg)
             return bucket
         except Exception as e:
             if isinstance(e, GCSNotFoundError):
                 raise
-            raise GCSAuthError(f"Failed to access bucket '{self.bucket_name}': {e}") from e
+            msg = f"Failed to access bucket '{self.bucket_name}': {e}"
+            raise GCSAuthError(msg) from e
 
     def set_bucket(self, bucket_name: str, auto_create: bool = False) -> None:
         """Set or change the default bucket.
@@ -217,12 +225,14 @@ class GCSClient:
 
             # Check if path exists when required
             if must_exist and not resolved_path.exists():
-                raise FileNotFoundError(f"Path does not exist: {path}")
+                msg = f"Path does not exist: {path}"
+                raise FileNotFoundError(msg)
 
             return resolved_path
 
         except (OSError, RuntimeError) as e:
-            raise ValueError(f"Invalid path: {path} - {e}") from e
+            msg = f"Invalid path: {path} - {e}"
+            raise ValueError(msg) from e
 
     @staticmethod
     def _sanitize_gcs_path(gcs_path: str) -> str:
@@ -242,11 +252,13 @@ class GCSClient:
 
         # Check for empty path
         if not gcs_path or gcs_path.isspace():
-            raise ValueError("GCS path cannot be empty")
+            msg = "GCS path cannot be empty"
+            raise ValueError(msg)
 
         # Check for suspicious patterns
         if ".." in gcs_path:
-            raise ValueError("GCS path cannot contain '..' segments")
+            msg = "GCS path cannot contain '..' segments"
+            raise ValueError(msg)
 
         return gcs_path
 
@@ -292,12 +304,15 @@ class GCSClient:
             full_uri = f"gs://{bucket.name}/{gcs_path}"
             file_size_mb = local_file.stat().st_size / BYTES_PER_MB
 
-            logger.info(f"✅ Uploaded {local_path} ({file_size_mb:.2f} MB) → {full_uri}")
+            logger.info(
+                f"✅ Uploaded {local_path} ({file_size_mb:.2f} MB) → {full_uri}"
+            )
 
             return full_uri
 
         except GoogleCloudError as e:
-            raise GCSUploadError(f"Failed to upload {local_path} to {gcs_path}: {e}") from e
+            msg = f"Failed to upload {local_path} to {gcs_path}: {e}"
+            raise GCSUploadError(msg) from e
 
     def upload_directory(
         self,
@@ -357,10 +372,10 @@ class GCSClient:
                 stats["total_bytes"] += file_size
 
                 size_mb = file_size / BYTES_PER_MB
-                logger.info(f"✅ {str(rel_path):<50} ({size_mb:>6.2f} MB) → {gcs_path}")
+                logger.info(f"✅ {rel_path!s:<50} ({size_mb:>6.2f} MB) → {gcs_path}")
 
             except GoogleCloudError as e:
-                logger.error(f"❌ Failed to upload {rel_path}: {e}")
+                logger.exception(f"❌ Failed to upload {rel_path}: {e}")
                 stats["failed"].append(str(rel_path))
 
         total_mb = stats["total_bytes"] / BYTES_PER_MB
@@ -405,7 +420,8 @@ class GCSClient:
 
         # Check if blob exists
         if not blob.exists():
-            raise GCSNotFoundError(f"File does not exist in GCS: gs://{bucket.name}/{gcs_path}")
+            msg = f"File does not exist in GCS: gs://{bucket.name}/{gcs_path}"
+            raise GCSNotFoundError(msg)
 
         # Create parent directories if needed
         if create_dirs:
@@ -415,14 +431,15 @@ class GCSClient:
             blob.download_to_filename(str(local_file))
 
             file_size_mb = local_file.stat().st_size / BYTES_PER_MB
-            logger.info(f"✅ Downloaded gs://{bucket.name}/{gcs_path} ({file_size_mb:.2f} MB)")
+            logger.info(
+                f"✅ Downloaded gs://{bucket.name}/{gcs_path} ({file_size_mb:.2f} MB)"
+            )
 
             return str(local_file)
 
         except GoogleCloudError as e:
-            raise GCSDownloadError(
-                f"Failed to download gs://{bucket.name}/{gcs_path}: {e}"
-            ) from e
+            msg = f"Failed to download gs://{bucket.name}/{gcs_path}: {e}"
+            raise GCSDownloadError(msg) from e
 
     def download_as_bytes(
         self,
@@ -447,14 +464,14 @@ class GCSClient:
         blob = bucket.blob(gcs_path)
 
         if not blob.exists():
-            raise GCSNotFoundError(f"File does not exist in GCS: gs://{bucket.name}/{gcs_path}")
+            msg = f"File does not exist in GCS: gs://{bucket.name}/{gcs_path}"
+            raise GCSNotFoundError(msg)
 
         try:
             return blob.download_as_bytes()
         except GoogleCloudError as e:
-            raise GCSDownloadError(
-                f"Failed to download gs://{bucket.name}/{gcs_path}: {e}"
-            ) from e
+            msg = f"Failed to download gs://{bucket.name}/{gcs_path}: {e}"
+            raise GCSDownloadError(msg) from e
 
     def download_as_text(
         self,
@@ -481,14 +498,14 @@ class GCSClient:
         blob = bucket.blob(gcs_path)
 
         if not blob.exists():
-            raise GCSNotFoundError(f"File does not exist in GCS: gs://{bucket.name}/{gcs_path}")
+            msg = f"File does not exist in GCS: gs://{bucket.name}/{gcs_path}"
+            raise GCSNotFoundError(msg)
 
         try:
             return blob.download_as_text(encoding=encoding)
         except (GoogleCloudError, UnicodeDecodeError) as e:
-            raise GCSDownloadError(
-                f"Failed to download gs://{bucket.name}/{gcs_path}: {e}"
-            ) from e
+            msg = f"Failed to download gs://{bucket.name}/{gcs_path}: {e}"
+            raise GCSDownloadError(msg) from e
 
     def list_files(
         self,
@@ -522,18 +539,21 @@ class GCSClient:
 
             files = []
             for blob in blobs:
-                files.append({
-                    "name": blob.name,
-                    "size": blob.size,
-                    "updated": blob.updated,
-                    "content_type": blob.content_type,
-                    "uri": f"gs://{bucket.name}/{blob.name}",
-                })
+                files.append(
+                    {
+                        "name": blob.name,
+                        "size": blob.size,
+                        "updated": blob.updated,
+                        "content_type": blob.content_type,
+                        "uri": f"gs://{bucket.name}/{blob.name}",
+                    }
+                )
 
             return files
 
         except GoogleCloudError as e:
-            raise GCSDownloadError(f"Failed to list files: {e}") from e
+            msg = f"Failed to list files: {e}"
+            raise GCSDownloadError(msg) from e
 
     def delete_file(
         self,
@@ -567,12 +587,11 @@ class GCSClient:
             if ignore_missing:
                 logger.debug(f"File not found (ignored): gs://{bucket.name}/{gcs_path}")
                 return False
-            else:
-                raise GCSNotFoundError(
-                    f"File does not exist in GCS: gs://{bucket.name}/{gcs_path}"
-                ) from None
+            msg = f"File does not exist in GCS: gs://{bucket.name}/{gcs_path}"
+            raise GCSNotFoundError(msg) from None
         except GoogleCloudError as e:
-            raise GCSDownloadError(f"Failed to delete gs://{bucket.name}/{gcs_path}: {e}") from e
+            msg = f"Failed to delete gs://{bucket.name}/{gcs_path}: {e}"
+            raise GCSDownloadError(msg) from e
 
     def delete_directory(
         self,
@@ -600,7 +619,7 @@ class GCSClient:
                 count += 1
                 logger.debug(f"🗑️  Deleted {blob.name}")
             except GoogleCloudError as e:
-                logger.error(f"Failed to delete {blob.name}: {e}")
+                logger.exception(f"Failed to delete {blob.name}: {e}")
 
         logger.info(f"🗑️  Deleted {count} files with prefix '{prefix}'")
         return count
@@ -646,7 +665,8 @@ class GCSClient:
         blob = bucket.blob(gcs_path)
 
         if not blob.exists():
-            raise GCSNotFoundError(f"File does not exist in GCS: gs://{bucket.name}/{gcs_path}")
+            msg = f"File does not exist in GCS: gs://{bucket.name}/{gcs_path}"
+            raise GCSNotFoundError(msg)
 
         # Reload to get latest metadata
         blob.reload()
@@ -676,13 +696,13 @@ class GCSClient:
         """
         if bucket_name:
             return self.client.bucket(bucket_name)
-        elif self.bucket:
+        if self.bucket:
             return self.bucket
-        else:
-            raise GCSConfigError(
-                "No bucket specified. Either set a default bucket with set_bucket() "
-                "or provide bucket_name parameter."
-            )
+        msg = (
+            "No bucket specified. Either set a default bucket with set_bucket() "
+            "or provide bucket_name parameter."
+        )
+        raise GCSConfigError(msg)
 
     def _cleanup_credentials(self) -> None:
         """Cleanup temporary credentials file."""

@@ -5,6 +5,7 @@ After running `cruft update`, merge any changes from `.standards/` into project 
 ## Task
 
 1. Check for changes in baseline files:
+
    ```bash
    git diff .standards/
    ```

@@ -25,7 +25,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from cloudflare_auth.sessions import SimpleSessionManager
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -151,12 +150,10 @@ def create_session_cleanup_task(
         async def shutdown():
             app.state.cleanup_task.cancel()
     """
-    async def cleanup_loop():
+
+    async def cleanup_loop() -> None:
         """Background loop for session cleanup."""
-        logger.info(
-            "Session cleanup task started (interval: %ds)",
-            cleanup_interval
-        )
+        logger.info("Session cleanup task started (interval: %ds)", cleanup_interval)
         try:
             while True:
                 await asyncio.sleep(cleanup_interval)
@@ -233,7 +230,7 @@ class AuditLogger:
                 "target": target,
                 "result": result,
                 "details": details or {},
-            }
+            },
         )
 
     def log_auth_event(
@@ -266,7 +263,7 @@ class AuditLogger:
                 "ip": ip_address,
                 "result": result,
                 "details": details or {},
-            }
+            },
         )
 
     def log_access_denied(
@@ -296,7 +293,7 @@ class AuditLogger:
                 "resource": resource,
                 "reason": reason,
                 "ip": ip_address,
-            }
+            },
         )
 
     def log_security_event(
@@ -332,7 +329,7 @@ class AuditLogger:
                 "severity": severity,
                 "description": description,
                 "details": details or {},
-            }
+            },
         )
 
 

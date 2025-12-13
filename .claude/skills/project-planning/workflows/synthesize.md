@@ -52,6 +52,7 @@ echo "✅ Found $adr_count ADR(s)"
 Read and extract key information from each document:
 
 **project-vision.md**:
+
 - TL;DR / Executive summary
 - Problem statement
 - Target users
@@ -61,6 +62,7 @@ Read and extract key information from each document:
 - Constraints
 
 **tech-spec.md**:
+
 - Technology stack
 - Architecture overview
 - Data model
@@ -69,6 +71,7 @@ Read and extract key information from each document:
 - Dependencies
 
 **roadmap.md**:
+
 - Phase names and durations
 - Deliverables per phase
 - Success criteria
@@ -76,6 +79,7 @@ Read and extract key information from each document:
 - Risks
 
 **adr/*.md**:
+
 - Decision titles
 - Status
 - Key rationale
@@ -96,6 +100,7 @@ For each phase in the roadmap, determine the appropriate branch type:
 | Refactoring | `refactor/` | No release |
 
 **Branch Naming**:
+
 ```
 {type}/phase-{number}-{short-slug}
 
@@ -156,6 +161,7 @@ source_documents:
 ```
 
 **Complete a phase**:
+
 ```bash
 /git/milestone complete
 /git/pr-prepare --include_wtd=true
@@ -178,6 +184,7 @@ source_documents:
 {criteria from roadmap}
 
 **Start Phase**:
+
 ```bash
 /git/milestone start {branch-name}
 ```
@@ -228,9 +235,11 @@ source_documents:
 
 1. Review this synthesized plan for accuracy
 2. Start Phase 0:
+
    ```bash
    /git/milestone start feat/phase-0-foundation
    ```
+
 3. Track progress with TodoWrite
 4. Complete phases with PR workflow
 
@@ -240,6 +249,7 @@ source_documents:
 - [Technical Specification](./tech-spec.md)
 - [Development Roadmap](./roadmap.md)
 - [Architecture Decisions](./adr/)
+
 ```
 
 ### 5. Create Initial TODO List
@@ -299,6 +309,7 @@ After synthesis:
 ## Error Handling
 
 ### Missing Documents
+
 ```
 ❌ Missing required documents:
    - project-vision.md (placeholder)
@@ -308,6 +319,7 @@ Run first: /plan <your project description>
 ```
 
 ### Conflicting Information
+
 ```
 ⚠️ Inconsistency detected:
    - Roadmap Phase 1 duration: 3 weeks
@@ -317,6 +329,7 @@ Please clarify timeline before synthesis.
 ```
 
 ### No ADRs Found
+
 ```
 ⚠️ No Architecture Decision Records found.
 

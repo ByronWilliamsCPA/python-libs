@@ -18,12 +18,11 @@ Called by:
 """
 
 import re
-from typing import Any, Optional
-
+from typing import Any
 
 # Patterns for dangerous characters in logs
-CONTROL_CHARS_PATTERN = re.compile(r'[\x00-\x1f\x7f-\x9f]')
-NEWLINE_PATTERN = re.compile(r'[\r\n]')
+CONTROL_CHARS_PATTERN = re.compile(r"[\x00-\x1f\x7f-\x9f]")
+NEWLINE_PATTERN = re.compile(r"[\r\n]")
 
 
 def sanitize_for_logging(
@@ -32,7 +31,7 @@ def sanitize_for_logging(
     replace_newlines: bool = True,
     replace_control_chars: bool = True,
 ) -> str:
-    """Sanitize user input for safe logging.
+    r"""Sanitize user input for safe logging.
 
     This function prevents log injection by:
     - Removing or replacing newline characters
@@ -66,11 +65,11 @@ def sanitize_for_logging(
 
     # Remove/replace newlines to prevent log injection
     if replace_newlines:
-        str_value = NEWLINE_PATTERN.sub(' ', str_value)
+        str_value = NEWLINE_PATTERN.sub(" ", str_value)
 
     # Remove/replace control characters
     if replace_control_chars:
-        str_value = CONTROL_CHARS_PATTERN.sub('�', str_value)
+        str_value = CONTROL_CHARS_PATTERN.sub("�", str_value)
 
     # Truncate if too long
     if len(str_value) > max_length:
@@ -82,7 +81,7 @@ def sanitize_for_logging(
 
 
 def sanitize_email(email: str, max_length: int = 254) -> str:
-    """Sanitize email address for logging.
+    r"""Sanitize email address for logging.
 
     Validates email format and sanitizes for safe logging.
 
@@ -102,14 +101,14 @@ def sanitize_email(email: str, max_length: int = 254) -> str:
     sanitized = sanitize_for_logging(email, max_length=max_length)
 
     # Ensure it still looks like an email
-    if '@' not in sanitized:
+    if "@" not in sanitized:
         return "<invalid-email>"
 
     return sanitized
 
 
 def sanitize_path(path: str, max_length: int = 200) -> str:
-    """Sanitize URL path for logging.
+    r"""Sanitize URL path for logging.
 
     Args:
         path: URL path to sanitize
@@ -128,7 +127,7 @@ def sanitize_path(path: str, max_length: int = 200) -> str:
 
 
 def sanitize_ip(ip: str, max_length: int = 45) -> str:
-    """Sanitize IP address for logging.
+    r"""Sanitize IP address for logging.
 
     Args:
         ip: IP address to sanitize
@@ -151,7 +150,7 @@ def sanitize_ip(ip: str, max_length: int = 45) -> str:
 
     # Remove any remaining suspicious characters
     # IPs should only contain digits, dots, colons (IPv6), and maybe brackets
-    allowed_pattern = re.compile(r'^[0-9a-fA-F:.[\]]+$')
+    allowed_pattern = re.compile(r"^[0-9a-fA-F:.[\]]+$")
     if not allowed_pattern.match(sanitized):
         return "<invalid-ip>"
 
@@ -161,7 +160,7 @@ def sanitize_ip(ip: str, max_length: int = 45) -> str:
 def sanitize_dict_for_logging(
     data: dict[str, Any],
     max_value_length: int = 100,
-    excluded_keys: Optional[set[str]] = None,
+    excluded_keys: set[str] | None = None,
 ) -> dict[str, str]:
     """Sanitize dictionary for safe logging.
 
@@ -174,13 +173,23 @@ def sanitize_dict_for_logging(
         Sanitized dictionary with string values
 
     Example:
-        >>> sanitize_dict_for_logging({"email": "user@example.com", "password": "secret"}, excluded_keys={"password"})
+        >>> sanitize_dict_for_logging(
+        ...     {"email": "user@example.com", "password": "secret"},
+        ...     excluded_keys={"password"},
+        ... )
         {'email': 'user@example.com', 'password': '<redacted>'}
     """
     if excluded_keys is None:
         excluded_keys = {
-            'password', 'token', 'secret', 'key', 'api_key',
-            'access_token', 'refresh_token', 'jwt', 'authorization'
+            "password",
+            "token",
+            "secret",
+            "key",
+            "api_key",
+            "access_token",
+            "refresh_token",
+            "jwt",
+            "authorization",
         }
 
     sanitized = {}
@@ -188,14 +197,16 @@ def sanitize_dict_for_logging(
         # Check if key should be excluded
         key_lower = key.lower()
         if any(excluded in key_lower for excluded in excluded_keys):
-            sanitized[key] = '<redacted>'
+            sanitized[key] = "<redacted>"
         else:
             sanitized[key] = sanitize_for_logging(value, max_length=max_value_length)
 
     return sanitized
 
 
-def mask_sensitive_data(text: str, pattern: str = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b') -> str:
+def mask_sensitive_data(
+    text: str, pattern: str = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
+) -> str:
     """Mask sensitive data in text using regex pattern.
 
     Args:
@@ -209,13 +220,14 @@ def mask_sensitive_data(text: str, pattern: str = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0
         >>> mask_sensitive_data("Contact user@example.com for help")
         'Contact ***@***.*** for help'
     """
+
     def mask_match(match):
         matched = match.group(0)
-        if '@' in matched:
+        if "@" in matched:
             # Email-like pattern
-            local, domain = matched.split('@', 1)
+            local, domain = matched.split("@", 1)
             return f"{'*' * min(len(local), 3)}@{'*' * min(len(domain), 3)}.***"
-        return '*' * len(matched)
+        return "*" * len(matched)
 
     return re.sub(pattern, mask_match, text)
 

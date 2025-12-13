@@ -17,6 +17,7 @@ Comprehensive guidance for creating and maintaining project planning documents.
 ### The Problem They Solve
 
 AI-assisted development fails when:
+
 - Massive context dumps overwhelm the model
 - Planning is skipped, leading to architectural drift
 - Decisions aren't documented, causing hallucinations
@@ -56,11 +57,13 @@ AI-assisted development fails when:
 ### Project Vision & Scope (PVS)
 
 **Feeds into**:
+
 - ADRs: Technical choices stem from requirements
 - Tech Spec: Features define what to implement
 - Roadmap: Scope determines work items
 
 **Updated when**:
+
 - Major scope changes
 - New success metrics identified
 - Quarterly review
@@ -68,14 +71,17 @@ AI-assisted development fails when:
 ### Architecture Decision Records (ADRs)
 
 **Feeds into**:
+
 - Tech Spec: Decisions define implementation approach
 - Roadmap: Some decisions require phased migration
 
 **Referenced by**:
+
 - Code comments where decisions are implemented
 - Tech Spec for rationale
 
 **Updated when**:
+
 - New architectural decision made
 - Previous decision superseded
 - Post-implementation review reveals issues
@@ -83,14 +89,17 @@ AI-assisted development fails when:
 ### Technical Implementation Spec
 
 **Feeds into**:
+
 - Roadmap: Components map to work items
 - Code: Direct reference during implementation
 
 **References**:
+
 - PVS for requirements context
 - ADRs for decision rationale
 
 **Updated when**:
+
 - Architecture changes
 - Version upgrades
 - Security requirements change
@@ -98,11 +107,13 @@ AI-assisted development fails when:
 ### Development Roadmap
 
 **References**:
+
 - PVS for scope
 - Tech Spec for component breakdown
 - ADRs for dependencies
 
 **Updated when**:
+
 - After each phase/sprint
 - Timeline shifts
 - New features added
@@ -154,6 +165,7 @@ As mentioned elsewhere...
 **Solution**: Replace every placeholder with project-specific content
 
 **Bad**:
+
 ```markdown
 ### Success Metrics
 - Improve user satisfaction
@@ -161,6 +173,7 @@ As mentioned elsewhere...
 ```
 
 **Good**:
+
 ```markdown
 ### Success Metrics
 - Transaction import time: 30s → 5s (6x improvement)

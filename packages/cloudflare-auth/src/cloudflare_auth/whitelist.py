@@ -20,16 +20,17 @@ Called by:
     - Application code: For access control decisions
 """
 
-from dataclasses import dataclass
-from enum import Enum
 import logging
 import secrets
+from dataclasses import dataclass
+from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, field_validator
 
 try:
-    from email_validator import validate_email, EmailNotValidError
+    from email_validator import EmailNotValidError, validate_email
+
     EMAIL_VALIDATOR_AVAILABLE = True
 except ImportError:
     EMAIL_VALIDATOR_AVAILABLE = False
@@ -69,7 +70,8 @@ class UserTier(str, Enum):
         for tier in cls:
             if tier.value == value:
                 return tier
-        raise ValueError(f"Invalid user tier: {value}")
+        msg = f"Invalid user tier: {value}"
+        raise ValueError(msg)
 
     @property
     def can_access_premium_models(self) -> bool:
@@ -127,7 +129,9 @@ class EmailWhitelistConfig(BaseModel):
     limited_users: list[str] = []
     case_sensitive: bool = False
 
-    @field_validator("whitelist", "admin_emails", "full_users", "limited_users", mode="before")
+    @field_validator(
+        "whitelist", "admin_emails", "full_users", "limited_users", mode="before"
+    )
     @classmethod
     def normalize_emails(cls, v: str | list[str]) -> list[str]:
         """Normalize email addresses to lowercase unless case_sensitive.
@@ -267,7 +271,9 @@ class EmailWhitelistValidator:
             domain = "@" + normalized_email.split("@")[1]
             for allowed_domain in self.domain_patterns:
                 if secrets.compare_digest(domain, allowed_domain):
-                    logger.debug("Email %s authorized via domain pattern %s", email, domain)
+                    logger.debug(
+                        "Email %s authorized via domain pattern %s", email, domain
+                    )
                     return True
 
         logger.debug("Email %s not authorized", email)
@@ -327,10 +333,12 @@ class EmailWhitelistValidator:
             ValueError: If email is not authorized
         """
         if not email:
-            raise ValueError("Email cannot be empty")
+            msg = "Email cannot be empty"
+            raise ValueError(msg)
 
         if not self.is_authorized(email):
-            raise ValueError(f"Email {email} is not authorized")
+            msg = f"Email {email} is not authorized"
+            raise ValueError(msg)
 
         normalized_email = self._normalize_email(email)
 
@@ -341,7 +349,9 @@ class EmailWhitelistValidator:
         # First check exact email matches
         for tier_list, tier_type in zip(tier_lists, tier_types, strict=False):
             if normalized_email in tier_list:
-                logger.debug("Email %s has %s tier (exact match)", email, tier_type.value)
+                logger.debug(
+                    "Email %s has %s tier (exact match)", email, tier_type.value
+                )
                 return tier_type
 
         # Then check domain pattern matches
@@ -413,7 +423,7 @@ class EmailWhitelistValidator:
             },
         }
 
-    def validate_whitelist_config(self) -> list[str]:
+    def validate_whitelist_config(self) -> list[str]:  # noqa: C901, PLR0912
         """Validate the whitelist configuration and return any warnings.
 
         Returns:
@@ -438,10 +448,14 @@ class EmailWhitelistValidator:
         # Check for limited users not in whitelist
         for limited_user in self.limited_users:
             if not self.is_authorized(limited_user):
-                warnings.append(f"Limited user email {limited_user} is not in whitelist")
+                warnings.append(
+                    f"Limited user email {limited_user} is not in whitelist"
+                )
 
         # Check for tier conflicts
-        all_tier_emails = set(self.admin_emails) | set(self.full_users) | set(self.limited_users)
+        all_tier_emails = (
+            set(self.admin_emails) | set(self.full_users) | set(self.limited_users)
+        )
         for email in all_tier_emails:
             tiers = []
             if email in self.admin_emails:
@@ -452,11 +466,18 @@ class EmailWhitelistValidator:
                 tiers.append("limited")
 
             if len(tiers) > 1:
-                warnings.append(f"Email {email} is assigned to multiple tiers: {', '.join(tiers)}")
+                warnings.append(
+                    f"Email {email} is assigned to multiple tiers: {', '.join(tiers)}"
+                )
 
         # Check for potential security issues
-        if "@gmail.com" in self.domain_patterns or "@outlook.com" in self.domain_patterns:
-            warnings.append("Public email domains (@gmail.com, @outlook.com) in whitelist may be insecure")
+        if (
+            "@gmail.com" in self.domain_patterns
+            or "@outlook.com" in self.domain_patterns
+        ):
+            warnings.append(
+                "Public email domains (@gmail.com, @outlook.com) in whitelist may be insecure"
+            )
 
         return warnings
 
@@ -481,7 +502,7 @@ class WhitelistManager:
         """
         self.validator = validator
 
-    def add_email(self, email: str, is_admin: bool = False) -> bool:
+    def add_email(self, email: str, is_admin: bool = False) -> bool:  # noqa: C901, PLR0912
         """Add email to whitelist (runtime operation).
 
         Note: This is for runtime operations. For persistent changes,
@@ -500,7 +521,8 @@ class WhitelistManager:
         try:
             # Validate input is not empty
             if not email or not email.strip():
-                raise ValueError("Email cannot be empty")
+                msg = "Email cannot be empty"
+                raise ValueError(msg)
 
             normalized_email = self.validator._normalize_email(email)
 
@@ -509,28 +531,39 @@ class WhitelistManager:
                 if EMAIL_VALIDATOR_AVAILABLE and validate_email is not None:
                     try:
                         # Validate email format
-                        valid = validate_email(normalized_email, check_deliverability=False)
-                        normalized_email = valid.normalized if not self.validator.case_sensitive else normalized_email
+                        valid = validate_email(
+                            normalized_email, check_deliverability=False
+                        )
+                        normalized_email = (
+                            valid.normalized
+                            if not self.validator.case_sensitive
+                            else normalized_email
+                        )
                     except EmailNotValidError as e:
-                        raise ValueError(f"Invalid email format: {str(e)}") from e
+                        msg = f"Invalid email format: {e!s}"
+                        raise ValueError(msg) from e
                 else:
                     # Basic email validation if email-validator not available
                     if "@" not in normalized_email or normalized_email.count("@") != 1:
-                        raise ValueError("Invalid email format: must contain exactly one @")
+                        msg = "Invalid email format: must contain exactly one @"
+                        raise ValueError(msg)
 
                     local, domain = normalized_email.split("@")
                     if not local or not domain or "." not in domain:
-                        raise ValueError("Invalid email format")
+                        msg = "Invalid email format"
+                        raise ValueError(msg)
 
             # Validate domain pattern format
             else:
                 # Domain pattern must be @domain.tld format
                 if normalized_email.count("@") != 1:
-                    raise ValueError("Invalid domain pattern: must be @domain.tld")
+                    msg = "Invalid domain pattern: must be @domain.tld"
+                    raise ValueError(msg)
 
                 domain_part = normalized_email[1:]  # Remove @
                 if not domain_part or "." not in domain_part:
-                    raise ValueError("Invalid domain pattern: must include valid domain")
+                    msg = "Invalid domain pattern: must include valid domain"
+                    raise ValueError(msg)
 
             # Add to appropriate collection
             if normalized_email.startswith("@"):
@@ -548,8 +581,9 @@ class WhitelistManager:
             # Re-raise validation errors
             raise
         except Exception as e:
-            logger.error("Failed to add email %s to whitelist: %s", email, e)
-            raise ValueError(f"Failed to add email: {str(e)}") from e
+            logger.exception("Failed to add email %s to whitelist: %s", email, e)
+            msg = f"Failed to add email: {e!s}"
+            raise ValueError(msg) from e
 
     def remove_email(self, email: str) -> bool:
         """Remove email from whitelist (runtime operation).
@@ -585,7 +619,7 @@ class WhitelistManager:
             return removed
 
         except Exception as e:
-            logger.error("Failed to remove email %s from whitelist: %s", email, e)
+            logger.exception("Failed to remove email %s from whitelist: %s", email, e)
             return False
 
     def check_email(self, email: str) -> dict[str, Any]:

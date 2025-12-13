@@ -9,12 +9,15 @@ Auto-activates on keywords: test, coverage, pytest, unittest, integration test, 
 ## Workflows
 
 ### Test Generation
+
 - **generate.md**: Generate test cases for code
 
 ### Test Review
+
 - **review.md**: Review existing tests for quality
 
 ### Specialized Testing
+
 - **e2e.md**: End-to-end testing patterns
 - **security.md**: Security testing patterns
 - **performance.md**: Performance testing patterns
@@ -69,6 +72,7 @@ tests/
 ## Testing Patterns
 
 ### AAA Pattern (Arrange-Act-Assert)
+
 ```python
 def test_example():
     # Arrange
@@ -82,6 +86,7 @@ def test_example():
 ```
 
 ### Fixtures
+
 ```python
 @pytest.fixture
 def sample_data():

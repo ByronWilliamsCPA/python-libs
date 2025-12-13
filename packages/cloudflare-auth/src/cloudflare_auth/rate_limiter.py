@@ -21,11 +21,10 @@ Called by:
     - src.cloudflare_auth.middleware: For authentication rate limiting
 """
 
-from collections import defaultdict
-from datetime import datetime, timedelta
-from threading import Lock
-from typing import Dict, Tuple
 import logging
+from collections import defaultdict
+from datetime import UTC, datetime, timedelta
+from threading import Lock
 
 logger = logging.getLogger(__name__)
 
@@ -72,9 +71,9 @@ class InMemoryRateLimiter:
         self.cleanup_interval = cleanup_interval
 
         # Store: IP -> list of attempt timestamps
-        self.attempts: Dict[str, list[datetime]] = defaultdict(list)
+        self.attempts: dict[str, list[datetime]] = defaultdict(list)
         self.lock = Lock()
-        self.last_cleanup = datetime.now()
+        self.last_cleanup = datetime.now(tz=UTC)
 
         logger.info(
             "Initialized rate limiter: %d attempts per %d seconds",
@@ -94,14 +93,15 @@ class InMemoryRateLimiter:
         with self.lock:
             self._cleanup_if_needed()
 
-            current_time = datetime.now()
+            current_time = datetime.now(tz=UTC)
             cutoff_time = current_time - timedelta(seconds=self.window_seconds)
 
             # Get attempts within window
             if identifier in self.attempts:
                 # Remove expired attempts
                 self.attempts[identifier] = [
-                    timestamp for timestamp in self.attempts[identifier]
+                    timestamp
+                    for timestamp in self.attempts[identifier]
                     if timestamp > cutoff_time
                 ]
 
@@ -124,7 +124,7 @@ class InMemoryRateLimiter:
             identifier: IP address or other identifier
         """
         with self.lock:
-            self.attempts[identifier].append(datetime.now())
+            self.attempts[identifier].append(datetime.now(tz=UTC))
 
     def reset(self, identifier: str) -> None:
         """Reset rate limit for an identifier.
@@ -147,7 +147,7 @@ class InMemoryRateLimiter:
             Number of remaining attempts
         """
         with self.lock:
-            current_time = datetime.now()
+            current_time = datetime.now(tz=UTC)
             cutoff_time = current_time - timedelta(seconds=self.window_seconds)
 
             if identifier not in self.attempts:
@@ -155,7 +155,8 @@ class InMemoryRateLimiter:
 
             # Count recent attempts
             recent_attempts = [
-                timestamp for timestamp in self.attempts[identifier]
+                timestamp
+                for timestamp in self.attempts[identifier]
                 if timestamp > cutoff_time
             ]
 
@@ -174,12 +175,13 @@ class InMemoryRateLimiter:
             if identifier not in self.attempts or not self.attempts[identifier]:
                 return 0
 
-            current_time = datetime.now()
+            current_time = datetime.now(tz=UTC)
             cutoff_time = current_time - timedelta(seconds=self.window_seconds)
 
             # Find oldest attempt in window
             recent_attempts = [
-                timestamp for timestamp in self.attempts[identifier]
+                timestamp
+                for timestamp in self.attempts[identifier]
                 if timestamp > cutoff_time
             ]
 
@@ -198,7 +200,7 @@ class InMemoryRateLimiter:
 
         Note: Must be called while holding self.lock
         """
-        current_time = datetime.now()
+        current_time = datetime.now(tz=UTC)
         if (current_time - self.last_cleanup).total_seconds() < self.cleanup_interval:
             return
 
@@ -208,9 +210,7 @@ class InMemoryRateLimiter:
 
         for identifier, timestamps in self.attempts.items():
             # Remove old timestamps
-            self.attempts[identifier] = [
-                ts for ts in timestamps if ts > cutoff_time
-            ]
+            self.attempts[identifier] = [ts for ts in timestamps if ts > cutoff_time]
 
             # Mark empty entries for removal
             if not self.attempts[identifier]:
@@ -224,8 +224,7 @@ class InMemoryRateLimiter:
 
         if identifiers_to_remove:
             logger.debug(
-                "Cleaned up %d expired rate limit entries",
-                len(identifiers_to_remove)
+                "Cleaned up %d expired rate limit entries", len(identifiers_to_remove)
             )
 
     def get_stats(self) -> dict:
@@ -236,7 +235,9 @@ class InMemoryRateLimiter:
         """
         with self.lock:
             total_tracked = len(self.attempts)
-            total_attempts = sum(len(timestamps) for timestamps in self.attempts.values())
+            total_attempts = sum(
+                len(timestamps) for timestamps in self.attempts.values()
+            )
 
             return {
                 "tracked_identifiers": total_tracked,
@@ -264,7 +265,7 @@ def get_rate_limiter(
     Returns:
         InMemoryRateLimiter instance
     """
-    global _global_rate_limiter
+    global _global_rate_limiter  # noqa: PLW0603
 
     if _global_rate_limiter is None:
         _global_rate_limiter = InMemoryRateLimiter(
