@@ -38,10 +38,32 @@ Shared Python libraries for ByronWilliamsCPA projects. This is a **UV workspace 
 
 ## Packages
 
-| Package | Description | Installation |
-|---------|-------------|--------------|
-| [byronwilliamscpa-cloudflare-auth](packages/cloudflare-auth/) | JWT validation and Cloudflare Access integration middleware | `pip install "git+ssh://git@github.com/ByronWilliamsCPA/python-libs.git#subdirectory=packages/cloudflare-auth"` |
-| [byronwilliamscpa-gcs-utilities](packages/gcs-utilities/) | Google Cloud Storage utilities and helpers | `pip install "git+ssh://git@github.com/ByronWilliamsCPA/python-libs.git#subdirectory=packages/cloudflare-auth"` |
+| Package | Description | Version |
+|---------|-------------|---------|
+| [cloudflare-auth](packages/cloudflare-auth/) | JWT validation and Cloudflare Access middleware for FastAPI/Starlette | 0.1.0 |
+| [cloudflare-api](packages/cloudflare-api/) | Cloudflare API client with IP list management and multi-source fetching | 0.1.0 |
+| [gcs-utilities](packages/gcs-utilities/) | Google Cloud Storage utilities and helpers | 0.1.0 |
+| [gemini-image](packages/gemini-image/) | Image generation using Google Gemini models (Nano Banana / Pro) | 0.1.0 |
+
+### Installation
+
+Packages are published to **GCP Artifact Registry** for supply chain security:
+
+```bash
+# Configure UV to use the private registry (one-time setup)
+# Add to ~/.config/uv/uv.toml or project pyproject.toml:
+# [[tool.uv.index]]
+# url = "https://us-central1-python.pkg.dev/assured-oss-457903/python-libs/simple/"
+
+# Install packages
+pip install byronwilliamscpa-cloudflare-auth
+pip install byronwilliamscpa-cloudflare-api
+pip install byronwilliamscpa-gcs-utilities
+pip install byronwilliamscpa-gemini-image
+
+# Or install from git (development)
+pip install "git+ssh://git@github.com/ByronWilliamsCPA/python-libs.git#subdirectory=packages/cloudflare-auth"
+```
 
 ## Features
 
@@ -370,22 +392,31 @@ qlty check --plugin osv_scanner
 ## Project Structure
 
 ```
-python_libs/
-├── src/python_libs/     # Main package
-│   ├── __init__.py
-│   ├── core.py                           # Core functionality
-│   └── utils/                            # Utility modules
-├── tests/                                # Test suite
-│   ├── unit/                             # Unit tests
-│   └── integration/                      # Integration tests
+python-libs/
+├── packages/                             # UV workspace packages
+│   ├── cloudflare-auth/                  # JWT/Cloudflare Access middleware
+│   │   ├── src/cloudflare_auth/
+│   │   ├── tests/
+│   │   └── pyproject.toml
+│   ├── cloudflare-api/                   # Cloudflare API client
+│   │   ├── src/cloudflare_api/
+│   │   ├── tests/
+│   │   └── pyproject.toml
+│   ├── gcs-utilities/                    # GCS helpers
+│   │   ├── src/gcs_utilities/
+│   │   ├── tests/
+│   │   └── pyproject.toml
+│   └── gemini-image/                     # Gemini image generation
+│       ├── src/gemini_image/
+│       ├── tests/
+│       └── pyproject.toml
+├── src/python_libs/                      # Shared utilities (optional)
 ├── docs/                                 # Documentation
-│   ├── ADRs/                             # Architecture Decision Records
-│   ├── planning/                         # Project planning docs
-│   └── guides/                           # User guides
-├── pyproject.toml                        # Dependencies & tool config
+│   ├── planning/                         # Project planning & ADRs
+│   └── diagrams/                         # Architecture diagrams
+├── pyproject.toml                        # Root workspace config
 ├── README.md                             # This file
-├── CONTRIBUTING.md                       # Contribution guidelines
-└── LICENSE                               # License
+└── CONTRIBUTING.md                       # Contribution guidelines
 ```
 
 ## Documentation
@@ -461,6 +492,125 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
 - [ ] Docstrings added for new public APIs
 - [ ] CHANGELOG.md updated (if significant change)
 - [ ] Commits follow conventional commit format
+
+## Publishing
+
+Packages are published to **GCP Artifact Registry** (not PyPI) for enhanced supply chain security. This integrates with Google Assured OSS for verified dependencies.
+
+### Publishing Workflow
+
+The publishing process uses GitHub Actions triggered by version tags, with secrets managed securely via Infisical:
+
+```
+Developer → Push Tag → GitHub Actions → Infisical → GCP Auth → Artifact Registry
+```
+
+<details>
+<summary><b>View PlantUML Sequence Diagram</b></summary>
+
+```plantuml
+@startuml publish-workflow
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam sequenceMessageAlign center
+
+title Package Publishing Workflow\nGCP Artifact Registry with Infisical Secrets
+
+actor Developer
+participant "GitHub\nRepository" as GitHub
+participant "GitHub\nActions" as GHA
+participant "Infisical\nSecrets" as Infisical
+participant "Google Cloud\nAuth" as GCP
+participant "Artifact\nRegistry" as AR
+
+== Tag Creation ==
+Developer -> GitHub: Push version tag\n(e.g., cloudflare-auth-v1.0.0)
+activate GitHub
+
+GitHub -> GHA: Trigger publish workflow
+activate GHA
+
+== Secret Retrieval ==
+GHA -> Infisical: Authenticate with\nClient ID/Secret
+activate Infisical
+Infisical --> GHA: Return GCP_SA_KEY_BASE64
+deactivate Infisical
+
+== GCP Authentication ==
+GHA -> GCP: Authenticate with\nService Account Key
+activate GCP
+GCP --> GHA: Authentication token
+deactivate GCP
+
+== Build & Publish ==
+GHA -> GHA: Parse tag to determine\npackage directory
+GHA -> GHA: Verify version in\npyproject.toml matches tag
+GHA -> GHA: Build package with UV\n(uv build)
+
+GHA -> AR: Publish package\n(uv publish)
+activate AR
+AR --> GHA: Publish success
+deactivate AR
+
+== Summary ==
+GHA -> GitHub: Update job summary\nwith publish details
+deactivate GHA
+deactivate GitHub
+
+note right of AR
+  **Registry URL:**
+  us-central1-python.pkg.dev/
+  assured-oss-457903/python-libs
+
+  **Supported Tags:**
+  - cloudflare-auth-v*
+  - cloudflare-api-v*
+  - gcs-utilities-v*
+  - gemini-image-v*
+end note
+
+note left of Infisical
+  **Secrets Stored:**
+  - GCP_SA_KEY_BASE64
+    (Service account JSON, base64)
+
+  **Domain:**
+  secrets.byronwilliamscpa.com
+end note
+
+@enduml
+```
+
+</details>
+
+See also: [docs/diagrams/publish-workflow.puml](docs/diagrams/publish-workflow.puml)
+
+### How to Publish a Package
+
+1. **Update version** in the package's `pyproject.toml`
+2. **Commit and push** the version change
+3. **Create and push a tag** matching the pattern:
+   ```bash
+   # Format: {package-name}-v{version}
+   git tag cloudflare-auth-v1.0.0
+   git tag cloudflare-api-v1.0.0
+   git tag gcs-utilities-v1.0.0
+   git tag gemini-image-v1.0.0
+
+   git push origin --tags
+   ```
+4. **GitHub Actions** automatically:
+   - Fetches GCP credentials from Infisical
+   - Verifies version matches tag
+   - Builds and publishes to Artifact Registry
+
+### Registry Details
+
+| Setting | Value |
+|---------|-------|
+| Registry URL | `us-central1-python.pkg.dev/assured-oss-457903/python-libs` |
+| Secrets Manager | Infisical (secrets.byronwilliamscpa.com) |
+| Service Account | `assured-oss-accessor@assured-oss-457903.iam.gserviceaccount.com` |
 
 ## Versioning
 
