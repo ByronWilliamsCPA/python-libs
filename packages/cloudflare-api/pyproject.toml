@@ -1,17 +1,16 @@
 [project]
-name = "byronwilliamscpa-cloudflare-auth"
+name = "byronwilliamscpa-cloudflare-api"
 version = "0.1.0"
-description = "JWT validation and Cloudflare Access integration middleware for FastAPI/Starlette"
+description = "Cloudflare API client for managing IP lists, firewall rules, and Access policies"
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
 license = {text = "MIT"}
 authors = [
     {name = "Byron Williams", email = "byronawilliams@gmail.com"}
 ]
-keywords = ["jwt", "cloudflare", "auth", "middleware", "fastapi", "starlette", "security"]
+keywords = ["cloudflare", "api", "firewall", "ip-list", "access", "security"]
 classifiers = [
     "Development Status :: 4 - Beta",
-    "Framework :: FastAPI",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.10",
@@ -19,36 +18,28 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Security",
-    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Internet :: WWW/HTTP",
     "Typing :: Typed",
 ]
 
 dependencies = [
-    "pydantic[email]>=2.0.0",
+    "cloudflare>=4.0.0",
+    "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
-    "pyjwt>=2.8.0",
-    "cryptography>=41.0.0",
     "httpx>=0.25.0",
+    "pyyaml>=6.0.0",
 ]
 
 [project.optional-dependencies]
-redis = [
-    "redis[hiredis]>=5.0.0",
-]
-fastapi = [
-    "fastapi>=0.100.0",
-    "starlette>=0.27.0",
-]
-all = [
-    "redis[hiredis]>=5.0.0",
-    "fastapi>=0.100.0",
-    "starlette>=0.27.0",
-]
 dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
     "pytest-asyncio>=0.21.0",
+    "respx>=0.21.0",
 ]
+
+[project.scripts]
+cloudflare-ip-groups = "cloudflare_api.ip_groups.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/ByronWilliamsCPA/python-libs"
@@ -60,15 +51,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/cloudflare_auth"]
+packages = ["src/cloudflare_api"]
 
 # Per-package semantic release configuration
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
-tag_format = "cloudflare-auth-v{version}"
+tag_format = "cloudflare-api-v{version}"
 
 [tool.semantic_release.commit_parser_options]
-# Only analyze commits that touch this package
 allowed_tags = ["feat", "fix", "perf", "refactor", "docs", "style", "test", "build", "ci", "chore"]
 minor_tags = ["feat"]
 patch_tags = ["fix", "perf"]
