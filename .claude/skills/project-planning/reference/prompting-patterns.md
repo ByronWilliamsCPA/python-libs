@@ -57,11 +57,13 @@ Continue with US-003 from roadmap.
 ### Feature Implementation
 
 **Bad** (too broad):
+
 ```
 Build the entire authentication system.
 ```
 
 **Good** (incremental):
+
 ```
 Implement user registration endpoint per tech-spec.md section 4.1.
 Focus on input validation first, per ADR-002 validation strategy.
@@ -183,12 +185,14 @@ Flag if this affects timeline.
 ### Context Dumping
 
 **Bad**:
+
 ```
 Here's my entire project-vision.md, tech-spec.md, and all ADRs.
 Now implement feature X.
 ```
 
 **Good**:
+
 ```
 From tech-spec.md section 4.2 and ADR-001,
 implement the database migration for User entity.
@@ -197,12 +201,14 @@ implement the database migration for User entity.
 ### Vague References
 
 **Bad**:
+
 ```
 Follow the spec.
 Per the architecture decision.
 ```
 
 **Good**:
+
 ```
 Per tech-spec.md section 3.2 (User entity schema).
 Per ADR-001 decision to use PostgreSQL with UUID primary keys.
@@ -211,11 +217,13 @@ Per ADR-001 decision to use PostgreSQL with UUID primary keys.
 ### Skipping Validation
 
 **Bad**:
+
 ```
 Looks good, merge it.
 ```
 
 **Good**:
+
 ```
 Before merging, validate against:
 - tech-spec.md section 6 (security)
@@ -225,11 +233,13 @@ Before merging, validate against:
 ### Ignoring Document Updates
 
 **Bad**:
+
 ```
 We changed the approach but the docs still say the old way.
 ```
 
 **Good**:
+
 ```
 Implementation differs from tech-spec.md section 3.
 
@@ -247,6 +257,7 @@ Create ADR if this is a significant architectural change.
 ### Prompt Templates
 
 **Implement Feature**:
+
 ```
 Per [doc] section [X], implement [feature].
 Reference [ADR-XXX] for [specific decision].
@@ -254,6 +265,7 @@ Success criteria from roadmap.md: [criteria].
 ```
 
 **Validate Code**:
+
 ```
 Review against:
 - [doc] section [X] ([topic])
@@ -262,6 +274,7 @@ Flag violations.
 ```
 
 **Update Documents**:
+
 ```
 Completed [task/decision].
 Update:
@@ -270,6 +283,7 @@ Update:
 ```
 
 **Start Session**:
+
 ```
 Load from:
 - [doc] sections [X-Y]

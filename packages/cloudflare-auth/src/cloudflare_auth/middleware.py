@@ -51,15 +51,17 @@ from collections.abc import Callable
 from typing import Any
 
 from fastapi import HTTPException, Request, Response, status
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
-
 from src.cloudflare_auth.models import CloudflareUser
 from src.cloudflare_auth.rate_limiter import InMemoryRateLimiter
-from src.cloudflare_auth.utils import get_client_ip, sanitize_email, sanitize_ip, sanitize_path
+from src.cloudflare_auth.utils import (
+    get_client_ip,
+    sanitize_email,
+    sanitize_ip,
+    sanitize_path,
+)
 from src.cloudflare_auth.validators import CloudflareJWTValidator
 from src.config.settings import CloudflareSettings, get_cloudflare_settings
-
+from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -188,7 +190,8 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
 
             # Check if IP is in allowlist
             ip_allowed = any(
-                client_ip == allowed_ip or client_ip.startswith(allowed_ip.rstrip("/") + ".")
+                client_ip == allowed_ip
+                or client_ip.startswith(allowed_ip.rstrip("/") + ".")
                 for allowed_ip in self.settings.allowed_tunnel_ips
             )
 
@@ -241,10 +244,8 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
 
         # Validate request came through Cloudflare (security check)
         # This prevents direct access bypassing the tunnel
-        try:
-            self._validate_cloudflare_origin(request)
-        except HTTPException:
-            raise
+        # Will raise HTTPException if validation fails
+        self._validate_cloudflare_origin(request)
 
         # Skip authentication if disabled (development mode)
         if not self.settings.cloudflare_enabled:
@@ -269,24 +270,21 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
             # Re-raise HTTP exceptions
             raise
         except Exception as e:
-            logger.error(
-                "Unexpected error during authentication: %s",
-                str(e),
-                exc_info=True,
-            )
+            logger.exception("Unexpected error during authentication")
             if self.require_auth:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="Authentication service error",
                 ) from e
-            else:
-                # Non-required auth: continue without user
-                request.state.user = None
+            # Non-required auth: continue without user
+            request.state.user = None
 
         # Process the request
         return await call_next(request)
 
-    async def _authenticate_request(self, request: Request) -> CloudflareUser | None:
+    async def _authenticate_request(  # noqa: C901, PLR0912
+        self, request: Request
+    ) -> CloudflareUser | None:
         """Authenticate request using Cloudflare headers.
 
         This method extracts the JWT token from request headers,
@@ -337,9 +335,8 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
                     detail="Missing authentication token",
                     headers={"WWW-Authenticate": "Bearer"},
                 )
-            else:
-                # Auth not required, return None
-                return None
+            # Auth not required, return None
+            return None
 
         # SECURITY: Validate JWT token size to prevent DoS attacks
         if len(jwt_token) > 8192:  # 8KB limit
@@ -422,8 +419,7 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
                     detail="Invalid authentication token",
                     headers={"WWW-Authenticate": "Bearer"},
                 ) from e
-            else:
-                return None
+            return None
 
 
 def setup_cloudflare_auth(

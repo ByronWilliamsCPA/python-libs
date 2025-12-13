@@ -27,6 +27,7 @@ uv sync --all-extras
 - Type-safe with BasedPyright strict mode
 - Comprehensive test coverage
 - Structured logging with structlog
+
 ## Documentation
 
 - [User Guide](guides/overview.md) - Getting started and usage

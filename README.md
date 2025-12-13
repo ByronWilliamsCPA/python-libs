@@ -1,6 +1,7 @@
 # Python Libs
 
 ## Quality & Security
+
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ByronWilliamsCPA/python_libs/badge)](https://securityscorecards.dev/viewer/?uri=github.com/ByronWilliamsCPA/python_libs)
 [![codecov](https://codecov.io/gh/ByronWilliamsCPA/python_libs/graph/badge.svg)](https://codecov.io/gh/ByronWilliamsCPA/python_libs)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ByronWilliamsCPA_python_libs&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ByronWilliamsCPA_python_libs)
@@ -9,6 +10,7 @@
 [![REUSE Compliance](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/reuse.yml/badge.svg)](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/reuse.yml)
 
 ## CI/CD Status
+
 [![CI Pipeline](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/ci.yml?query=branch%3Amain)
 [![Security Analysis](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/security-analysis.yml/badge.svg?branch=main)](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/security-analysis.yml?query=branch%3Amain)
 [![Documentation](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/docs.yml?query=branch%3Amain)
@@ -137,11 +139,13 @@ This project uses **Google Assured OSS** as the primary package source, with PyP
 ### Setup Instructions
 
 1. **Copy the environment template**:
+
    ```bash
    cp .env.example .env
    ```
 
 2. **Configure Google Cloud Project**:
+
    ```bash
    # Edit .env and set your GCP project ID
    GOOGLE_CLOUD_PROJECT=your-gcp-project-id
@@ -150,6 +154,7 @@ This project uses **Google Assured OSS** as the primary package source, with PyP
 3. **Setup Authentication** (choose one method):
 
    **Option A: Service Account JSON File** (local development)
+
    ```bash
    # Download service account key from GCP Console
    # Set the file path in .env
@@ -157,6 +162,7 @@ This project uses **Google Assured OSS** as the primary package source, with PyP
    ```
 
    **Option B: Base64 Encoded Credentials** (CI/CD recommended)
+
    ```bash
    # Encode your service account JSON
    base64 -w 0 service-account-key.json
@@ -166,6 +172,7 @@ This project uses **Google Assured OSS** as the primary package source, with PyP
    ```
 
 4. **Validate Configuration**:
+
    ```bash
    # Run the validation script
    uv run python scripts/validate_assuredoss.py
@@ -177,6 +184,7 @@ This project uses **Google Assured OSS** as the primary package source, with PyP
 ### Service Account Permissions
 
 Your service account needs the following IAM role:
+
 - `roles/artifactregistry.reader` (Artifact Registry Reader)
 
 ### Disabling Assured OSS
@@ -191,17 +199,20 @@ USE_ASSURED_OSS=false
 ### Troubleshooting
 
 **Q: Packages not found in Assured OSS?**
+
 - UV automatically falls back to PyPI for packages not in Assured OSS
 - No action needed - this is expected behavior
 
 **Q: Authentication errors?**
+
 - Verify your service account has Artifact Registry Reader role
 - Check that GOOGLE_CLOUD_PROJECT is set correctly
 - Ensure credentials file/base64 is valid JSON
 
 **Q: How to see which packages are available?**
+
 - Run `nox -s assuredoss` to list all available packages
-- Visit: https://cloud.google.com/assured-open-source-software/docs/supported-packages
+- Visit: <https://cloud.google.com/assured-open-source-software/docs/supported-packages>
 
 ## Development
 
@@ -269,6 +280,7 @@ These rules catch bugs that standard linting misses and enforce production-quali
 This project includes standardized Claude Code configuration via git subtree:
 
 **Directory Structure**:
+
 ```
 .claude/
 ├── claude.md          # Project-specific Claude guidelines
@@ -280,6 +292,7 @@ This project includes standardized Claude Code configuration via git subtree:
 ```
 
 **Updating Standards**:
+
 ```bash
 # Pull latest standards from upstream
 ./scripts/update-claude-standards.sh
@@ -290,6 +303,7 @@ git subtree pull --prefix .claude/standard \
 ```
 
 **What's Included**:
+
 - Universal development best practices
 - Response-Aware Development (RAD) system for assumption tagging
 - Agent assignment patterns and workflow
@@ -470,7 +484,7 @@ uv run pytest --cov=python_libs --cov-fail-under=80
 
 ### Reporting Security Issues
 
-Please report security vulnerabilities to byronawilliams@gmail.com rather than using the public issue tracker.
+Please report security vulnerabilities to <byronawilliams@gmail.com> rather than using the public issue tracker.
 
 See the [ByronWilliamsCPA Security Policy](https://github.com/ByronWilliamsCPA/.github/blob/main/SECURITY.md) for complete disclosure policy and response timelines.
 
@@ -590,6 +604,7 @@ See also: [docs/diagrams/publish-workflow.puml](docs/diagrams/publish-workflow.p
 1. **Update version** in the package's `pyproject.toml`
 2. **Commit and push** the version change
 3. **Create and push a tag** matching the pattern:
+
    ```bash
    # Format: {package-name}-v{version}
    git tag cloudflare-auth-v1.0.0
@@ -599,6 +614,7 @@ See also: [docs/diagrams/publish-workflow.puml](docs/diagrams/publish-workflow.p
 
    git push origin --tags
    ```
+
 4. **GitHub Actions** automatically:
    - Fetches GCP credentials from Infisical
    - Verifies version matches tag
@@ -719,7 +735,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 - **Issues**: [GitHub Issues](https://github.com/ByronWilliamsCPA/python-libs/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/ByronWilliamsCPA/python-libs/discussions)
-- **Email**: byronawilliams@gmail.com
+- **Email**: <byronawilliams@gmail.com>
 
 ## Acknowledgments
 

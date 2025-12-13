@@ -33,6 +33,7 @@ maintain context coherence across coding sessions and prevent architectural drif
 ### Step 1: Gather Project Context
 
 Before generating, collect:
+
 1. **Project description** from user input
 2. **Technical constraints** from `pyproject.toml` and existing code
 3. **Cookiecutter choices** reflected in project structure
@@ -71,6 +72,7 @@ Document content:
 ```
 
 **Review each document in order**:
+
 1. PVS → Must be READY before generating ADR
 2. ADR → Must be READY before generating Tech Spec
 3. Tech Spec → Must be READY before generating Roadmap
@@ -81,6 +83,7 @@ If any document NEEDS REVISION, incorporate feedback and re-review before procee
 ### Step 4: Validate and Cross-Reference
 
 After all documents pass review:
+
 - Ensure documents reference each other correctly
 - Verify technical choices are consistent across documents
 - Flag any assumptions needing user validation
@@ -101,6 +104,7 @@ After all documents pass review:
 Use template: `templates/pvs-template.md`
 
 Focus on:
+
 - Problem being solved and user impact
 - Core capabilities (3-5 max for MVP)
 - Explicit scope boundaries (in vs out)
@@ -111,6 +115,7 @@ Focus on:
 Use template: `templates/adr-template.md`
 
 Create ADR for:
+
 - Database/storage choice
 - Authentication strategy
 - API design approach
@@ -124,6 +129,7 @@ Format: `adr-001-{decision-slug}.md`
 Use template: `templates/tech-spec-template.md`
 
 Include:
+
 - Complete tech stack with versions
 - Component architecture diagram (ASCII)
 - Data model with schemas
@@ -136,12 +142,14 @@ Include:
 Use template: `templates/roadmap-template.md`
 
 Structure as:
+
 - Phase 0: Foundation (environment, CI/CD)
 - Phase 1: MVP Core (essential features)
 - Phase 2: Enhancement (additional features)
 - Phase 3: Polish (testing, documentation)
 
 Each phase needs:
+
 - Clear deliverables
 - Success criteria (testable)
 - Estimated duration
@@ -174,6 +182,7 @@ Before completing generation:
 ## Templates Reference
 
 Templates are in `templates/` directory:
+
 - `pvs-template.md` - Project Vision & Scope structure
 - `adr-template.md` - Architecture Decision Record structure
 - `tech-spec-template.md` - Technical Spec structure
@@ -182,12 +191,14 @@ Templates are in `templates/` directory:
 ## Detailed Guidance
 
 For comprehensive documentation on each document type, see `reference/` directory:
+
 - `reference/document-guide.md` - Full guidance for all document types
 - `reference/prompting-patterns.md` - How to use documents during development
 
 ## After Generation
 
 Instruct user to:
+
 1. Review each document for accuracy
 2. Validate assumptions marked with `[ ]`
 3. Adjust timelines in roadmap if needed

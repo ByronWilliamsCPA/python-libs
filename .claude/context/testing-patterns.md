@@ -5,6 +5,7 @@ Common testing patterns and best practices for this project.
 ## Test Structure
 
 ### AAA Pattern (Arrange-Act-Assert)
+
 ```python
 def test_user_creation():
     # Arrange
@@ -21,6 +22,7 @@ def test_user_creation():
 ## Fixtures
 
 ### Basic Fixture
+
 ```python
 @pytest.fixture
 def sample_user():
@@ -31,6 +33,7 @@ def test_user_display(sample_user):
 ```
 
 ### Factory Fixture
+
 ```python
 @pytest.fixture
 def user_factory():
@@ -45,6 +48,7 @@ def test_custom_user(user_factory):
 ```
 
 ### Async Fixture
+
 ```python
 @pytest.fixture
 async def async_client():
@@ -55,6 +59,7 @@ async def async_client():
 ## Mocking
 
 ### Mock External Services
+
 ```python
 @pytest.fixture
 def mock_api(mocker):
@@ -67,6 +72,7 @@ def test_with_mock(mock_api):
 ```
 
 ### Mock Database
+
 ```python
 @pytest.fixture
 def mock_db(mocker):
@@ -102,6 +108,7 @@ def test_encode_decode_roundtrip(text):
 ## Test Categories
 
 ### Unit Tests
+
 ```python
 @pytest.mark.unit
 def test_pure_function():
@@ -109,6 +116,7 @@ def test_pure_function():
 ```
 
 ### Integration Tests
+
 ```python
 @pytest.mark.integration
 def test_database_integration(db_session):
@@ -117,6 +125,7 @@ def test_database_integration(db_session):
 ```
 
 ### Slow Tests
+
 ```python
 @pytest.mark.slow
 def test_complex_operation():

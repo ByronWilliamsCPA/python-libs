@@ -17,11 +17,10 @@ Called by:
     - Application endpoints: For accessing user information
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import BaseModel, EmailStr, Field
-
 from src.cloudflare_auth.whitelist import UserTier
 
 
@@ -54,37 +53,18 @@ class CloudflareJWTClaims(BaseModel):
     """
 
     # Standard JWT claims
-    email: EmailStr = Field(
-        description="Authenticated user's email address"
-    )
-    iss: str = Field(
-        description="Token issuer (Cloudflare team domain)"
-    )
-    aud: list[str] | str = Field(
-        description="Audience tag(s) for the application"
-    )
-    sub: str = Field(
-        description="Subject (user identifier)"
-    )
-    iat: int = Field(
-        description="Issued at timestamp (Unix epoch)"
-    )
-    exp: int = Field(
-        description="Expiration timestamp (Unix epoch)"
-    )
+    email: EmailStr = Field(description="Authenticated user's email address")
+    iss: str = Field(description="Token issuer (Cloudflare team domain)")
+    aud: list[str] | str = Field(description="Audience tag(s) for the application")
+    sub: str = Field(description="Subject (user identifier)")
+    iat: int = Field(description="Issued at timestamp (Unix epoch)")
+    exp: int = Field(description="Expiration timestamp (Unix epoch)")
 
     # Optional Cloudflare-specific claims
-    nonce: str | None = Field(
-        default=None,
-        description="Nonce for replay protection"
-    )
-    identity_nonce: str | None = Field(
-        default=None,
-        description="Identity nonce"
-    )
+    nonce: str | None = Field(default=None, description="Nonce for replay protection")
+    identity_nonce: str | None = Field(default=None, description="Identity nonce")
     custom: dict[str, Any] = Field(
-        default_factory=dict,
-        description="Custom claims from identity provider"
+        default_factory=dict, description="Custom claims from identity provider"
     )
 
     @property
@@ -94,7 +74,7 @@ class CloudflareJWTClaims(BaseModel):
         Returns:
             Datetime when token was issued
         """
-        return datetime.fromtimestamp(self.iat)
+        return datetime.fromtimestamp(self.iat, tz=UTC)
 
     @property
     def expires_at(self) -> datetime:
@@ -103,7 +83,7 @@ class CloudflareJWTClaims(BaseModel):
         Returns:
             Datetime when token expires
         """
-        return datetime.fromtimestamp(self.exp)
+        return datetime.fromtimestamp(self.exp, tz=UTC)
 
     @property
     def is_expired(self) -> bool:
@@ -112,7 +92,7 @@ class CloudflareJWTClaims(BaseModel):
         Returns:
             True if token is expired
         """
-        return datetime.now() >= self.expires_at
+        return datetime.now(tz=UTC) >= self.expires_at
 
     def get_audience_list(self) -> list[str]:
         """Get audience as a list.
@@ -161,30 +141,21 @@ class CloudflareUser(BaseModel):
             }
     """
 
-    email: EmailStr = Field(
-        description="Authenticated user's email address"
-    )
-    user_id: str = Field(
-        description="Unique user identifier"
-    )
-    claims: CloudflareJWTClaims = Field(
-        description="Full JWT claims from Cloudflare"
-    )
+    email: EmailStr = Field(description="Authenticated user's email address")
+    user_id: str = Field(description="Unique user identifier")
+    claims: CloudflareJWTClaims = Field(description="Full JWT claims from Cloudflare")
     authenticated_at: datetime = Field(
         default_factory=datetime.now,
-        description="Timestamp when user was authenticated"
+        description="Timestamp when user was authenticated",
     )
     user_tier: UserTier = Field(
-        default=UserTier.LIMITED,
-        description="User's access tier"
+        default=UserTier.LIMITED, description="User's access tier"
     )
     is_admin: bool = Field(
-        default=False,
-        description="Whether user has admin privileges"
+        default=False, description="Whether user has admin privileges"
     )
     session_id: str | None = Field(
-        default=None,
-        description="Session identifier if sessions are enabled"
+        default=None, description="Session identifier if sessions are enabled"
     )
 
     @classmethod

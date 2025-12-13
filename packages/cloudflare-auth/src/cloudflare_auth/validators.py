@@ -29,16 +29,13 @@ Complexity: O(1) for cached certificates, O(n) for initial fetch
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any
 
-import httpx
 import jwt
 from jwt import PyJWKClient
-
 from src.cloudflare_auth.models import CloudflareJWTClaims
 from src.config.settings import CloudflareSettings, get_cloudflare_settings
-
 
 logger = logging.getLogger(__name__)
 
@@ -135,9 +132,8 @@ class CloudflareJWTValidator:
                 logger.error(f"Auth failed: {e}")
         """
         if not self.jwks_client:
-            raise RuntimeError(
-                "JWT validator not configured. Set CLOUDFLARE_TEAM_DOMAIN."
-            )
+            msg = "JWT validator not configured. Set CLOUDFLARE_TEAM_DOMAIN."
+            raise RuntimeError(msg)
 
         try:
             # Get the signing key from the JWT header
@@ -165,13 +161,13 @@ class CloudflareJWTValidator:
 
             # Additional validation
             if self.settings.require_email_verification and not claims.email:
-                raise ValueError("Email claim is required but missing")
+                msg = "Email claim is required but missing"
+                raise ValueError(msg)
 
             # Check email domain if restrictions are configured
             if not self.settings.is_email_allowed(claims.email):
-                raise ValueError(
-                    f"Email domain not allowed: {claims.email}"
-                )
+                msg = f"Email domain not allowed: {claims.email}"
+                raise ValueError(msg)
 
             logger.debug(
                 "Successfully validated JWT for user: %s",
@@ -182,27 +178,33 @@ class CloudflareJWTValidator:
 
         except jwt.ExpiredSignatureError as e:
             logger.warning("JWT token expired: %s", str(e))
-            raise ValueError("Token has expired") from e
+            msg = "Token has expired"
+            raise ValueError(msg) from e
 
         except jwt.InvalidAudienceError as e:
             logger.warning("Invalid JWT audience: %s", str(e))
-            raise ValueError("Invalid token audience") from e
+            msg = "Invalid token audience"
+            raise ValueError(msg) from e
 
         except jwt.InvalidIssuerError as e:
             logger.warning("Invalid JWT issuer: %s", str(e))
-            raise ValueError("Invalid token issuer") from e
+            msg = "Invalid token issuer"
+            raise ValueError(msg) from e
 
         except jwt.InvalidSignatureError as e:
             logger.warning("Invalid JWT signature: %s", str(e))
-            raise ValueError("Invalid token signature") from e
+            msg = "Invalid token signature"
+            raise ValueError(msg) from e
 
         except jwt.DecodeError as e:
             logger.warning("Failed to decode JWT: %s", str(e))
-            raise ValueError("Invalid token format") from e
+            msg = "Invalid token format"
+            raise ValueError(msg) from e
 
         except Exception as e:
-            logger.error("Unexpected error validating JWT: %s", str(e))
-            raise ValueError(f"Token validation failed: {str(e)}") from e
+            logger.exception("Unexpected error validating JWT: %s", str(e))
+            msg = f"Token validation failed: {e!s}"
+            raise ValueError(msg) from e
 
     def _validate_required_claims(self, payload: dict[str, Any]) -> None:
         """Validate that required claims are present.
@@ -215,14 +217,11 @@ class CloudflareJWTValidator:
         """
         required_claims = ["email", "iss", "aud", "sub", "iat", "exp"]
 
-        missing_claims = [
-            claim for claim in required_claims if claim not in payload
-        ]
+        missing_claims = [claim for claim in required_claims if claim not in payload]
 
         if missing_claims:
-            raise ValueError(
-                f"Missing required JWT claims: {', '.join(missing_claims)}"
-            )
+            msg = f"Missing required JWT claims: {', '.join(missing_claims)}"
+            raise ValueError(msg)
 
     async def validate_token_async(
         self,
@@ -267,7 +266,7 @@ class CloudflareJWTValidator:
                 cache_keys=True,
                 max_cached_keys=self.settings.jwt_cache_max_keys,
             )
-            self._last_key_refresh = datetime.now()
+            self._last_key_refresh = datetime.now(tz=UTC)
             logger.info("Cloudflare public keys client refreshed")
 
     @property
@@ -306,5 +305,5 @@ class CloudflareJWTValidator:
                 options={"verify_signature": False},
             )
         except Exception as e:
-            logger.error("Failed to decode token: %s", str(e))
+            logger.exception("Failed to decode token: %s", str(e))
             return {}

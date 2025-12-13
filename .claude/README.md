@@ -94,6 +94,7 @@ git subtree push --prefix .claude/standard \
 3. **Project Overrides**: Finally loads `.claude/claude.md` (project-specific)
 
 This layered approach ensures:
+
 - Consistent standards across all projects
 - Project flexibility where needed
 - Easy updates to universal guidelines

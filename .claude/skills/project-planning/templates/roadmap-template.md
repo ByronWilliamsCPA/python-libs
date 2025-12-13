@@ -13,10 +13,12 @@
 ## Timeline Overview
 
 ```
+
 Phase 0: Foundation    ████████░░░░░░░░ (1 week)  - Setup
 Phase 1: MVP Core      ░░░░░░░░████████ (3 weeks) - Core features
 Phase 2: Enhancement   ░░░░░░░░░░░░░░░░ (2 weeks) - Additional features
 Phase 3: Polish        ░░░░░░░░░░░░░░░░ (1 week)  - Testing & docs
+
 ```
 
 ## Milestones

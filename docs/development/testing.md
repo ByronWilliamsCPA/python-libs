@@ -79,6 +79,7 @@ def test_slow_example():
 ## Continuous Integration
 
 Tests run automatically on:
+
 - Pull request creation
 - Push to main/develop branches
 - Scheduled nightly builds
