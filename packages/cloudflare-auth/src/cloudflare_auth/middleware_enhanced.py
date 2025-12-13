@@ -135,7 +135,11 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
             self.csrf_protection = None
 
         # Validate configuration
-        if self.settings.cloudflare_enabled and require_auth and not whitelist_validator:
+        if (
+            self.settings.cloudflare_enabled
+            and require_auth
+            and not whitelist_validator
+        ):
             logger.warning(
                 "No whitelist validator provided - all authenticated users will be allowed"
             )

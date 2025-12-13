@@ -275,7 +275,9 @@ class SimpleSessionManager:
             "user_tier": session["user_tier"],
             "created_at": session["created_at"].isoformat(),
             "last_accessed": session["last_accessed"].isoformat(),
-            "age_seconds": (datetime.now(tz=UTC) - session["created_at"]).total_seconds(),
+            "age_seconds": (
+                datetime.now(tz=UTC) - session["created_at"]
+            ).total_seconds(),
         }
 
     def get_stats(self) -> dict[str, Any]:

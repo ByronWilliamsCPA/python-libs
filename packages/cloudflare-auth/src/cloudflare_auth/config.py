@@ -17,7 +17,6 @@ Example:
     print(f"Team domain: {settings.cloudflare_team_domain}")
 """
 
-import os
 from functools import lru_cache
 from typing import Literal
 
