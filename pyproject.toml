@@ -268,7 +268,7 @@ max-returns = 6        # Return statement limit
 convention = "google"
 
 [tool.ruff.lint.isort]
-known-first-party = ["python_libs", "cloudflare_auth", "gcs_utilities"]
+known-first-party = ["python_libs", "cloudflare_auth", "gcs_utilities", "gemini_image"]
 
 [tool.ruff.lint.per-file-ignores]
 # Module init files
@@ -462,7 +462,7 @@ pythonPlatform = "All"
 typeCheckingMode = "strict"
 
 # Source paths
-include = ["src", "packages/cloudflare-auth/src", "packages/gcs-utilities/src"]
+include = ["src", "packages/cloudflare-auth/src", "packages/gcs-utilities/src", "packages/gemini-image/src"]
 exclude = [
     "**/__pycache__",
     "**/node_modules",
@@ -525,8 +525,8 @@ deprecateTypingAliases = true          # Warn on deprecated typing module aliase
 # Pytest Configuration
 [tool.pytest.ini_options]
 minversion = "7.0"
-testpaths = ["tests", "packages/cloudflare-auth/tests", "packages/gcs-utilities/tests"]
-pythonpath = [".", "src", "packages/cloudflare-auth/src", "packages/gcs-utilities/src"]
+testpaths = ["tests", "packages/cloudflare-auth/tests", "packages/gcs-utilities/tests", "packages/gemini-image/tests"]
+pythonpath = [".", "src", "packages/cloudflare-auth/src", "packages/gcs-utilities/src", "packages/gemini-image/src"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -698,7 +698,9 @@ members = ["packages/*"]
 # Workspace source references - allow packages to depend on each other
 [tool.uv.sources]
 byronwilliamscpa-cloudflare-auth = { workspace = true }
+byronwilliamscpa-cloudflare-api = { workspace = true }
 byronwilliamscpa-gcs-utilities = { workspace = true }
+byronwilliamscpa-gemini-image = { workspace = true }
 
 # Package Index Configuration
 # Google Assured OSS as primary source with PyPI fallback
