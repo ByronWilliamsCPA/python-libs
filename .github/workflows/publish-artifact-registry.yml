@@ -75,20 +75,34 @@ jobs:
             PACKAGE="${TAG%-v*}"
           fi
 
-          # Map package name to directory
+          # Map tag name to directory and pyproject package name
           case "$PACKAGE" in
-            cloudflare-auth) PKG_DIR="packages/cloudflare-auth" ;;
-            cloudflare-api) PKG_DIR="packages/cloudflare-api" ;;
-            gcs-utilities) PKG_DIR="packages/gcs-utilities" ;;
-            gemini-image) PKG_DIR="packages/gemini-image" ;;
+            cloudflare-auth)
+              PKG_DIR="packages/cloudflare-auth"
+              PKG_NAME="byronwilliamscpa-cloudflare-auth"
+              ;;
+            cloudflare-api)
+              PKG_DIR="packages/cloudflare-api"
+              PKG_NAME="byronwilliamscpa-cloudflare-api"
+              ;;
+            gcs-utilities)
+              PKG_DIR="packages/gcs-utilities"
+              PKG_NAME="byronwilliamscpa-gcs-utilities"
+              ;;
+            gemini-image)
+              PKG_DIR="packages/gemini-image"
+              PKG_NAME="byronwilliamscpa-gemini-image"
+              ;;
             *) echo "Unknown package: $PACKAGE" && exit 1 ;;
           esac
 
           echo "package=$PACKAGE" >> "$GITHUB_OUTPUT"
+          echo "pkg_name=$PKG_NAME" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "pkg_dir=$PKG_DIR" >> "$GITHUB_OUTPUT"
 
           echo "📦 Package: $PACKAGE"
+          echo "📦 PyPI Name: $PKG_NAME"
           echo "📌 Version: $VERSION"
           echo "📁 Directory: $PKG_DIR"
 
@@ -147,7 +161,7 @@ jobs:
       - name: Build package
         run: |
           echo "🔨 Building package..."
-          uv build --package ${{ steps.parse.outputs.package }}
+          uv build --package ${{ steps.parse.outputs.pkg_name }}
           echo "📦 Built artifacts:"
           ls -la dist/
 
