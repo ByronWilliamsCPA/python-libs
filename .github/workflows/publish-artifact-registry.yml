@@ -110,6 +110,7 @@ jobs:
           client-secret: ${{ secrets.INFISICAL_CLIENT_SECRET }}
           project-slug: ${{ secrets.INFISICAL_PROJECT_SLUG }}
           env-slug: prod
+          domain: https://infisical.williamshome.family
           export-type: env
 
       - name: Authenticate to Google Cloud
