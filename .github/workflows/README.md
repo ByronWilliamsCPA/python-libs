@@ -18,7 +18,7 @@ This project uses **org-level reusable workflows** for consistency and maintaina
 │  │ • release.yml                      │ │
 │  │ • sbom.yml                         │ │
 │  │ • docs.yml                         │ │
-│  │ • publish-pypi.yml                 │ │
+│  │ • publish-artifact-registry.yml    │ │
 │  └───────────────────────────────────┘ │
 │              │                          │
 │              │ uses:                    │
@@ -40,7 +40,6 @@ This project uses **org-level reusable workflows** for consistency and maintaina
 │  │ • python-release.yml               │ │
 │  │ • python-sbom.yml                  │ │
 │  │ • python-docs.yml                  │ │
-│  │ • python-publish-pypi.yml          │ │
 │  └───────────────────────────────────┘ │
 └─────────────────────────────────────────┘
 ```text
@@ -92,35 +91,46 @@ Documentation build and deployment:
 - Deployment to GitHub Pages (on push to main)
 
 **Triggers**: Push/PR affecting docs, manual dispatch
+
 ---
 
-### Publish to PyPI (`publish-pypi.yml`)
+### Publish to Artifact Registry (`publish-artifact-registry.yml`)
 
-**Calls**: `ByronWilliamsCPA/.github/.github/workflows/python-publish-pypi.yml@main`
+**Standalone workflow** (not org-level) - publishes packages to private GCP Artifact Registry.
 
 Package publishing with:
 
-- OIDC trusted publishing (no API tokens needed)
-- Test PyPI validation
-- SBOM generation
-- Signed releases
+- Per-package version tags (e.g., `cloudflare-auth-v1.0.0`)
+- Infisical secrets management for GCP credentials
+- Service account authentication to Artifact Registry
+- Dry-run support for testing
 
-**Triggers**: Release published, manual dispatch
+**Triggers**: Package version tags, manual dispatch
+
+**Supported packages**:
+
+- `cloudflare-auth-v*`
+- `cloudflare-api-v*`
+- `gcs-utilities-v*`
+- `gemini-image-v*`
 
 ---
 
 ### Release (`release.yml`)
 
-**Calls**: `ByronWilliamsCPA/.github/.github/workflows/python-release.yml@main`
+**Standalone workflow** - creates GitHub releases with semantic versioning.
 
 Release automation with:
 
-- SLSA provenance generation
-- Signed artifacts
-- Comprehensive changelog
-- Asset upload
+- Pre-release testing
+- Conventional commit parsing
+- Automatic version bumping
+- GitHub Release creation with changelog
 
-**Triggers**: Version tags (v*.*.*), manual dispatch
+**Triggers**: Push to main, manual dispatch
+
+**Note**: This workflow creates GitHub releases but does NOT publish packages.
+Use `publish-artifact-registry.yml` via version tags to publish packages.
 
 ---
 
