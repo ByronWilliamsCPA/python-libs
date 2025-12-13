@@ -145,16 +145,14 @@ jobs:
         run: uv python install ${{ env.PYTHON_VERSION }}
 
       - name: Build package
-        working-directory: ${{ steps.parse.outputs.pkg_dir }}
         run: |
           echo "🔨 Building package..."
-          uv build
+          uv build --package ${{ steps.parse.outputs.package }}
           echo "📦 Built artifacts:"
           ls -la dist/
 
       - name: Publish to Artifact Registry
         if: ${{ !inputs.dry-run }}
-        working-directory: ${{ steps.parse.outputs.pkg_dir }}
         run: |
           echo "🚀 Publishing to Artifact Registry..."
 
@@ -173,7 +171,7 @@ jobs:
           echo "📦 Package: ${{ steps.parse.outputs.package }}"
           echo "📌 Version: ${{ steps.parse.outputs.version }}"
           echo "📁 Artifacts:"
-          ls -la ${{ steps.parse.outputs.pkg_dir }}/dist/
+          ls -la dist/
 
       - name: Cleanup credentials
         if: always()
