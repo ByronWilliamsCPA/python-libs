@@ -714,6 +714,16 @@ byronwilliamscpa-gcs-utilities = { workspace = true }
 # UV automatically falls back to PyPI when packages are not found in Assured OSS.
 # Authentication uses GOOGLE_APPLICATION_CREDENTIALS or GOOGLE_APPLICATION_CREDENTIALS_B64.
 
+# Artifact Registry Publishing Configuration
+# Used by `uv publish` to upload packages to private GCP Artifact Registry
+# The publish URL is passed via CLI in the GitHub Actions workflow
+# Format: https://{REGION}-python.pkg.dev/{PROJECT}/{REPOSITORY}/
+#
+# For local publishing, set environment variables and run:
+#   uv publish --publish-url https://us-central1-python.pkg.dev/assured-oss-457903/python-libs/
+#
+# Authentication is handled via gcloud credential helper or service account key.
+
 # Semantic Release Configuration
 # Automates versioning and changelog generation based on conventional commits
 # Reference: https://python-semantic-release.readthedocs.io/

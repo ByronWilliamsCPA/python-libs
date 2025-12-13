@@ -1,13 +1,14 @@
 ---
 # Release Workflow
-# Handles automated releases with semantic versioning or
-# manual tag-based releases.
+# Handles automated releases with semantic versioning.
 #
 # Features:
 #   - Pre-release testing
-#   - Semantic versioning (if enabled) or manual tag-based releases
-#   - PyPI publishing with OIDC trusted publishing
-#   - GitHub Release creation
+#   - Semantic versioning based on conventional commits
+#   - GitHub Release creation with changelog
+#
+# Note: Package publishing to Artifact Registry is handled separately
+# by publish-artifact-registry.yml triggered by version tags.
 name: Semantic Release
 
 "on":
@@ -37,8 +38,6 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
-  id-token: write
-  attestations: write
 
 # Standalone release workflow
 jobs:
@@ -93,8 +92,25 @@ jobs:
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Publish to PyPI
+      - name: Release summary
         if: steps.release.outputs.released == 'true'
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          attestations: true
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" << EOF
+          ## 🎉 Release Created
+
+          **Version**: \`${{ steps.release.outputs.version }}\`
+
+          ### Next Steps
+
+          To publish individual packages to Artifact Registry, create version tags:
+
+          \`\`\`bash
+          # Update version in package's pyproject.toml first, then:
+          git tag cloudflare-auth-v${{ steps.release.outputs.version }}
+          git tag gcs-utilities-v${{ steps.release.outputs.version }}
+          git push origin --tags
+          \`\`\`
+
+          The \`publish-artifact-registry.yml\` workflow will automatically publish
+          packages when their version tags are pushed.
+          EOF
