@@ -23,6 +23,8 @@ classifiers = [
 # All production deps are in individual packages (packages/*/pyproject.toml)
 dependencies = [
     # Shared utilities only - packages define their own deps
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
     "structlog>=23.1.0",
     "rich>=13.5.0",
     # Cross-Version Compatibility Dependencies
