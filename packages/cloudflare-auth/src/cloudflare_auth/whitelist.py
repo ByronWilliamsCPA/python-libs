@@ -423,62 +423,67 @@ class EmailWhitelistValidator:
             },
         }
 
-    def validate_whitelist_config(self) -> list[str]:  # noqa: C901, PLR0912
+    def _check_empty_whitelist(self) -> list[str]:
+        """Check if whitelist is empty."""
+        if not self.individual_emails and not self.domain_patterns:
+            return ["Whitelist is empty - no users will be authorized"]
+        return []
+
+    def _check_tier_authorization(
+        self, emails: list[str], tier_name: str
+    ) -> list[str]:
+        """Check if tier emails are authorized in whitelist."""
+        warnings = []
+        for email in emails:
+            if not self.is_authorized(email):
+                warnings.append(f"{tier_name} email {email} is not in whitelist")
+        return warnings
+
+    def _check_tier_conflicts(self) -> list[str]:
+        """Check for emails assigned to multiple tiers."""
+        warnings = []
+        all_tier_emails = (
+            set(self.admin_emails) | set(self.full_users) | set(self.limited_users)
+        )
+
+        tier_map = {
+            "admin": set(self.admin_emails),
+            "full": set(self.full_users),
+            "limited": set(self.limited_users),
+        }
+
+        for email in all_tier_emails:
+            tiers = [name for name, emails in tier_map.items() if email in emails]
+            if len(tiers) > 1:
+                warnings.append(
+                    f"Email {email} is assigned to multiple tiers: {', '.join(tiers)}"
+                )
+        return warnings
+
+    def _check_public_domains(self) -> list[str]:
+        """Check for potentially insecure public email domains."""
+        public_domains = {"@gmail.com", "@outlook.com"}
+        if self.domain_patterns & public_domains:
+            return [
+                "Public email domains (@gmail.com, @outlook.com) in whitelist may be insecure"
+            ]
+        return []
+
+    def validate_whitelist_config(self) -> list[str]:
         """Validate the whitelist configuration and return any warnings.
 
         Returns:
             List of warning messages about the configuration
         """
         warnings = []
-
-        # Check for empty whitelist
-        if not self.individual_emails and not self.domain_patterns:
-            warnings.append("Whitelist is empty - no users will be authorized")
-
-        # Check for admin emails not in whitelist
-        for admin_email in self.admin_emails:
-            if not self.is_authorized(admin_email):
-                warnings.append(f"Admin email {admin_email} is not in whitelist")
-
-        # Check for full users not in whitelist
-        for full_user in self.full_users:
-            if not self.is_authorized(full_user):
-                warnings.append(f"Full user email {full_user} is not in whitelist")
-
-        # Check for limited users not in whitelist
-        for limited_user in self.limited_users:
-            if not self.is_authorized(limited_user):
-                warnings.append(
-                    f"Limited user email {limited_user} is not in whitelist"
-                )
-
-        # Check for tier conflicts
-        all_tier_emails = (
-            set(self.admin_emails) | set(self.full_users) | set(self.limited_users)
+        warnings.extend(self._check_empty_whitelist())
+        warnings.extend(self._check_tier_authorization(self.admin_emails, "Admin"))
+        warnings.extend(self._check_tier_authorization(self.full_users, "Full user"))
+        warnings.extend(
+            self._check_tier_authorization(self.limited_users, "Limited user")
         )
-        for email in all_tier_emails:
-            tiers = []
-            if email in self.admin_emails:
-                tiers.append("admin")
-            if email in self.full_users:
-                tiers.append("full")
-            if email in self.limited_users:
-                tiers.append("limited")
-
-            if len(tiers) > 1:
-                warnings.append(
-                    f"Email {email} is assigned to multiple tiers: {', '.join(tiers)}"
-                )
-
-        # Check for potential security issues
-        if (
-            "@gmail.com" in self.domain_patterns
-            or "@outlook.com" in self.domain_patterns
-        ):
-            warnings.append(
-                "Public email domains (@gmail.com, @outlook.com) in whitelist may be insecure"
-            )
-
+        warnings.extend(self._check_tier_conflicts())
+        warnings.extend(self._check_public_domains())
         return warnings
 
 
@@ -502,7 +507,116 @@ class WhitelistManager:
         """
         self.validator = validator
 
-    def add_email(self, email: str, is_admin: bool = False) -> bool:  # noqa: C901, PLR0912
+    def _validate_empty_input(self, email: str) -> None:
+        """Validate that email input is not empty.
+
+        Args:
+            email: Email string to validate
+
+        Raises:
+            ValueError: If email is empty or whitespace only
+        """
+        if not email or not email.strip():
+            msg = "Email cannot be empty"
+            raise ValueError(msg)
+
+    def _validate_email_with_library(self, email: str) -> str:
+        """Validate email using email-validator library.
+
+        Args:
+            email: Email to validate
+
+        Returns:
+            Normalized email address
+
+        Raises:
+            ValueError: If email format is invalid
+        """
+        try:
+            valid = validate_email(email, check_deliverability=False)
+            return (
+                valid.normalized
+                if not self.validator.case_sensitive
+                else email
+            )
+        except EmailNotValidError as e:
+            msg = f"Invalid email format: {e!s}"
+            raise ValueError(msg) from e
+
+    def _validate_email_basic(self, email: str) -> None:
+        """Basic email validation without email-validator library.
+
+        Args:
+            email: Email to validate
+
+        Raises:
+            ValueError: If email format is invalid
+        """
+        if "@" not in email or email.count("@") != 1:
+            msg = "Invalid email format: must contain exactly one @"
+            raise ValueError(msg)
+
+        local, domain = email.split("@")
+        if not local or not domain or "." not in domain:
+            msg = "Invalid email format"
+            raise ValueError(msg)
+
+    def _validate_email_format(self, email: str) -> str:
+        """Validate individual email format.
+
+        Args:
+            email: Email address to validate
+
+        Returns:
+            Normalized email address
+
+        Raises:
+            ValueError: If email format is invalid
+        """
+        if EMAIL_VALIDATOR_AVAILABLE and validate_email is not None:
+            return self._validate_email_with_library(email)
+        self._validate_email_basic(email)
+        return email
+
+    def _validate_domain_pattern(self, pattern: str) -> None:
+        """Validate domain pattern format.
+
+        Args:
+            pattern: Domain pattern to validate (e.g., @domain.tld)
+
+        Raises:
+            ValueError: If domain pattern is invalid
+        """
+        if pattern.count("@") != 1:
+            msg = "Invalid domain pattern: must be @domain.tld"
+            raise ValueError(msg)
+
+        domain_part = pattern[1:]  # Remove @
+        if not domain_part or "." not in domain_part:
+            msg = "Invalid domain pattern: must include valid domain"
+            raise ValueError(msg)
+
+    def _add_to_collections(
+        self, normalized_email: str, is_admin: bool, original_email: str
+    ) -> None:
+        """Add email to appropriate whitelist collections.
+
+        Args:
+            normalized_email: Normalized email or domain pattern
+            is_admin: Whether to add to admin list
+            original_email: Original email for logging
+        """
+        if normalized_email.startswith("@"):
+            self.validator.domain_patterns.add(normalized_email)
+        else:
+            self.validator.individual_emails.add(normalized_email)
+
+        if is_admin:
+            self.validator.admin_emails.append(normalized_email)
+
+        logger.info("Added email %s to whitelist (admin: %s)", original_email, is_admin)
+
+    def add_email(self, email: str, is_admin: bool = False) -> bool:
         """Add email to whitelist (runtime operation).
 
         Note: This is for runtime operations. For persistent changes,
@@ -519,66 +633,18 @@ class WhitelistManager:
             ValueError: If email format is invalid
         """
         try:
-            # Validate input is not empty
-            if not email or not email.strip():
-                msg = "Email cannot be empty"
-                raise ValueError(msg)
-
+            self._validate_empty_input(email)
             normalized_email = self.validator._normalize_email(email)
 
-            # Validate email format (if not a domain pattern)
-            if not normalized_email.startswith("@"):
-                if EMAIL_VALIDATOR_AVAILABLE and validate_email is not None:
-                    try:
-                        # Validate email format
-                        valid = validate_email(
-                            normalized_email, check_deliverability=False
-                        )
-                        normalized_email = (
-                            valid.normalized
-                            if not self.validator.case_sensitive
-                            else normalized_email
-                        )
-                    except EmailNotValidError as e:
-                        msg = f"Invalid email format: {e!s}"
-                        raise ValueError(msg) from e
-                else:
-                    # Basic email validation if email-validator not available
-                    if "@" not in normalized_email or normalized_email.count("@") != 1:
-                        msg = "Invalid email format: must contain exactly one @"
-                        raise ValueError(msg)
-
-                    local, domain = normalized_email.split("@")
-                    if not local or not domain or "." not in domain:
-                        msg = "Invalid email format"
-                        raise ValueError(msg)
-
-            # Validate domain pattern format
-            else:
-                # Domain pattern must be @domain.tld format
-                if normalized_email.count("@") != 1:
-                    msg = "Invalid domain pattern: must be @domain.tld"
-                    raise ValueError(msg)
-
-                domain_part = normalized_email[1:]  # Remove @
-                if not domain_part or "." not in domain_part:
-                    msg = "Invalid domain pattern: must include valid domain"
-                    raise ValueError(msg)
-
-            # Add to appropriate collection
             if normalized_email.startswith("@"):
-                self.validator.domain_patterns.add(normalized_email)
+                self._validate_domain_pattern(normalized_email)
             else:
-                self.validator.individual_emails.add(normalized_email)
+                normalized_email = self._validate_email_format(normalized_email)
 
-            if is_admin:
-                self.validator.admin_emails.append(normalized_email)
-
-            logger.info("Added email %s to whitelist (admin: %s)", email, is_admin)
+            self._add_to_collections(normalized_email, is_admin, email)
             return True
 
         except ValueError:
-            # Re-raise validation errors
             raise
         except Exception as e:
             logger.exception("Failed to add email %s to whitelist: %s", email, e)
