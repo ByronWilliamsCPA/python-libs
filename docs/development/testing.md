@@ -21,23 +21,23 @@ uv run pytest -v --cov=src --cov-report=term-missing
 
 # Run with nox across Python versions
 nox -s test
-```
+```text
 
 ### Unit Tests Only
 
 ```bash
 uv run pytest -m unit -v
-```
+```text
 
 ### Integration Tests
 
 ```bash
 uv run pytest -m integration -v
-```
+```text
 
 ## Test Structure
 
-```
+```text
 tests/
 ├── conftest.py          # Shared fixtures
 ├── unit/                # Unit tests
@@ -45,7 +45,7 @@ tests/
 │   └── test_logging.py
 └── integration/         # Integration tests
     └── ...
-```
+```text
 
 ## Coverage Requirements
 
@@ -74,11 +74,12 @@ def test_integration_example():
 def test_slow_example():
     """Slow test - excluded from fast runs."""
     pass
-```
+```text
 
 ## Continuous Integration
 
 Tests run automatically on:
+
 - Pull request creation
 - Push to main/develop branches
 - Scheduled nightly builds

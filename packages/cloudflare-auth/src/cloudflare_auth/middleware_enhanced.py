@@ -36,22 +36,26 @@ Example:
     )
 """
 
-from collections.abc import Callable
 import logging
+from collections.abc import Callable
 from typing import Any
 
 from fastapi import HTTPException, Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from cloudflare_auth.config import CloudflareSettings, get_cloudflare_settings
 from cloudflare_auth.csrf import CSRFProtection
 from cloudflare_auth.models import CloudflareUser
 from cloudflare_auth.rate_limiter import InMemoryRateLimiter
 from cloudflare_auth.sessions import SimpleSessionManager
-from cloudflare_auth.utils import get_client_ip, sanitize_email, sanitize_ip, sanitize_path
+from cloudflare_auth.utils import (
+    get_client_ip,
+    sanitize_email,
+    sanitize_ip,
+    sanitize_path,
+)
 from cloudflare_auth.validators import CloudflareJWTValidator
 from cloudflare_auth.whitelist import EmailWhitelistValidator, UserTier
-from src.config.settings import CloudflareSettings, get_cloudflare_settings
-
 
 logger = logging.getLogger(__name__)
 
@@ -131,11 +135,14 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
             self.csrf_protection = None
 
         # Validate configuration
-        if self.settings.cloudflare_enabled and require_auth:
-            if not whitelist_validator:
-                logger.warning(
-                    "No whitelist validator provided - all authenticated users will be allowed"
-                )
+        if (
+            self.settings.cloudflare_enabled
+            and require_auth
+            and not whitelist_validator
+        ):
+            logger.warning(
+                "No whitelist validator provided - all authenticated users will be allowed"
+            )
 
         logger.info(
             "Initialized enhanced Cloudflare auth middleware "
@@ -216,19 +223,153 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(
-                "Unexpected error during authentication: %s",
-                str(e),
-                exc_info=True,
-            )
+            logger.exception("Unexpected error during authentication")
             if self.require_auth:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="Authentication service error",
                 ) from e
-            else:
-                request.state.user = None
-                return await call_next(request)
+            request.state.user = None
+            return await call_next(request)
+
+    def _check_rate_limit(self, request: Request) -> None:
+        """Check rate limit and raise HTTPException if exceeded."""
+        if not (self.enable_rate_limiting and self.rate_limiter):
+            return
+
+        client_ip = get_client_ip(request)
+        if self.rate_limiter.is_allowed(client_ip):
+            return
+
+        retry_after = self.rate_limiter.get_retry_after(client_ip)
+        logger.warning(
+            "Rate limit exceeded for IP: %s (path: %s)",
+            sanitize_ip(client_ip),
+            sanitize_path(request.url.path),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many authentication attempts. Please try again later.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
+    def _authenticate_from_session(self, request: Request) -> CloudflareUser | None:
+        """Attempt to authenticate from existing session."""
+        if not self.enable_sessions:
+            return None
+
+        session_id = request.cookies.get("session_id")
+        if not session_id:
+            return None
+
+        session = self.session_manager.get_session(session_id)
+        if not session:
+            return None
+
+        user = self._user_from_session(session, session_id)
+        logger.debug("Authenticated from session: %s", user.email)
+        return user
+
+    def _handle_missing_token(self, request: Request) -> None:
+        """Handle missing JWT token - raise if auth required."""
+        if not self.require_auth:
+            return
+
+        self._record_failed_attempt(request)
+        if self.settings.log_auth_failures:
+            logger.warning(
+                "Missing JWT header: %s (path: %s, ip: %s)",
+                self.settings.jwt_header_name,
+                sanitize_path(request.url.path),
+                sanitize_ip(get_client_ip(request)),
+            )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authentication token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    def _validate_token_size(self, jwt_token: str, request: Request) -> bool:
+        """Validate JWT token size. Returns True if valid."""
+        if len(jwt_token) <= 8192:
+            return True
+
+        logger.warning(
+            "JWT token too large: %d bytes (path: %s, ip: %s)",
+            len(jwt_token),
+            sanitize_path(request.url.path),
+            sanitize_ip(get_client_ip(request)),
+        )
+        if self.require_auth:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="JWT token too large",
+            )
+        return False
+
+    def _record_failed_attempt(self, request: Request) -> None:
+        """Record a failed authentication attempt for rate limiting."""
+        if self.enable_rate_limiting and self.rate_limiter:
+            self.rate_limiter.record_attempt(get_client_ip(request))
+
+    def _handle_jwt_validation_error(self, error: ValueError, request: Request) -> None:
+        """Handle JWT validation errors."""
+        self._record_failed_attempt(request)
+
+        if self.settings.log_auth_failures:
+            logger.warning(
+                "JWT validation failed: %s (path: %s, ip: %s)",
+                str(error),
+                sanitize_path(request.url.path),
+                sanitize_ip(get_client_ip(request)),
+            )
+
+        if self.require_auth:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication token",
+                headers={"WWW-Authenticate": "Bearer"},
+            ) from error
+
+    def _check_whitelist(self, email: str) -> UserTier:
+        """Check whitelist authorization and return user tier."""
+        if not self.whitelist_validator:
+            return UserTier.FULL
+
+        if not self.whitelist_validator.is_authorized(email):
+            logger.warning(
+                "Unauthorized email attempted access: %s",
+                sanitize_email(email),
+            )
+            if self.require_auth:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Email {email} not authorized",
+                )
+            msg = "Email not authorized"
+            raise ValueError(msg)
+
+        try:
+            return self.whitelist_validator.get_user_tier(email)
+        except ValueError:
+            return UserTier.LIMITED
+
+    def _create_session_if_enabled(
+        self, claims: Any, user_tier: UserTier, request: Request
+    ) -> str | None:
+        """Create session if sessions are enabled."""
+        if not self.enable_sessions:
+            return None
+
+        return self.session_manager.create_session(
+            email=claims.email,
+            is_admin=user_tier.has_admin_privileges,
+            user_tier=user_tier.value,
+            cf_context={
+                "cf_ray": request.headers.get("cf-ray"),
+                "cf_country": request.headers.get("cf-ipcountry"),
+            },
+        )
 
     async def _authenticate_request(self, request: Request) -> CloudflareUser | None:
         """Authenticate request using JWT and whitelist.
@@ -242,128 +383,37 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
         Raises:
             HTTPException: If authentication fails and is required
         """
-        # Check rate limit
-        if self.enable_rate_limiting and self.rate_limiter:
-            client_ip = get_client_ip(request)
-            if not self.rate_limiter.is_allowed(client_ip):
-                retry_after = self.rate_limiter.get_retry_after(client_ip)
-                logger.warning(
-                    "Rate limit exceeded for IP: %s (path: %s)",
-                    sanitize_ip(client_ip),
-                    sanitize_path(request.url.path),
-                )
-                raise HTTPException(
-                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail="Too many authentication attempts. Please try again later.",
-                    headers={"Retry-After": str(retry_after)},
-                )
+        self._check_rate_limit(request)
 
         # Check for existing session first
-        if self.enable_sessions:
-            session_id = request.cookies.get("session_id")
-            if session_id:
-                session = self.session_manager.get_session(session_id)
-                if session:
-                    # Recreate user from session
-                    user = self._user_from_session(session, session_id)
-                    logger.debug("Authenticated from session: %s", user.email)
-                    return user
+        session_user = self._authenticate_from_session(request)
+        if session_user:
+            return session_user
 
         # Extract JWT token
         jwt_token = request.headers.get(self.settings.jwt_header_name)
-
         if not jwt_token:
-            if self.require_auth:
-                if self.settings.log_auth_failures:
-                    logger.warning(
-                        "Missing JWT header: %s (path: %s, ip: %s)",
-                        self.settings.jwt_header_name,
-                        sanitize_path(request.url.path),
-                        sanitize_ip(get_client_ip(request)),
-                    )
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Missing authentication token",
-                    headers={"WWW-Authenticate": "Bearer"},
-                )
+            self._handle_missing_token(request)
             return None
 
-        # Security: Validate JWT token size (prevent DoS)
-        if len(jwt_token) > 8192:  # 8KB limit
-            logger.warning(
-                "JWT token too large: %d bytes (path: %s, ip: %s)",
-                len(jwt_token),
-                request.url.path,
-                self._get_client_ip(request),
-            )
-            if self.require_auth:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="JWT token too large",
-                )
+        if not self._validate_token_size(jwt_token, request):
             return None
 
         # Validate JWT token
         try:
             claims = self.jwt_validator.validate_token(jwt_token)
         except ValueError as e:
-            # Record failed authentication attempt for rate limiting
-            if self.enable_rate_limiting and self.rate_limiter:
-                client_ip = get_client_ip(request)
-                self.rate_limiter.record_attempt(client_ip)
-
-            if self.settings.log_auth_failures:
-                logger.warning(
-                    "JWT validation failed: %s (path: %s, ip: %s)",
-                    str(e),
-                    sanitize_path(request.url.path),
-                    sanitize_ip(get_client_ip(request)),
-                )
-
-            if self.require_auth:
-                # Don't leak error details to potential attackers
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid authentication token",
-                    headers={"WWW-Authenticate": "Bearer"},
-                ) from e
+            self._handle_jwt_validation_error(e, request)
             return None
 
-        # Check whitelist if configured
-        if self.whitelist_validator:
-            if not self.whitelist_validator.is_authorized(claims.email):
-                logger.warning(
-                    "Unauthorized email attempted access: %s",
-                    sanitize_email(claims.email),
-                )
-                if self.require_auth:
-                    raise HTTPException(
-                        status_code=status.HTTP_403_FORBIDDEN,
-                        detail=f"Email {claims.email} not authorized",
-                    )
-                return None
+        # Check whitelist and get tier
+        try:
+            user_tier = self._check_whitelist(claims.email)
+        except ValueError:
+            return None
 
-            # Get user tier
-            try:
-                user_tier = self.whitelist_validator.get_user_tier(claims.email)
-            except ValueError:
-                user_tier = UserTier.LIMITED
-        else:
-            # No whitelist - default to full access
-            user_tier = UserTier.FULL
-
-        # Create or update session
-        session_id = None
-        if self.enable_sessions:
-            session_id = self.session_manager.create_session(
-                email=claims.email,
-                is_admin=user_tier.has_admin_privileges,
-                user_tier=user_tier.value,
-                cf_context={
-                    "cf_ray": request.headers.get("cf-ray"),
-                    "cf_country": request.headers.get("cf-ipcountry"),
-                },
-            )
+        # Create session if enabled
+        session_id = self._create_session_if_enabled(claims, user_tier, request)
 
         # Create user object
         user = CloudflareUser.from_jwt_claims(
@@ -383,9 +433,7 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
         return user
 
     def _user_from_session(
-        self,
-        session: dict[str, Any],
-        session_id: str
+        self, session: dict[str, Any], session_id: str
     ) -> CloudflareUser:
         """Recreate CloudflareUser from session data.
 
@@ -405,7 +453,8 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
             aud=[self.settings.cloudflare_audience_tag],
             sub=session.get("email", ""),
             iat=int(session["created_at"].timestamp()),
-            exp=int(session["last_accessed"].timestamp()) + self.session_manager.session_timeout,
+            exp=int(session["last_accessed"].timestamp())
+            + self.session_manager.session_timeout,
         )
 
         tier = UserTier.from_string(session.get("user_tier", "limited"))
@@ -667,6 +716,7 @@ def require_tier(minimum_tier: UserTier) -> Callable:
         async def premium(user: CloudflareUser = Depends(require_full)):
             return {"message": "Premium content"}
     """
+
     def dependency(request: Request) -> CloudflareUser:
         user = get_current_user(request)
 

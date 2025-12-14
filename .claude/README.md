@@ -4,7 +4,7 @@ This directory contains Claude Code configuration and standards for this project
 
 ## Directory Structure
 
-```
+```text
 .claude/
 ├── README.md           # This file
 ├── claude.md           # Project-specific Claude guidelines
@@ -94,6 +94,7 @@ git subtree push --prefix .claude/standard \
 3. **Project Overrides**: Finally loads `.claude/claude.md` (project-specific)
 
 This layered approach ensures:
+
 - Consistent standards across all projects
 - Project flexibility where needed
 - Easy updates to universal guidelines

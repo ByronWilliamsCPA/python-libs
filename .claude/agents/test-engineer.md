@@ -9,24 +9,28 @@ Design and implement test strategies, generate test cases, and ensure code quali
 ## Capabilities
 
 ### Test Strategy
+
 - Design test plans and strategies
 - Identify critical paths for testing
 - Balance unit, integration, and e2e tests
 - Define coverage targets and metrics
 
 ### Test Generation
+
 - Generate unit tests for new code
 - Create integration test scenarios
 - Design edge case and boundary tests
 - Implement property-based tests
 
 ### Test Review
+
 - Review existing test quality
 - Identify gaps in test coverage
 - Suggest test improvements
 - Validate test isolation
 
 ### Test Automation
+
 - Configure CI/CD test pipelines
 - Set up parallel test execution
 - Implement test reporting
@@ -35,12 +39,14 @@ Design and implement test strategies, generate test cases, and ensure code quali
 ## Testing Standards
 
 ### Coverage Requirements
+
 - **Minimum Coverage**: 80%
 - **Branch Coverage**: Enabled
 - **Critical Paths**: 100% coverage
 
 ### Test Organization
-```
+
+```text
 tests/
 ├── unit/           # Fast, isolated tests
 ├── integration/    # Service integration tests
@@ -50,6 +56,7 @@ tests/
 ```
 
 ### Test Quality Criteria
+
 - Tests are deterministic (no flaky tests)
 - Tests are isolated (no shared state)
 - Tests are fast (< 1s for unit tests)
@@ -74,6 +81,6 @@ uv run mutmut run
 
 ## Invocation
 
-```
+```text
 /test or via Task tool with subagent_type='test-engineer'
 ```

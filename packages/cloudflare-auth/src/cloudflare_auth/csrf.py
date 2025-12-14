@@ -20,7 +20,6 @@ Called by:
 import hashlib
 import logging
 import secrets
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +50,7 @@ class CSRFProtection:
         self,
         cookie_name: str = "csrf_token",
         header_name: str = "X-CSRF-Token",
-        secret_key: Optional[str] = None,
+        secret_key: str | None = None,
     ) -> None:
         """Initialize CSRF protection.
 
@@ -70,7 +69,7 @@ class CSRFProtection:
             header_name,
         )
 
-    def generate_token(self, session_id: Optional[str] = None) -> str:
+    def generate_token(self, session_id: str | None = None) -> str:
         """Generate a new CSRF token.
 
         Args:
@@ -80,15 +79,13 @@ class CSRFProtection:
             CSRF token string
         """
         # Generate random token
-        random_bytes = secrets.token_bytes(32)
+        secrets.token_bytes(32)
 
         # Optionally bind to session ID
         if session_id:
             # Create HMAC-like token bound to session
             data = f"{session_id}{secrets.token_hex(16)}".encode()
-            token = hashlib.sha256(
-                self.secret_key.encode() + data
-            ).hexdigest()
+            token = hashlib.sha256(self.secret_key.encode() + data).hexdigest()
         else:
             # Simple random token
             token = secrets.token_urlsafe(32)
@@ -98,8 +95,8 @@ class CSRFProtection:
 
     def validate_token(
         self,
-        cookie_token: Optional[str],
-        header_token: Optional[str],
+        cookie_token: str | None,
+        header_token: str | None,
         constant_time: bool = True,
     ) -> bool:
         """Validate CSRF token from cookie and header.
@@ -131,8 +128,8 @@ class CSRFProtection:
 
     def validate_request(
         self,
-        request,
-        methods_to_protect: set[str] = {"POST", "PUT", "DELETE", "PATCH"},
+        request,  # noqa: ANN001 - FastAPI/Starlette Request - not annotated to avoid import
+        methods_to_protect: set[str] | None = None,
     ) -> bool:
         """Validate CSRF token for a request.
 
@@ -144,6 +141,8 @@ class CSRFProtection:
             True if validation passes or not required for this method
         """
         # Skip CSRF check for safe methods
+        if methods_to_protect is None:
+            methods_to_protect = {"POST", "PUT", "DELETE", "PATCH"}
         if request.method not in methods_to_protect:
             return True
 
@@ -156,7 +155,7 @@ class CSRFProtection:
 
 
 # Global CSRF protection instance
-_global_csrf_protection: Optional[CSRFProtection] = None
+_global_csrf_protection: CSRFProtection | None = None
 
 
 def get_csrf_protection(
@@ -172,7 +171,7 @@ def get_csrf_protection(
     Returns:
         CSRFProtection instance
     """
-    global _global_csrf_protection
+    global _global_csrf_protection  # noqa: PLW0603
 
     if _global_csrf_protection is None:
         _global_csrf_protection = CSRFProtection(

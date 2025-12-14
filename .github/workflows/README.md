@@ -4,7 +4,7 @@ This project uses **org-level reusable workflows** for consistency and maintaina
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │  python_libs        │
 │  (This Repository)                      │
@@ -18,7 +18,7 @@ This project uses **org-level reusable workflows** for consistency and maintaina
 │  │ • release.yml                      │ │
 │  │ • sbom.yml                         │ │
 │  │ • docs.yml                         │ │
-│  │ • publish-pypi.yml                 │ │
+│  │ • publish-artifact-registry.yml    │ │
 │  └───────────────────────────────────┘ │
 │              │                          │
 │              │ uses:                    │
@@ -40,17 +40,18 @@ This project uses **org-level reusable workflows** for consistency and maintaina
 │  │ • python-release.yml               │ │
 │  │ • python-sbom.yml                  │ │
 │  │ • python-docs.yml                  │ │
-│  │ • python-publish-pypi.yml          │ │
 │  └───────────────────────────────────┘ │
 └─────────────────────────────────────────┘
-```
+```text
 
 ## Workflow Descriptions
 
 ### CI Pipeline (`ci.yml`)
+
 **Calls**: `ByronWilliamsCPA/.github/.github/workflows/python-ci.yml@main`
 
 Comprehensive CI with:
+
 - Multi-version Python testing (3.12)
 - UV dependency management
 - Ruff linting and formatting
@@ -63,9 +64,11 @@ Comprehensive CI with:
 ---
 
 ### Security Analysis (`security-analysis.yml`)
+
 **Calls**: `ByronWilliamsCPA/.github/.github/workflows/python-security-analysis.yml@main`
 
 Comprehensive security scanning with:
+
 - CodeQL advanced analysis
 - Bandit static security analysis
 - Safety dependency CVE scanning
@@ -78,46 +81,65 @@ Comprehensive security scanning with:
 ---
 
 ### Documentation (`docs.yml`)
+
 **Calls**: `ByronWilliamsCPA/.github/.github/workflows/python-docs.yml@main`
 
 Documentation build and deployment:
+
 - MkDocs build with Material theme
 - Link validation
 - Deployment to GitHub Pages (on push to main)
 
 **Triggers**: Push/PR affecting docs, manual dispatch
+
 ---
 
-### Publish to PyPI (`publish-pypi.yml`)
-**Calls**: `ByronWilliamsCPA/.github/.github/workflows/python-publish-pypi.yml@main`
+### Publish to Artifact Registry (`publish-artifact-registry.yml`)
+
+**Standalone workflow** (not org-level) - publishes packages to private GCP Artifact Registry.
 
 Package publishing with:
-- OIDC trusted publishing (no API tokens needed)
-- Test PyPI validation
-- SBOM generation
-- Signed releases
 
-**Triggers**: Release published, manual dispatch
+- Per-package version tags (e.g., `cloudflare-auth-v1.0.0`)
+- Infisical secrets management for GCP credentials
+- Service account authentication to Artifact Registry
+- Dry-run support for testing
+
+**Triggers**: Package version tags, manual dispatch
+
+**Supported packages**:
+
+- `cloudflare-auth-v*`
+- `cloudflare-api-v*`
+- `gcs-utilities-v*`
+- `gemini-image-v*`
 
 ---
 
 ### Release (`release.yml`)
-**Calls**: `ByronWilliamsCPA/.github/.github/workflows/python-release.yml@main`
+
+**Standalone workflow** - creates GitHub releases with semantic versioning.
 
 Release automation with:
-- SLSA provenance generation
-- Signed artifacts
-- Comprehensive changelog
-- Asset upload
 
-**Triggers**: Version tags (v*.*.*), manual dispatch
+- Pre-release testing
+- Conventional commit parsing
+- Automatic version bumping
+- GitHub Release creation with changelog
+
+**Triggers**: Push to main, manual dispatch
+
+**Note**: This workflow creates GitHub releases but does NOT publish packages.
+Use `publish-artifact-registry.yml` via version tags to publish packages.
 
 ---
 
 ### SBOM & Security Scan (`sbom.yml`)
+
 **Calls**: `ByronWilliamsCPA/.github/.github/workflows/python-sbom.yml@main`
 
 Software Bill of Materials and vulnerability scanning:
+
 - CycloneDX SBOM generation
 - Trivy vulnerability scanning
 - License compliance checking
@@ -130,22 +152,27 @@ Software Bill of Materials and vulnerability scanning:
 ## Benefits of Org-Level Reusable Workflows
 
 ### ✅ **Consistency**
+
 All projects use the same tested CI/CD pipeline configuration.
 
 ### ✅ **Maintainability**
+
 - Update workflows once at org level
 - All projects inherit improvements automatically
 - No need to update hundreds of project workflows
 
 ### ✅ **Reduced Duplication**
+
 - Caller workflows are ~50 lines vs ~300+ for embedded workflows
 - 85% reduction in workflow code per project
 
 ### ✅ **Version Control**
+
 - Workflows versioned at `@main` (or pin to specific version/SHA)
 - Easy rollback if needed
 
 ### ✅ **Security**
+
 - Centralized security updates
 - Consistent security practices across org
 
@@ -156,6 +183,7 @@ All projects use the same tested CI/CD pipeline configuration.
 Caller workflows are configured via `with:` parameters. See individual workflow files for available options.
 
 Example customization:
+
 ```yaml
 jobs:
   ci:
@@ -164,7 +192,7 @@ jobs:
       python-versions: '["3.10", "3.11", "3.12"]'  # Test multiple versions
       coverage-threshold: 85                        # Higher threshold
       basedpyright-strict: true                      # Strict type checking
-```
+```text
 
 ---
 
@@ -181,29 +209,34 @@ act -j security
 
 # Test with specific event
 act push -j ci
-```
+```text
 
 ---
 
 ## Troubleshooting
 
 ### Workflow Fails to Find Reusable Workflow
+
 **Error**: `Workflow file not found`
 
 **Solution**: Ensure the org-level `.github` repository exists and workflows are at:
-```
+
+```text
 ByronWilliamsCPA/.github/.github/workflows/*.yml
-```
+```text
 
 ### Permission Denied
+
 **Error**: `Resource not accessible by integration`
 
 **Solution**: Check workflow permissions. Caller workflows inherit permissions from reusable workflows, but may need additional `permissions:` blocks.
 
 ### Secrets Not Available
+
 **Error**: `Secret not found`
 
 **Solution**: Add secrets at repository or organization level:
+
 - Repository Settings → Secrets and variables → Actions
 - Organization Settings → Secrets and variables → Actions
 

@@ -23,9 +23,9 @@ Architecture:
 Dependencies:
     - fastapi: For Request/Response handling
     - starlette: For BaseHTTPMiddleware
-    - src.cloudflare_auth.validators: For JWT validation
-    - src.cloudflare_auth.models: For user models
-    - src.config.settings: For configuration
+    - cloudflare_auth.validators: For JWT validation
+    - cloudflare_auth.models: For user models
+    - cloudflare_auth.config: For configuration
 
 Called by:
     - FastAPI middleware stack during request processing
@@ -52,14 +52,17 @@ from typing import Any
 
 from fastapi import HTTPException, Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
 
+from cloudflare_auth.config import CloudflareSettings, get_cloudflare_settings
 from cloudflare_auth.models import CloudflareUser
 from cloudflare_auth.rate_limiter import InMemoryRateLimiter
-from cloudflare_auth.utils import get_client_ip, sanitize_email, sanitize_ip, sanitize_path
+from cloudflare_auth.utils import (
+    get_client_ip,
+    sanitize_email,
+    sanitize_ip,
+    sanitize_path,
+)
 from cloudflare_auth.validators import CloudflareJWTValidator
-from src.config.settings import CloudflareSettings, get_cloudflare_settings
-
 
 logger = logging.getLogger(__name__)
 
@@ -188,7 +191,8 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
 
             # Check if IP is in allowlist
             ip_allowed = any(
-                client_ip == allowed_ip or client_ip.startswith(allowed_ip.rstrip("/") + ".")
+                client_ip == allowed_ip
+                or client_ip.startswith(allowed_ip.rstrip("/") + ".")
                 for allowed_ip in self.settings.allowed_tunnel_ips
             )
 
@@ -241,10 +245,8 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
 
         # Validate request came through Cloudflare (security check)
         # This prevents direct access bypassing the tunnel
-        try:
-            self._validate_cloudflare_origin(request)
-        except HTTPException:
-            raise
+        # Will raise HTTPException if validation fails
+        self._validate_cloudflare_origin(request)
 
         # Skip authentication if disabled (development mode)
         if not self.settings.cloudflare_enabled:
@@ -269,28 +271,136 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
             # Re-raise HTTP exceptions
             raise
         except Exception as e:
-            logger.error(
-                "Unexpected error during authentication: %s",
-                str(e),
-                exc_info=True,
-            )
+            logger.exception("Unexpected error during authentication")
             if self.require_auth:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="Authentication service error",
                 ) from e
-            else:
-                # Non-required auth: continue without user
-                request.state.user = None
+            # Non-required auth: continue without user
+            request.state.user = None
 
         # Process the request
         return await call_next(request)
 
+    def _check_rate_limit(self, request: Request) -> None:
+        """Check rate limit and raise HTTPException if exceeded."""
+        if not (self.enable_rate_limiting and self.rate_limiter):
+            return
+
+        client_ip = get_client_ip(request)
+        if self.rate_limiter.is_allowed(client_ip):
+            return
+
+        retry_after = self.rate_limiter.get_retry_after(client_ip)
+        logger.warning(
+            "Rate limit exceeded for IP: %s (path: %s)",
+            sanitize_ip(client_ip),
+            sanitize_path(request.url.path),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many authentication attempts. Please try again later.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
+    def _handle_missing_token(self, request: Request) -> None:
+        """Handle missing JWT token - raise if auth required."""
+        if not self.require_auth:
+            return
+
+        self._record_failed_attempt(request)
+        if self.settings.log_auth_failures:
+            logger.warning(
+                "Missing Cloudflare JWT header: %s (path: %s, ip: %s)",
+                self.settings.jwt_header_name,
+                sanitize_path(request.url.path),
+                sanitize_ip(get_client_ip(request)),
+            )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authentication token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    def _validate_token_size(self, jwt_token: str, request: Request) -> bool:
+        """Validate JWT token size. Returns True if valid, False otherwise."""
+        if len(jwt_token) <= 8192:
+            return True
+
+        logger.warning(
+            "SECURITY: JWT token too large: %d bytes (path: %s, ip: %s)",
+            len(jwt_token),
+            sanitize_path(request.url.path),
+            sanitize_ip(get_client_ip(request)),
+        )
+        if self.require_auth:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid authentication token",
+            )
+        return False
+
+    def _validate_email_header(self, user: CloudflareUser, request: Request) -> None:
+        """Validate Cloudflare email header matches JWT claims."""
+        email_header = request.headers.get(self.settings.email_header_name)
+
+        if not email_header:
+            self._record_failed_attempt(request)
+            logger.error(
+                "SECURITY: Missing required Cloudflare email header: %s (path: %s, ip: %s)",
+                self.settings.email_header_name,
+                sanitize_path(request.url.path),
+                sanitize_ip(get_client_ip(request)),
+            )
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication verification failed",
+            )
+
+        if email_header != user.email:
+            self._record_failed_attempt(request)
+            logger.error(
+                "SECURITY: Email mismatch detected - potential token manipulation: "
+                "JWT=%s, Header=%s, IP=%s",
+                sanitize_email(user.email),
+                sanitize_email(email_header),
+                sanitize_ip(get_client_ip(request)),
+            )
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication verification failed",
+            )
+
+    def _record_failed_attempt(self, request: Request) -> None:
+        """Record a failed authentication attempt for rate limiting."""
+        if self.enable_rate_limiting and self.rate_limiter:
+            self.rate_limiter.record_attempt(get_client_ip(request))
+
+    def _handle_validation_error(
+        self, error: ValueError, request: Request
+    ) -> CloudflareUser | None:
+        """Handle JWT validation errors."""
+        self._record_failed_attempt(request)
+
+        if self.settings.log_auth_failures:
+            logger.warning(
+                "JWT validation failed: %s (path: %s, ip: %s)",
+                str(error),
+                sanitize_path(request.url.path),
+                sanitize_ip(get_client_ip(request)),
+            )
+
+        if self.require_auth:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication token",
+                headers={"WWW-Authenticate": "Bearer"},
+            ) from error
+        return None
+
     async def _authenticate_request(self, request: Request) -> CloudflareUser | None:
         """Authenticate request using Cloudflare headers.
-
-        This method extracts the JWT token from request headers,
-        validates it, and creates a CloudflareUser object.
 
         Args:
             request: The incoming request
@@ -300,130 +410,31 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
 
         Raises:
             HTTPException: If authentication fails and is required
-
-        Called by:
-            - dispatch(): During request processing
         """
-        # Check rate limit
-        if self.enable_rate_limiting and self.rate_limiter:
-            client_ip = get_client_ip(request)
-            if not self.rate_limiter.is_allowed(client_ip):
-                retry_after = self.rate_limiter.get_retry_after(client_ip)
-                logger.warning(
-                    "Rate limit exceeded for IP: %s (path: %s)",
-                    sanitize_ip(client_ip),
-                    sanitize_path(request.url.path),
-                )
-                raise HTTPException(
-                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail="Too many authentication attempts. Please try again later.",
-                    headers={"Retry-After": str(retry_after)},
-                )
+        self._check_rate_limit(request)
 
-        # Extract JWT token from header
         jwt_token = request.headers.get(self.settings.jwt_header_name)
-
         if not jwt_token:
-            if self.require_auth:
-                if self.settings.log_auth_failures:
-                    logger.warning(
-                        "Missing Cloudflare JWT header: %s (path: %s, ip: %s)",
-                        self.settings.jwt_header_name,
-                        sanitize_path(request.url.path),
-                        sanitize_ip(get_client_ip(request)),
-                    )
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Missing authentication token",
-                    headers={"WWW-Authenticate": "Bearer"},
-                )
-            else:
-                # Auth not required, return None
-                return None
-
-        # SECURITY: Validate JWT token size to prevent DoS attacks
-        if len(jwt_token) > 8192:  # 8KB limit
-            logger.warning(
-                "SECURITY: JWT token too large: %d bytes (path: %s, ip: %s)",
-                len(jwt_token),
-                sanitize_path(request.url.path),
-                sanitize_ip(get_client_ip(request)),
-            )
-            if self.require_auth:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid authentication token",
-                )
+            self._handle_missing_token(request)
             return None
 
-        # Validate the JWT token
+        if not self._validate_token_size(jwt_token, request):
+            return None
+
         try:
             claims = self.validator.validate_token(jwt_token)
             user = CloudflareUser.from_jwt_claims(claims)
-
-            # Additional email header validation (security check)
-            # Cloudflare sets this header - we REQUIRE it for security
-            email_header = request.headers.get(self.settings.email_header_name)
-
-            # CRITICAL SECURITY: Email header must be present when behind Cloudflare
-            if not email_header:
-                logger.error(
-                    "SECURITY: Missing required Cloudflare email header: %s (path: %s, ip: %s)",
-                    self.settings.email_header_name,
-                    sanitize_path(request.url.path),
-                    sanitize_ip(get_client_ip(request)),
-                )
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Authentication verification failed",
-                )
-
-            # Validate email header matches JWT email
-            if email_header != user.email:
-                logger.error(
-                    "SECURITY: Email mismatch detected - potential token manipulation: "
-                    "JWT=%s, Header=%s, IP=%s",
-                    sanitize_email(user.email),
-                    sanitize_email(email_header),
-                    sanitize_ip(get_client_ip(request)),
-                )
-                # Always fail on mismatch - this is a security issue
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Authentication verification failed",
-                )
+            self._validate_email_header(user, request)
 
             logger.info(
                 "User authenticated successfully: %s (path: %s)",
                 sanitize_email(user.email),
                 sanitize_path(request.url.path),
             )
-
             return user
 
         except ValueError as e:
-            # Record failed authentication attempt for rate limiting
-            if self.enable_rate_limiting and self.rate_limiter:
-                client_ip = get_client_ip(request)
-                self.rate_limiter.record_attempt(client_ip)
-
-            if self.settings.log_auth_failures:
-                logger.warning(
-                    "JWT validation failed: %s (path: %s, ip: %s)",
-                    str(e),
-                    sanitize_path(request.url.path),
-                    sanitize_ip(get_client_ip(request)),
-                )
-
-            if self.require_auth:
-                # Don't leak error details to potential attackers
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid authentication token",
-                    headers={"WWW-Authenticate": "Bearer"},
-                ) from e
-            else:
-                return None
+            return self._handle_validation_error(e, request)
 
 
 def setup_cloudflare_auth(

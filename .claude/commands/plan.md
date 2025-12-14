@@ -32,14 +32,16 @@ Using the `project-planning` skill, generate these four documents with expert re
 For EACH document, follow this generate-review-refine cycle:
 
 ### 1. Generate Document
+
 - Read the corresponding template from `.claude/skills/project-planning/templates/`
 - Generate project-specific content based on the user's description
 - Write to the appropriate location in `docs/planning/`
 
 ### 2. Expert Review (Consensus)
+
 After writing each document, request expert review:
 
-```
+```text
 mcp__zen__consensus with gemini-3-pro-preview:
 
 Review this [Document Type] for Python Libs.
@@ -60,12 +62,15 @@ DOCUMENT:
 ```
 
 ### 3. Refine if Needed
+
 - If NEEDS REVISION: Incorporate feedback and re-submit for review
 - If READY: Proceed to next document
 - Each document must be READY before generating the next
 
 ### 4. Final Validation
+
 After all documents pass review:
+
 - Run validation script
 - Ensure cross-references are valid
 - Summarize outcomes
@@ -99,6 +104,7 @@ This project was created from the cookiecutter-python-template with:
 ## Fallback (No MCP Server)
 
 If `mcp__zen__consensus` is not available:
+
 - Skip the expert review step
 - Generate all documents sequentially
 - Run validation script for basic checks

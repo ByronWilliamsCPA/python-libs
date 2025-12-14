@@ -1,0 +1,256 @@
+# Publish to GCP Artifact Registry
+# Publishes individual packages to private Artifact Registry on version tags.
+#
+# Trigger: Push tags matching pattern: {package-name}-v{version}
+#   - cloudflare-auth-v1.0.0
+#   - gcs-utilities-v1.0.0
+#   - cloudflare-api-v1.0.0
+#   - gemini-image-v1.0.0
+#
+# IMPORTANT: Tags must be created from the main branch only.
+# The workflow validates this before publishing.
+#
+# Secrets are stored in GitHub Secrets (Infisical integration planned for future).
+name: Publish to Artifact Registry
+
+on:
+  push:
+    tags:
+      - 'cloudflare-auth-v*'
+      - 'cloudflare-api-v*'
+      - 'gcs-utilities-v*'
+      - 'gemini-image-v*'
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package to publish'
+        required: true
+        type: choice
+        options:
+          - cloudflare-auth
+          - cloudflare-api
+          - gcs-utilities
+          - gemini-image
+      version:
+        description: 'Version to publish (e.g., 1.0.0)'
+        required: true
+        type: string
+      dry-run:
+        description: 'Dry run (build only, no publish)'
+        required: false
+        type: boolean
+        default: false
+
+# Prevent concurrent publishes of the same package
+concurrency:
+  group: "publish-${{ github.ref }}"
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  UV_VERSION: "0.5.x"
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  publish:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate tag is on main branch
+        if: github.event_name == 'push'
+        env:
+          GIT_REF: ${{ github.ref }}
+        run: |
+          # Get the commit the tag points to
+          TAG_COMMIT=$(git rev-list -n 1 "$GIT_REF")
+
+          # Check if this commit is on the main branch
+          if git branch -r --contains "$TAG_COMMIT" | grep -q "origin/main"; then
+            echo "✅ Tag is on main branch"
+          else
+            echo "❌ Error: Tags must be created from the main branch only!"
+            echo "   Tag commit: $TAG_COMMIT"
+            echo "   Branches containing this commit:"
+            git branch -r --contains "$TAG_COMMIT"
+            exit 1
+          fi
+
+      - name: Parse tag to determine package
+        id: parse
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_PACKAGE: ${{ inputs.package }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            # Validate input_package is one of the allowed values
+            case "$INPUT_PACKAGE" in
+              cloudflare-auth|cloudflare-api|gcs-utilities|gemini-image)
+                PACKAGE="$INPUT_PACKAGE"
+                ;;
+              *)
+                echo "❌ Invalid package: $INPUT_PACKAGE"
+                exit 1
+                ;;
+            esac
+            # Validate version format (semver-like)
+            if [[ ! "$INPUT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+              echo "❌ Invalid version format: $INPUT_VERSION"
+              exit 1
+            fi
+            VERSION="$INPUT_VERSION"
+          else
+            # Extract from tag: cloudflare-auth-v1.0.0 -> cloudflare-auth, 1.0.0
+            TAG="${GITHUB_REF#refs/tags/}"
+            # Handle package names with hyphens (e.g., cloudflare-auth-v1.0.0)
+            VERSION="${TAG##*-v}"
+            PACKAGE="${TAG%-v*}"
+          fi
+
+          # Map tag name to directory and pyproject package name
+          case "$PACKAGE" in
+            cloudflare-auth)
+              PKG_DIR="packages/cloudflare-auth"
+              PKG_NAME="byronwilliamscpa-cloudflare-auth"
+              ;;
+            cloudflare-api)
+              PKG_DIR="packages/cloudflare-api"
+              PKG_NAME="byronwilliamscpa-cloudflare-api"
+              ;;
+            gcs-utilities)
+              PKG_DIR="packages/gcs-utilities"
+              PKG_NAME="byronwilliamscpa-gcs-utilities"
+              ;;
+            gemini-image)
+              PKG_DIR="packages/gemini-image"
+              PKG_NAME="byronwilliamscpa-gemini-image"
+              ;;
+            *) echo "Unknown package: $PACKAGE" && exit 1 ;;
+          esac
+
+          echo "package=$PACKAGE" >> "$GITHUB_OUTPUT"
+          echo "pkg_name=$PKG_NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "pkg_dir=$PKG_DIR" >> "$GITHUB_OUTPUT"
+
+          echo "📦 Package: $PACKAGE"
+          echo "📦 PyPI Name: $PKG_NAME"
+          echo "📌 Version: $VERSION"
+          echo "📁 Directory: $PKG_DIR"
+
+      - name: Verify version matches pyproject.toml
+        run: |
+          PKG_VERSION=$(grep -Po '(?<=^version = ")[^"]*' ${{ steps.parse.outputs.pkg_dir }}/pyproject.toml)
+          if [[ "$PKG_VERSION" != "${{ steps.parse.outputs.version }}" ]]; then
+            echo "❌ Version mismatch!"
+            echo "   Tag version: ${{ steps.parse.outputs.version }}"
+            echo "   pyproject.toml version: $PKG_VERSION"
+            exit 1
+          fi
+          echo "✅ Version verified: $PKG_VERSION"
+
+      # TODO: Re-enable Infisical once Cloudflare Access authentication is configured
+      # - name: Fetch secrets from Infisical
+      #   uses: Infisical/secrets-action@v1.0.15
+      #   with:
+      #     client-id: ${{ secrets.INFISICAL_CLIENT_ID }}
+      #     client-secret: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+      #     project-slug: ${{ secrets.INFISICAL_PROJECT_SLUG }}
+      #     env-slug: prod
+      #     domain: https://infisical.williamshome.family
+      #     export-type: env
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY_BASE64 }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2
+
+      - name: Configure Artifact Registry authentication
+        env:
+          GCP_SA_KEY_BASE64: ${{ secrets.GCP_SA_KEY_BASE64 }}
+        run: |
+          # Decode the base64 credentials and configure keyring
+          echo "$GCP_SA_KEY_BASE64" | base64 -d > /tmp/gcp-key.json
+          gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+
+          # Get the repository URL
+          AR_URL="https://us-central1-python.pkg.dev/assured-oss-457903/python-libs/"
+          echo "AR_URL=$AR_URL" >> "$GITHUB_ENV"
+          echo "📦 Registry URL: $AR_URL"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@e4db8464a088ece1b920f60402e813ea4de65b8f # v4
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+
+      - name: Build package
+        run: |
+          echo "🔨 Building package..."
+          uv build --package ${{ steps.parse.outputs.pkg_name }}
+          echo "📦 Built artifacts:"
+          ls -la dist/
+
+      - name: Publish to Artifact Registry
+        if: ${{ !inputs.dry-run }}
+        run: |
+          echo "🚀 Publishing to Artifact Registry..."
+
+          # Get access token from gcloud for authentication
+          ACCESS_TOKEN=$(gcloud auth print-access-token)
+
+          # Use uv publish with token authentication
+          uv publish \
+            --publish-url "$AR_URL" \
+            --username oauth2accesstoken \
+            --password "$ACCESS_TOKEN" \
+            dist/*
+
+          echo "✅ Published ${{ steps.parse.outputs.package }} v${{ steps.parse.outputs.version }}"
+
+      - name: Dry run summary
+        if: ${{ inputs.dry-run }}
+        run: |
+          echo "🔍 Dry run completed - package was built but not published"
+          echo "📦 Package: ${{ steps.parse.outputs.package }}"
+          echo "📌 Version: ${{ steps.parse.outputs.version }}"
+          echo "📁 Artifacts:"
+          ls -la dist/
+
+      - name: Cleanup credentials
+        if: always()
+        run: rm -f /tmp/gcp-key.json
+
+      - name: Job summary
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" << EOF
+          ## 📦 Package Published
+
+          | Field | Value |
+          |-------|-------|
+          | **Package** | \`${{ steps.parse.outputs.package }}\` |
+          | **Version** | \`${{ steps.parse.outputs.version }}\` |
+          | **Registry** | GCP Artifact Registry |
+          | **Status** | ${{ inputs.dry-run && '🔍 Dry Run' || '✅ Published' }} |
+
+          ### Installation
+
+          \`\`\`bash
+          # Configure UV/pip for private registry first
+          pip install byronwilliamscpa-${{ steps.parse.outputs.package }}==${{ steps.parse.outputs.version }}
+          \`\`\`
+          EOF

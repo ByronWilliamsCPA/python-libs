@@ -42,9 +42,9 @@ Analyze the current branch and prepare a PR description following the project te
 <!-- Optional: known issues, follow-up work -->
 ```
 
-4. **Output the PR description** ready to copy-paste into GitHub.
+1. **Output the PR description** ready to copy-paste into GitHub.
 
-5. **Suggest a PR title** following conventional commits:
+2. **Suggest a PR title** following conventional commits:
    - `feat:` for new features
    - `fix:` for bug fixes
    - `docs:` for documentation
@@ -57,7 +57,8 @@ Analyze the current branch and prepare a PR description following the project te
 **Title**: `feat: add user authentication with OAuth2`
 
 **Description**:
-```
+
+```markdown
 ## Summary
 
 Add OAuth2 authentication flow supporting Google and GitHub providers.

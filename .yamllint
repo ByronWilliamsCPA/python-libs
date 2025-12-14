@@ -3,6 +3,10 @@
 extends: default
 
 rules:
+  # Disable truthy rule - "on:" is standard GitHub Actions syntax
+  truthy:
+    allowed-values: ["true", "false", "on", "off", "yes", "no"]
+
   line-length:
     max: 150
     level: warning

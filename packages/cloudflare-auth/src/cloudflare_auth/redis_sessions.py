@@ -37,15 +37,16 @@ Example:
 import json
 import logging
 import secrets
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 try:
     import redis
+
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
-    redis = None  # type: ignore
+    redis = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 
@@ -95,10 +96,11 @@ class RedisSessionManager:
             redis.ConnectionError: If cannot connect to Redis
         """
         if not REDIS_AVAILABLE or redis is None:
-            raise ImportError(
+            msg = (
                 "Redis package is required for RedisSessionManager. "
                 "Install with: pip install redis>=5.0.0"
             )
+            raise ImportError(msg)
 
         self.session_timeout = session_timeout
         self.key_prefix = key_prefix
@@ -119,8 +121,8 @@ class RedisSessionManager:
                 session_timeout,
                 key_prefix,
             )
-        except redis.ConnectionError as e:
-            logger.error("Failed to connect to Redis: %s", e)
+        except redis.ConnectionError:
+            logger.exception("Failed to connect to Redis")
             raise
 
     def _make_key(self, session_id: str) -> str:
@@ -168,18 +170,14 @@ class RedisSessionManager:
             "email": email,
             "is_admin": is_admin,
             "user_tier": user_tier,
-            "created_at": datetime.now().isoformat(),
-            "last_accessed": datetime.now().isoformat(),
+            "created_at": datetime.now(tz=UTC).isoformat(),
+            "last_accessed": datetime.now(tz=UTC).isoformat(),
             "cf_context": cf_context or {},
         }
 
         # Store in Redis with TTL
         key = self._make_key(session_id)
-        self.redis_client.setex(
-            key,
-            self.session_timeout,
-            json.dumps(session_data)
-        )
+        self.redis_client.setex(key, self.session_timeout, json.dumps(session_data))
 
         logger.debug(
             "Created session for %s (tier: %s, admin: %s)",
@@ -218,23 +216,23 @@ class RedisSessionManager:
             session_data = json.loads(session_data_json)
 
             # Update last accessed timestamp
-            session_data["last_accessed"] = datetime.now().isoformat()
+            session_data["last_accessed"] = datetime.now(tz=UTC).isoformat()
 
             # Update in Redis and refresh TTL
-            self.redis_client.setex(
-                key,
-                self.session_timeout,
-                json.dumps(session_data)
-            )
+            self.redis_client.setex(key, self.session_timeout, json.dumps(session_data))
 
             # Parse datetime objects
-            session_data["created_at"] = datetime.fromisoformat(session_data["created_at"])
-            session_data["last_accessed"] = datetime.fromisoformat(session_data["last_accessed"])
+            session_data["created_at"] = datetime.fromisoformat(
+                session_data["created_at"]
+            )
+            session_data["last_accessed"] = datetime.fromisoformat(
+                session_data["last_accessed"]
+            )
 
             return session_data
 
         except (json.JSONDecodeError, ValueError) as e:
-            logger.error("Failed to decode session data: %s", e)
+            logger.exception("Failed to decode session data: %s", e)
             # Delete corrupted session
             self.redis_client.delete(key)
             return None

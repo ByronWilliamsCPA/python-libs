@@ -34,11 +34,11 @@ git diff .standards/
 
 # Option 2: Use the merge command
 /merge-standards
-```
+```text
 
 ## Workflow
 
-```
+```text
 ┌─────────────────┐     cruft update     ┌──────────────────┐
 │   Template      │ ──────────────────► │  .standards/     │
 │   Repository    │                      │  (baselines)     │
@@ -50,7 +50,7 @@ git diff .standards/
                                          │  Root files      │
                                          │  (customized)    │
                                          └──────────────────┘
-```
+```text
 
 ## Important Notes
 

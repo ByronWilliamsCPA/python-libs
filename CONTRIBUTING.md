@@ -15,7 +15,7 @@ Thank you for your interest in contributing to Python Libs! This document provid
 
 ## Code of Conduct
 
-This project adheres to the [ByronWilliamsCPA organization Code of Conduct](https://github.com/ByronWilliamsCPA/.github/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to byronawilliams@gmail.com.
+This project adheres to the [ByronWilliamsCPA organization Code of Conduct](https://github.com/ByronWilliamsCPA/.github/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to <byronawilliams@gmail.com>.
 
 ## Getting Started
 
@@ -48,7 +48,7 @@ qlty check
 
 ### Project Structure
 
-```
+```text
 python_libs/
 ├── src/python_libs/       # Main package
 │   ├── __init__.py
@@ -261,7 +261,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/) specifica
 
 ### Commit Message Format
 
-```
+```text
 <type>(<scope>): <subject>
 
 <body>
@@ -321,27 +321,28 @@ See migration guide in docs/migration/v1.0.0.md
 ### Submitting a Pull Request
 
 1. **Push your branch**:
+
    ```bash
    git push origin feature/your-feature-name
    ```
 
-2. **Create Pull Request** on GitHub with:
+1. **Create Pull Request** on GitHub with:
    - **Clear title**: Following conventional commit format
    - **Description**: What changes were made and why
    - **Issue reference**: `Fixes #123` or `Refs #456`
    - **Testing notes**: How reviewers can test the changes
    - **Breaking changes**: Clearly documented (if applicable)
 
-3. **Wait for CI checks**:
+2. **Wait for CI checks**:
    - All GitHub Actions workflows must pass
    - Test coverage must meet requirements
 
-4. **Address review feedback**:
+3. **Address review feedback**:
    - Respond to all reviewer comments
    - Push additional commits to the same branch
    - Request re-review when ready
 
-5. **Merge**:
+4. **Merge**:
    - Maintainer will merge when approved
    - Follow conventional commits for final commit message
 
@@ -383,7 +384,7 @@ Use the feature request template and include:
 - **General Questions**: Open a [GitHub Discussion](https://github.com/ByronWilliamsCPA/python-libs/discussions)
 - **Bug Reports**: Open a [GitHub Issue](https://github.com/ByronWilliamsCPA/python-libs/issues)
 - **Security Issues**: See [ByronWilliamsCPA Security Policy](https://github.com/ByronWilliamsCPA/.github/blob/main/SECURITY.md)
-- **Email**: byronawilliams@gmail.com
+- **Email**: <byronawilliams@gmail.com>
 
 ## Recognition
 

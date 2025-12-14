@@ -35,7 +35,11 @@ Quick Start:
         return {"message": "Admin access granted"}
 """
 
-from cloudflare_auth.middleware import CloudflareAuthMiddleware, get_current_user, get_current_user_optional
+from cloudflare_auth.middleware import (
+    CloudflareAuthMiddleware,
+    get_current_user,
+    get_current_user_optional,
+)
 from cloudflare_auth.middleware_enhanced import (
     CloudflareAuthMiddlewareEnhanced,
     require_admin,
@@ -61,38 +65,39 @@ from cloudflare_auth.whitelist import (
 # Optional Redis session manager (requires redis package)
 try:
     from cloudflare_auth.redis_sessions import RedisSessionManager
+
     _REDIS_AVAILABLE = True
 except ImportError:
-    RedisSessionManager = None  # type: ignore
+    RedisSessionManager = None  # type: ignore[assignment]
     _REDIS_AVAILABLE = False
 
 __all__ = [
+    "AuditLogger",
     # Middleware
     "CloudflareAuthMiddleware",
     "CloudflareAuthMiddlewareEnhanced",
-    "setup_cloudflare_auth_enhanced",
-    # Models
-    "CloudflareUser",
     "CloudflareJWTClaims",
-    "UserTier",
     # Validators
     "CloudflareJWTValidator",
+    # Models
+    "CloudflareUser",
     "EmailWhitelistValidator",
-    # Sessions
-    "SimpleSessionManager",
-    # Whitelist Management
-    "WhitelistManager",
-    "create_validator_from_env",
     # Security Helpers
     "SecurityHeadersMiddleware",
-    "AuditLogger",
-    "get_audit_logger",
+    # Sessions
+    "SimpleSessionManager",
+    "UserTier",
+    # Whitelist Management
+    "WhitelistManager",
     "create_session_cleanup_task",
+    "create_validator_from_env",
+    "get_audit_logger",
     # Dependencies
     "get_current_user",
     "get_current_user_optional",
     "require_admin",
     "require_tier",
+    "setup_cloudflare_auth_enhanced",
 ]
 
 # Add RedisSessionManager if available

@@ -17,9 +17,9 @@ Called by:
     - src.cloudflare_auth.middleware: For session management during authentication
 """
 
-from datetime import datetime, timedelta
 import logging
 import secrets
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -101,8 +101,8 @@ class SimpleSessionManager:
             "email": email,
             "is_admin": is_admin,
             "user_tier": user_tier,
-            "created_at": datetime.now(),
-            "last_accessed": datetime.now(),
+            "created_at": datetime.now(tz=UTC),
+            "last_accessed": datetime.now(tz=UTC),
             "cf_context": cf_context or {},
         }
 
@@ -143,15 +143,12 @@ class SimpleSessionManager:
 
         # Check if session is expired
         if self._is_session_expired(session):
-            logger.debug(
-                "Session %s expired, removing",
-                session_id[:8] + "..."
-            )
+            logger.debug("Session %s expired, removing", session_id[:8] + "...")
             del self.sessions[session_id]
             return None
 
         # Update last accessed time
-        session["last_accessed"] = datetime.now()
+        session["last_accessed"] = datetime.now(tz=UTC)
         return session
 
     def invalidate_session(self, session_id: str) -> bool:
@@ -171,11 +168,7 @@ class SimpleSessionManager:
         if session_id in self.sessions:
             email = self.sessions[session_id].get("email", "unknown")
             del self.sessions[session_id]
-            logger.debug(
-                "Invalidated session %s for %s",
-                session_id[:8] + "...",
-                email
-            )
+            logger.debug("Invalidated session %s for %s", session_id[:8] + "...", email)
             return True
         return False
 
@@ -190,7 +183,7 @@ class SimpleSessionManager:
         """
         session = self.sessions.get(session_id)
         if session:
-            session["last_accessed"] = datetime.now()
+            session["last_accessed"] = datetime.now(tz=UTC)
             return True
         return False
 
@@ -204,7 +197,7 @@ class SimpleSessionManager:
             True if session has exceeded timeout
         """
         expiry = session["last_accessed"] + timedelta(seconds=self.session_timeout)
-        return datetime.now() >= expiry
+        return datetime.now(tz=UTC) >= expiry
 
     def cleanup_expired_sessions(self) -> int:
         """Remove expired sessions from memory.
@@ -282,7 +275,9 @@ class SimpleSessionManager:
             "user_tier": session["user_tier"],
             "created_at": session["created_at"].isoformat(),
             "last_accessed": session["last_accessed"].isoformat(),
-            "age_seconds": (datetime.now() - session["created_at"]).total_seconds(),
+            "age_seconds": (
+                datetime.now(tz=UTC) - session["created_at"]
+            ).total_seconds(),
         }
 
     def get_stats(self) -> dict[str, Any]:
@@ -291,7 +286,7 @@ class SimpleSessionManager:
         Returns:
             Dictionary with session statistics
         """
-        now = datetime.now()
+        datetime.now(tz=UTC)
         active_sessions = []
         expired_sessions = []
 

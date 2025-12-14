@@ -13,7 +13,7 @@ This document describes the architecture and design decisions for Python Libs.
 
 ## Project Structure
 
-```
+```text
 python_libs/
 ├── src/
 │   └── python_libs/
@@ -27,7 +27,7 @@ python_libs/
 ├── tests/                       # Test suite
 ├── docs/                        # Documentation
 └── pyproject.toml               # Project configuration
-```
+```text
 
 ## Design Principles
 

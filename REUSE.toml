@@ -12,6 +12,8 @@ SPDX-PackageDownloadLocation = "https://github.com/ByronWilliamsCPA/python-libs"
 [[annotations]]
 path = [
     "src/**",
+    "packages/**/src/**/*.py",
+    "packages/**/tests/**/*.py",
     "tools/**",
     "tests/**",
     "validation/**",
@@ -30,6 +32,8 @@ SPDX-FileCopyrightText = "2025 Byron Williams"
 path = [
     "docs/**",
     "*.md",
+    "packages/**/*.md",
+    "scripts/**/*.md",
     "tmp_cleanup/**/*.md",  # Temporary reference files
     "benchmarks/*.md",  # Benchmark documentation (not reports)
     "!LICENSES/*.txt",  # Exclude actual license text files
@@ -43,6 +47,8 @@ path = [
     "*.toml",
     "*.yml",
     "*.yaml",
+    "*.json",
+    "*.lock",
     ".github/**",
     ".gitignore",
     ".gitattributes",
@@ -50,9 +56,12 @@ path = [
     ".readthedocs.yaml",
     "mkdocs.yml",
     "poetry.lock",  # Dependency lockfile for reproducible builds
+    "uv.lock",  # UV lockfile for reproducible builds
     "requirements/**/*.txt",  # Generated from poetry export
     "benchmarks/labelmaps/**/*.yaml",  # Benchmark label mappings
     ".zenodo.json",  # Zenodo metadata for DOI
+    "packages/**/pyproject.toml",  # Package configuration
+    "packages/**/py.typed",  # PEP 561 type marker files
 ]
 SPDX-License-Identifier = "CC0-1.0"
 SPDX-FileCopyrightText = "2025 Byron Williams"
@@ -91,8 +100,10 @@ SPDX-FileCopyrightText = "2025 Byron Williams"
 [[annotations]]
 path = [
     ".claude/settings.local.json",
+    ".claude/settings.local.json.example",
     ".claude/**/*.json",  # Claude configuration files
     ".claude/**/*.md",  # Claude documentation files
+    ".claude/**/*.py",  # Claude skill scripts
     ".standards/**",  # Baseline standards (auto-updated by cruft)
     ".clusterfuzzlite/**",
     ".sonarlint/**",  # SonarLint IDE configuration
@@ -100,6 +111,13 @@ path = [
     ".coderabbit.yaml",  # CodeRabbit AI review configuration
     ".vscode/**",  # VS Code settings
     ".idea/**",  # IntelliJ/PyCharm settings
+    ".cruft.json",  # Cruft template tracking
+    ".env.example",  # Environment example file
+    ".markdownlint.json",  # Markdownlint configuration
+    ".mutmut_config",  # Mutation testing configuration
+    ".prettierrc",  # Prettier configuration
+    ".shellcheckrc",  # ShellCheck configuration
+    ".yamllint",  # YAML lint configuration
     "concept.txt",
     "image_reference_sets.txt",
     "overrides/**",
@@ -114,6 +132,8 @@ path = [
     "Makefile",  # Build automation
     "justfile",  # Just command runner
     "Taskfile.yml",  # Task runner configuration
+    "packages/**/tests/__init__.py",  # Test package markers
+    "packages/**/tests/conftest.py",  # Pytest fixtures
 ]
 SPDX-License-Identifier = "CC0-1.0"
 SPDX-FileCopyrightText = "2025 Byron Williams"

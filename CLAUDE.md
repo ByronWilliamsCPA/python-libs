@@ -28,7 +28,7 @@ This feedback will be shared with the template team to improve the cookiecutter 
 **Name**: Python Libs
 **Description**: Shared Python libraries for ByronWilliamsCPA projects - JWT auth, GCS utilities, and more
 **Author**: Byron Williams <byronawilliams@gmail.com>
-**Repository**: https://github.com/ByronWilliamsCPA/python-libs
+**Repository**: <https://github.com/ByronWilliamsCPA/python-libs>
 **Created**: 2025-12-04
 
 ### Technology Stack
@@ -39,6 +39,7 @@ This feedback will be shared with the template team to improve the cookiecutter 
 - **Testing**: pytest, coverage
 - **Security**: Bandit, Safety
 - **Documentation**: MkDocs Material
+
 ---
 
 <!--
@@ -82,7 +83,7 @@ When writing code, ALWAYS tag assumptions that could cause production failures:
 # #EDGE: [category]: [assumption about uncommon scenarios]
 # #VERIFY: [optional improvement]
 # Example: Browser compatibility, slow networks
-```
+```text
 
 ### Critical Assumption Categories (MANDATORY tagging)
 
@@ -110,7 +111,7 @@ git checkout -b feat/{descriptive-slug}
 
 # 3. Or for bug fixes
 git checkout -b fix/{issue-or-description}
-```
+```text
 
 ### Branch Naming Convention
 
@@ -149,6 +150,7 @@ When working on this project, always suggest appropriate security measures:
 - **Dependencies**: Suggest vulnerability scanning (`safety check`, `pip-audit`)
 - **APIs**: Suggest authentication, rate limiting, input validation
 - **Data**: Suggest encryption at rest and in transit, access controls
+
 ### 2. Never Bypass Security Issues
 
 - **ALL security findings** from scanners (Semgrep, SonarQube, Bandit, Checkov) should be addressed, not dismissed
@@ -172,11 +174,13 @@ When working on this project, always suggest appropriate security measures:
 For deployment on FIPS-enabled systems (Ubuntu LTS with fips-updates, government systems, healthcare, finance):
 
 **Prohibited algorithms** (will fail in FIPS mode):
+
 - MD5, MD4, SHA-1 (for security purposes)
 - DES, 3DES, RC2, RC4, Blowfish
 - Non-approved key exchange methods
 
 **Required patterns**:
+
 ```python
 # ✗ WRONG - Will fail on FIPS systems
 import hashlib
@@ -187,14 +191,16 @@ h = hashlib.md5(data, usedforsecurity=False)
 
 # ✓ CORRECT - Use FIPS-approved algorithms for security
 h = hashlib.sha256(data)
-```
+```text
 
 **Check FIPS compatibility**:
+
 ```bash
 uv run python scripts/check_fips_compatibility.py --fix-hints
-```
+```text
 
 **Problematic packages** (need verification or replacement):
+
 - `bcrypt` → Use `passlib` with PBKDF2 or `argon2-cffi`
 - `pycrypto` → Use `pycryptodome` with FIPS mode
 - Verify `cryptography` version >= 3.4.6 with OpenSSL FIPS provider
@@ -257,7 +263,7 @@ Ruff configuration includes PyStrict-aligned rules for ultra-strict code quality
 - Debugging            -> Debug Agent (mcp__zen__debug)
 - Analysis             -> Analysis Agent (mcp__zen__analyze)
 - Refactoring          -> Refactor Agent (mcp__zen__refactor)
-```
+```text
 
 ---
 
@@ -362,7 +368,7 @@ END BASELINE DEVELOPMENT STANDARDS
 
 # 4. Start development
 /git/milestone start feat/phase-0-foundation
-```
+```text
 
 ### Using Planning Documents
 
@@ -376,7 +382,7 @@ Review this code against tech-spec.md section 6 (security).
 
 # Check phase progress
 Review PROJECT-PLAN.md Phase 1 deliverables and update status.
-```
+```text
 
 ---
 
@@ -404,7 +410,7 @@ pre-commit run --all-files
 # Documentation
 uv run mkdocs serve                        # Local preview
 uv run mkdocs build                        # Build static site
-```
+```text
 
 ---
 
@@ -433,7 +439,7 @@ tests/
 docs/                       # MkDocs documentation
 ├── index.md               # Home page
 └── ...                    # Additional docs
-```
+```text
 
 ---
 
@@ -444,6 +450,7 @@ docs/                       # MkDocs documentation
 - Configuration: Use Pydantic Settings with `.env` files
 - Logging: Structured logging via `src/python_libs/utils/logging.py`
 - Error Handling: Custom exceptions in `src/python_libs/core/exceptions.py`
+
 ### Exception Hierarchy
 
 Use the centralized exception hierarchy for consistent error handling:
@@ -473,7 +480,7 @@ try:
     process_data(input_data)
 except ValidationError as e:
     return {"error": str(e), "details": e.to_dict()}
-```
+```text
 
 **Exception Types**:
 
@@ -505,7 +512,7 @@ def process_data(input_path: str, max_rows: int = 1000) -> dict[str, Any]:
         FileNotFoundError: If input file doesn't exist
         ValueError: If file format is invalid
     """
-```
+```text
 
 ---
 
@@ -527,7 +534,7 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
 
 settings = Settings()
-```
+```text
 
 ---
 
@@ -546,7 +553,7 @@ git worktree add ../python_libs-worktrees/feature-name -b feature/feature-name
 git worktree add ../python_libs-worktrees/pr-42 origin/feature/pr-branch
 git worktree list
 git worktree remove ../python_libs-worktrees/feature-name
-```
+```text
 
 **Remember**: Each worktree needs `uv sync --all-extras` after creation (worktrees share git but not virtualenvs).
 
@@ -559,20 +566,20 @@ git worktree remove ../python_libs-worktrees/feature-name
 ```bash
 uv add package-name              # Production
 uv add --dev package-name        # Development
-```
+```text
 
 ### Update Dependencies
 
 ```bash
 uv sync --upgrade                        # All packages
 uv sync --upgrade-package package-name   # Specific package
-```
+```text
 
 ### Run Specific Test
 
 ```bash
 uv run pytest tests/unit/test_example.py::test_function_name -v
-```
+```text
 
 ---
 
@@ -592,6 +599,7 @@ uv run pytest tests/unit/test_example.py::test_function_name -v
 - BasedPyright type checking
 - Security scans (no high/critical)
 - Pre-commit hooks
+
 ---
 
 ## Third-Party Integrations
@@ -616,7 +624,7 @@ CodeRabbit provides automated AI-powered code reviews on every pull request.
 @coderabbitai summary      # Get high-level summary
 @coderabbitai review       # Request re-review
 @coderabbitai help         # Show available commands
-```
+```text
 
 **Setup**: Install the [CodeRabbit GitHub App](https://github.com/apps/coderabbitai)
 
@@ -630,21 +638,21 @@ CodeRabbit provides automated AI-powered code reviews on every pull request.
 pre-commit run --all-files           # Run manually
 pre-commit clean                     # Clean cache
 pre-commit install --install-hooks   # Reinstall
-```
+```text
 
 ### UV Lock Issues
 
 ```bash
 uv lock                          # Regenerate lock
 uv sync --all-extras             # Reinstall dependencies (includes dev tools)
-```
+```text
 
 ### BasedPyright Type Errors
 
 ```bash
 uv run basedpyright src/  # Show type errors
 # Add `# pyright: ignore[error-code]` for specific issues
-```
+```text
 
 ---
 
@@ -664,7 +672,7 @@ This project uses a **two-part standards system** for safe template updates.
 
 ### How It Works
 
-```
+```text
 ┌─────────────────┐     cruft update     ┌──────────────────┐
 │   Template      │ ──────────────────► │  .standards/     │
 │   Repository    │                      │  (baselines)     │
@@ -676,7 +684,7 @@ This project uses a **two-part standards system** for safe template updates.
                                          │  Root files      │
                                          │  (customized)    │
                                          └──────────────────┘
-```
+```text
 
 1. **Baseline files** in `.standards/` are updated automatically by cruft
 2. **Root files** (`CLAUDE.md`, `REUSE.toml`) contain your customizations
@@ -700,7 +708,7 @@ git diff .standards/
 # 5. If baselines changed, merge them into your root files
 /merge-standards
 # Or ask Claude: "Merge the updated baseline standards"
-```
+```text
 
 ### Files to ALWAYS Skip
 
