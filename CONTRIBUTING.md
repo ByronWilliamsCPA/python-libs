@@ -44,7 +44,7 @@ curl https://qlty.sh | bash
 # Verify installation
 uv run pytest -v
 qlty check
-```text
+```
 
 ### Project Structure
 
@@ -62,7 +62,7 @@ python_libs/
 │   ├── planning/                         # Project planning
 │   └── guides/                           # User guides
 └── pyproject.toml                        # Dependencies & config
-```text
+```
 
 ## Development Workflow
 
@@ -77,7 +77,7 @@ git checkout -b fix/issue-description
 
 # For documentation
 git checkout -b docs/documentation-update
-```text
+```
 
 ### Branch Naming Convention
 
@@ -114,7 +114,7 @@ uv run pre-commit run --all-files
 
 # Run tests with coverage
 uv run pytest --cov=python_libs --cov-report=term-missing
-```text
+```
 
 **Note**: Qlty consolidates all quality tools (Ruff, BasedPyright, Bandit, Markdownlint, etc.) into a single fast CLI. See [`.qlty/qlty.toml`](.qlty/qlty.toml) for configuration.
 
@@ -177,7 +177,7 @@ def process_data(
         ValueError: If data format is not supported
     """
     pass
-```text
+```
 
 ### Documentation
 
@@ -229,7 +229,7 @@ uv run pytest --cov=python_libs --cov-report=html
 
 # Run specific test file
 uv run pytest tests/unit/test_module.py -v
-```text
+```
 
 ### Writing Tests
 
@@ -253,7 +253,7 @@ def test_module_processes_data(tmp_path: Path):
 
     assert result is not None
     assert result["status"] == "success"
-```text
+```
 
 ## Commit Convention
 
@@ -267,7 +267,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/) specifica
 <body>
 
 <footer>
-```text
+```
 
 ### Types
 
@@ -305,7 +305,7 @@ feat(core)!: redesign API for better ergonomics
 
 BREAKING CHANGE: API has been redesigned for improved usability.
 See migration guide in docs/migration/v1.0.0.md
-```text
+```
 
 ## Pull Request Process
 
