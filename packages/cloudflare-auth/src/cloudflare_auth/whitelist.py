@@ -424,7 +424,11 @@ class EmailWhitelistValidator:
         }
 
     def _check_empty_whitelist(self) -> list[str]:
-        """Check if whitelist is empty."""
+        """Check if whitelist is empty.
+
+        Returns:
+            List of warning messages if whitelist is empty, empty list otherwise.
+        """
         if not self.individual_emails and not self.domain_patterns:
             return ["Whitelist is empty - no users will be authorized"]
         return []
@@ -432,7 +436,15 @@ class EmailWhitelistValidator:
     def _check_tier_authorization(
         self, emails: list[str], tier_name: str
     ) -> list[str]:
-        """Check if tier emails are authorized in whitelist."""
+        """Check if tier emails are authorized in whitelist.
+
+        Args:
+            emails: List of email addresses to check.
+            tier_name: Name of the tier for warning messages.
+
+        Returns:
+            List of warning messages for unauthorized emails.
+        """
         warnings = []
         for email in emails:
             if not self.is_authorized(email):
@@ -440,7 +452,11 @@ class EmailWhitelistValidator:
         return warnings
 
     def _check_tier_conflicts(self) -> list[str]:
-        """Check for emails assigned to multiple tiers."""
+        """Check for emails assigned to multiple tiers.
+
+        Returns:
+            List of warning messages for emails in multiple tiers.
+        """
         warnings = []
         all_tier_emails = (
             set(self.admin_emails) | set(self.full_users) | set(self.limited_users)
@@ -461,7 +477,11 @@ class EmailWhitelistValidator:
         return warnings
 
     def _check_public_domains(self) -> list[str]:
-        """Check for potentially insecure public email domains."""
+        """Check for potentially insecure public email domains.
+
+        Returns:
+            List of warning messages if public domains are in whitelist.
+        """
         public_domains = {"@gmail.com", "@outlook.com"}
         if self.domain_patterns & public_domains:
             return [
@@ -564,14 +584,14 @@ class WhitelistManager:
     def _validate_email_format(self, email: str) -> str:
         """Validate individual email format.
 
+        Delegates to library validation if available, otherwise uses basic validation.
+        May raise ValueError from helper methods if email format is invalid.
+
         Args:
             email: Email address to validate
 
         Returns:
             Normalized email address
-
-        Raises:
-            ValueError: If email format is invalid
         """
         if EMAIL_VALIDATOR_AVAILABLE and validate_email is not None:
             return self._validate_email_with_library(email)
