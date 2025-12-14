@@ -60,15 +60,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
 
       - name: Validate tag is on main branch
         if: github.event_name == 'push'
+        env:
+          GIT_REF: ${{ github.ref }}
         run: |
           # Get the commit the tag points to
-          TAG_COMMIT=$(git rev-list -n 1 ${{ github.ref }})
+          TAG_COMMIT=$(git rev-list -n 1 "$GIT_REF")
 
           # Check if this commit is on the main branch
           if git branch -r --contains "$TAG_COMMIT" | grep -q "origin/main"; then
@@ -83,10 +85,28 @@ jobs:
 
       - name: Parse tag to determine package
         id: parse
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_PACKAGE: ${{ inputs.package }}
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            PACKAGE="${{ inputs.package }}"
-            VERSION="${{ inputs.version }}"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            # Validate input_package is one of the allowed values
+            case "$INPUT_PACKAGE" in
+              cloudflare-auth|cloudflare-api|gcs-utilities|gemini-image)
+                PACKAGE="$INPUT_PACKAGE"
+                ;;
+              *)
+                echo "❌ Invalid package: $INPUT_PACKAGE"
+                exit 1
+                ;;
+            esac
+            # Validate version format (semver-like)
+            if [[ ! "$INPUT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+              echo "❌ Invalid version format: $INPUT_VERSION"
+              exit 1
+            fi
+            VERSION="$INPUT_VERSION"
           else
             # Extract from tag: cloudflare-auth-v1.0.0 -> cloudflare-auth, 1.0.0
             TAG="${GITHUB_REF#refs/tags/}"
@@ -149,12 +169,12 @@ jobs:
       #     export-type: env
 
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY_BASE64 }}
 
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2
 
       - name: Configure Artifact Registry authentication
         env:
@@ -170,7 +190,7 @@ jobs:
           echo "📦 Registry URL: $AR_URL"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@e4db8464a088ece1b920f60402e813ea4de65b8f # v4
         with:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
