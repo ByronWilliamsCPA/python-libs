@@ -433,9 +433,7 @@ class EmailWhitelistValidator:
             return ["Whitelist is empty - no users will be authorized"]
         return []
 
-    def _check_tier_authorization(
-        self, emails: list[str], tier_name: str
-    ) -> list[str]:
+    def _check_tier_authorization(self, emails: list[str], tier_name: str) -> list[str]:
         """Check if tier emails are authorized in whitelist.
 
         Args:
@@ -554,11 +552,7 @@ class WhitelistManager:
         """
         try:
             valid = validate_email(email, check_deliverability=False)
-            return (
-                valid.normalized
-                if not self.validator.case_sensitive
-                else email
-            )
+            return valid.normalized if not self.validator.case_sensitive else email
         except EmailNotValidError as e:
             msg = f"Invalid email format: {e!s}"
             raise ValueError(msg) from e

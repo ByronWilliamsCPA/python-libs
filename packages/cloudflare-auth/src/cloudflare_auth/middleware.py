@@ -309,6 +309,7 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
         if not self.require_auth:
             return
 
+        self._record_failed_attempt(request)
         if self.settings.log_auth_failures:
             logger.warning(
                 "Missing Cloudflare JWT header: %s (path: %s, ip: %s)",
@@ -340,13 +341,12 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
             )
         return False
 
-    def _validate_email_header(
-        self, user: CloudflareUser, request: Request
-    ) -> None:
+    def _validate_email_header(self, user: CloudflareUser, request: Request) -> None:
         """Validate Cloudflare email header matches JWT claims."""
         email_header = request.headers.get(self.settings.email_header_name)
 
         if not email_header:
+            self._record_failed_attempt(request)
             logger.error(
                 "SECURITY: Missing required Cloudflare email header: %s (path: %s, ip: %s)",
                 self.settings.email_header_name,
@@ -359,6 +359,7 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
             )
 
         if email_header != user.email:
+            self._record_failed_attempt(request)
             logger.error(
                 "SECURITY: Email mismatch detected - potential token manipulation: "
                 "JWT=%s, Header=%s, IP=%s",
@@ -398,9 +399,7 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
             ) from error
         return None
 
-    async def _authenticate_request(
-        self, request: Request
-    ) -> CloudflareUser | None:
+    async def _authenticate_request(self, request: Request) -> CloudflareUser | None:
         """Authenticate request using Cloudflare headers.
 
         Args:

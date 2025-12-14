@@ -253,9 +253,7 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
             headers={"Retry-After": str(retry_after)},
         )
 
-    def _authenticate_from_session(
-        self, request: Request
-    ) -> CloudflareUser | None:
+    def _authenticate_from_session(self, request: Request) -> CloudflareUser | None:
         """Attempt to authenticate from existing session."""
         if not self.enable_sessions:
             return None
@@ -277,6 +275,7 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
         if not self.require_auth:
             return
 
+        self._record_failed_attempt(request)
         if self.settings.log_auth_failures:
             logger.warning(
                 "Missing JWT header: %s (path: %s, ip: %s)",
@@ -313,9 +312,7 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
         if self.enable_rate_limiting and self.rate_limiter:
             self.rate_limiter.record_attempt(get_client_ip(request))
 
-    def _handle_jwt_validation_error(
-        self, error: ValueError, request: Request
-    ) -> None:
+    def _handle_jwt_validation_error(self, error: ValueError, request: Request) -> None:
         """Handle JWT validation errors."""
         self._record_failed_attempt(request)
 
@@ -374,9 +371,7 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
             },
         )
 
-    async def _authenticate_request(
-        self, request: Request
-    ) -> CloudflareUser | None:
+    async def _authenticate_request(self, request: Request) -> CloudflareUser | None:
         """Authenticate request using JWT and whitelist.
 
         Args:
