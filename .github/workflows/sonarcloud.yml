@@ -8,7 +8,7 @@
 #   - Quality gate enforcement
 #   - Pull request decoration
 #
-# SonarCloud Dashboard: https://sonarcloud.io/dashboard?id=ByronWilliamsCPA_python_libs
+# SonarCloud Dashboard: https://sonarcloud.io/dashboard?id=ByronWilliamsCPA_python-libs
 # Documentation: https://docs.sonarsource.com/sonarqube-cloud/
 #
 # Note: This workflow requires SONAR_TOKEN secret to be configured.
@@ -115,7 +115,7 @@ jobs:
         with:
           args: >
             -Dsonar.organization=ByronWilliamsCPA
-            -Dsonar.projectKey=ByronWilliamsCPA_python_libs
+            -Dsonar.projectKey=ByronWilliamsCPA_python-libs
             -Dsonar.python.version=3.12
 
       - name: SonarCloud Setup Notice
@@ -126,7 +126,7 @@ jobs:
           echo "To set up SonarCloud:"
           echo "1. Go to https://sonarcloud.io and sign in with GitHub"
           echo "2. Import the ByronWilliamsCPA/python-libs repository"
-          echo "3. The project key should be: ByronWilliamsCPA_python_libs"
+          echo "3. The project key should be: ByronWilliamsCPA_python-libs"
           echo "4. Re-run this workflow after project creation"
 
       - name: Check Quality Gate
@@ -142,7 +142,7 @@ jobs:
         run: |
           echo "### SonarCloud Quality Gate" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "View detailed results: https://sonarcloud.io/dashboard?id=ByronWilliamsCPA_python_libs" >> $GITHUB_STEP_SUMMARY
+          echo "View detailed results: https://sonarcloud.io/dashboard?id=ByronWilliamsCPA_python-libs" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Metrics analyzed:**" >> $GITHUB_STEP_SUMMARY
           echo "- Code Quality (bugs, code smells, maintainability)" >> $GITHUB_STEP_SUMMARY
