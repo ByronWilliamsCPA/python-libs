@@ -1,0 +1,70 @@
+@startuml publish-workflow
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam sequenceMessageAlign center
+
+title Package Publishing Workflow\nGCP Artifact Registry with Infisical Secrets
+
+actor Developer
+participant "GitHub\nRepository" as GitHub
+participant "GitHub\nActions" as GHA
+participant "Infisical\nSecrets" as Infisical
+participant "Google Cloud\nAuth" as GCP
+participant "Artifact\nRegistry" as AR
+
+== Tag Creation ==
+Developer -> GitHub: Push version tag\n(e.g., cloudflare-auth-v1.0.0)
+activate GitHub
+
+GitHub -> GHA: Trigger publish workflow
+activate GHA
+
+== Secret Retrieval ==
+GHA -> Infisical: Authenticate with\nClient ID/Secret
+activate Infisical
+Infisical --> GHA: Return GCP_SA_KEY_BASE64
+deactivate Infisical
+
+== GCP Authentication ==
+GHA -> GCP: Authenticate with\nService Account Key
+activate GCP
+GCP --> GHA: Authentication token
+deactivate GCP
+
+== Build & Publish ==
+GHA -> GHA: Parse tag to determine\npackage directory
+GHA -> GHA: Verify version in\npyproject.toml matches tag
+GHA -> GHA: Build package with UV\n(uv build)
+
+GHA -> AR: Publish package\n(uv publish)
+activate AR
+AR --> GHA: Publish success
+deactivate AR
+
+== Summary ==
+GHA -> GitHub: Update job summary\nwith publish details
+deactivate GHA
+deactivate GitHub
+
+note right of AR
+  **Registry URL:**
+  us-central1-python.pkg.dev/
+  assured-oss-457903/python-libs
+
+  **Supported Tags:**
+  - cloudflare-auth-v*
+  - cloudflare-api-v*
+  - gcs-utilities-v*
+  - gemini-image-v*
+end note
+
+note left of Infisical
+  **Secrets Stored:**
+  - GCP_SA_KEY_BASE64
+    (Service account JSON, base64)
+
+  **Domain:**
+  secrets.byronwilliamscpa.com
+end note
+
+@enduml
