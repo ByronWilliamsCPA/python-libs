@@ -11,13 +11,13 @@ Key Features:
 
 Dependencies:
     - secrets: For secure token generation
-    - hashlib: For token hashing
+    - hmac: For secure token generation with HMAC
 
 Called by:
     - src.cloudflare_auth.middleware_enhanced: For CSRF protection
 """
 
-import hashlib
+import hmac
 import logging
 import secrets
 
@@ -83,9 +83,11 @@ class CSRFProtection:
 
         # Optionally bind to session ID
         if session_id:
-            # Create HMAC-like token bound to session
+            # Create HMAC token bound to session (prevents length extension attacks)
             data = f"{session_id}{secrets.token_hex(16)}".encode()
-            token = hashlib.sha256(self.secret_key.encode() + data).hexdigest()
+            token = hmac.new(
+                self.secret_key.encode(), data, digestmod="sha256"
+            ).hexdigest()
         else:
             # Simple random token
             token = secrets.token_urlsafe(32)
