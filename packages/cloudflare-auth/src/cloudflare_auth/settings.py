@@ -99,7 +99,7 @@ _settings_instance: CloudflareSettings | None = None
 
 def get_cloudflare_settings() -> CloudflareSettings:
     """Get default settings (singleton, reads from environment)."""
-    global _settings_instance
+    global _settings_instance  # noqa: PLW0603
     if _settings_instance is None:
         _settings_instance = CloudflareSettings()
     return _settings_instance
@@ -107,5 +107,5 @@ def get_cloudflare_settings() -> CloudflareSettings:
 
 def reset_settings() -> None:
     """Reset singleton (for testing)."""
-    global _settings_instance
+    global _settings_instance  # noqa: PLW0603
     _settings_instance = None

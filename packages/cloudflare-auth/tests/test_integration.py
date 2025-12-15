@@ -3,7 +3,7 @@
 These tests verify that components work together correctly.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -43,7 +43,7 @@ class TestAuthenticationFlow:
     @pytest.fixture
     def sample_claims(self):
         """Create sample JWT claims."""
-        now = int(datetime.now().timestamp())
+        now = int(datetime.now(tz=timezone.utc).timestamp())
         return CloudflareJWTClaims(
             email="user@company.com",
             iss="https://test.cloudflareaccess.com",
@@ -56,7 +56,7 @@ class TestAuthenticationFlow:
     def test_full_auth_flow_admin(self, whitelist_validator, session_manager):
         """Test complete authentication flow for admin user."""
         email = "admin@company.com"
-        now = int(datetime.now().timestamp())
+        now = int(datetime.now(tz=timezone.utc).timestamp())
 
         # 1. Create claims (simulating JWT validation)
         claims = CloudflareJWTClaims(
@@ -106,7 +106,7 @@ class TestAuthenticationFlow:
     def test_full_auth_flow_regular_user(self, whitelist_validator, session_manager):
         """Test complete authentication flow for regular user."""
         email = "developer@company.com"
-        now = int(datetime.now().timestamp())
+        now = int(datetime.now(tz=timezone.utc).timestamp())
 
         claims = CloudflareJWTClaims(
             email=email,
@@ -140,7 +140,7 @@ class TestAuthenticationFlow:
     def test_full_auth_flow_limited_user(self, whitelist_validator, session_manager):
         """Test complete authentication flow for limited user."""
         email = "guest@external.com"
-        now = int(datetime.now().timestamp())
+        now = int(datetime.now(tz=timezone.utc).timestamp())
 
         claims = CloudflareJWTClaims(
             email=email,
@@ -335,7 +335,7 @@ class TestSecurityIntegration:
 
     def test_model_dump_safe_excludes_sensitive_data(self):
         """Test that safe dump excludes sensitive claims."""
-        now = int(datetime.now().timestamp())
+        now = int(datetime.now(tz=timezone.utc).timestamp())
         claims = CloudflareJWTClaims(
             email="test@example.com",
             iss="https://private-issuer.com",

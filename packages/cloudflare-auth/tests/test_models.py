@@ -1,6 +1,6 @@
 """Tests for cloudflare_auth models."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -53,7 +53,7 @@ class TestCloudflareJWTClaims:
     def test_is_expired_false_for_future_expiration(self, sample_jwt_payload):
         """Test is_expired returns False for future expiration."""
         # Set expiration to far in the future
-        sample_jwt_payload["exp"] = int(datetime.now().timestamp()) + 3600
+        sample_jwt_payload["exp"] = int(datetime.now(tz=timezone.utc).timestamp()) + 3600
         claims = CloudflareJWTClaims(**sample_jwt_payload)
 
         assert claims.is_expired is False
@@ -61,7 +61,7 @@ class TestCloudflareJWTClaims:
     def test_is_expired_true_for_past_expiration(self, sample_jwt_payload):
         """Test is_expired returns True for past expiration."""
         # Set expiration to the past
-        sample_jwt_payload["exp"] = int(datetime.now().timestamp()) - 3600
+        sample_jwt_payload["exp"] = int(datetime.now(tz=timezone.utc).timestamp()) - 3600
         claims = CloudflareJWTClaims(**sample_jwt_payload)
 
         assert claims.is_expired is True

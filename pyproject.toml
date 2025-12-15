@@ -263,6 +263,9 @@ ignore = [
     "FBT001", # Boolean positional arg (acceptable in DSLs)
     "FBT002", # Boolean default arg (acceptable in DSLs)
     "TRY003", # Long exception messages (descriptive is good)
+
+    # Python 3.10 compatibility (packages support Python 3.10+)
+    "UP017",  # Use datetime.UTC alias (not available in Python 3.10)
 ]
 
 # McCabe Complexity Configuration (Google/Pylint alignment)
@@ -322,6 +325,8 @@ known-first-party = ["python_libs", "cloudflare_auth", "gcs_utilities", "gemini_
     "EM",     # Error messages (test exceptions)
     "TRY",    # Exception handling (test assertions)
     "INP",    # No __init__.py required for test directories
+    "PT011",  # pytest.raises match parameter (not always needed)
+    "F841",   # Unused variables (test setup/teardown)
     # Security rules OK to skip in tests (specific, not blanket S)
     "S101",   # assert_used - pytest uses asserts
     "S105",   # hardcoded_password_string - test credentials are fake

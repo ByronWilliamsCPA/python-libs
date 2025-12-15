@@ -1,6 +1,6 @@
 """Pytest configuration for cloudflare-auth tests."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -29,7 +29,7 @@ def sample_jwt_payload():
 @pytest.fixture
 def valid_jwt_payload():
     """JWT payload with future expiration."""
-    now = int(datetime.now().timestamp())
+    now = int(datetime.now(tz=timezone.utc).timestamp())
     return {
         "iss": TEST_ISSUER,
         "sub": TEST_USER_ID,
@@ -43,7 +43,7 @@ def valid_jwt_payload():
 @pytest.fixture
 def expired_jwt_payload():
     """JWT payload with past expiration."""
-    now = int(datetime.now().timestamp())
+    now = int(datetime.now(tz=timezone.utc).timestamp())
     return {
         "iss": TEST_ISSUER,
         "sub": TEST_USER_ID,

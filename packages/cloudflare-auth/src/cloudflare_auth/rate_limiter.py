@@ -23,7 +23,7 @@ Called by:
 
 import logging
 from collections import defaultdict
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from threading import Lock
 
 logger = logging.getLogger(__name__)
@@ -73,7 +73,7 @@ class InMemoryRateLimiter:
         # Store: IP -> list of attempt timestamps
         self.attempts: dict[str, list[datetime]] = defaultdict(list)
         self.lock = Lock()
-        self.last_cleanup = datetime.now(tz=UTC)
+        self.last_cleanup = datetime.now(tz=timezone.utc)
 
         logger.info(
             "Initialized rate limiter: %d attempts per %d seconds",
@@ -93,7 +93,7 @@ class InMemoryRateLimiter:
         with self.lock:
             self._cleanup_if_needed()
 
-            current_time = datetime.now(tz=UTC)
+            current_time = datetime.now(tz=timezone.utc)
             cutoff_time = current_time - timedelta(seconds=self.window_seconds)
 
             # Get attempts within window
@@ -124,7 +124,7 @@ class InMemoryRateLimiter:
             identifier: IP address or other identifier
         """
         with self.lock:
-            self.attempts[identifier].append(datetime.now(tz=UTC))
+            self.attempts[identifier].append(datetime.now(tz=timezone.utc))
 
     def reset(self, identifier: str) -> None:
         """Reset rate limit for an identifier.
@@ -147,7 +147,7 @@ class InMemoryRateLimiter:
             Number of remaining attempts
         """
         with self.lock:
-            current_time = datetime.now(tz=UTC)
+            current_time = datetime.now(tz=timezone.utc)
             cutoff_time = current_time - timedelta(seconds=self.window_seconds)
 
             if identifier not in self.attempts:
@@ -175,7 +175,7 @@ class InMemoryRateLimiter:
             if identifier not in self.attempts or not self.attempts[identifier]:
                 return 0
 
-            current_time = datetime.now(tz=UTC)
+            current_time = datetime.now(tz=timezone.utc)
             cutoff_time = current_time - timedelta(seconds=self.window_seconds)
 
             # Find oldest attempt in window
@@ -200,7 +200,7 @@ class InMemoryRateLimiter:
 
         Note: Must be called while holding self.lock
         """
-        current_time = datetime.now(tz=UTC)
+        current_time = datetime.now(tz=timezone.utc)
         if (current_time - self.last_cleanup).total_seconds() < self.cleanup_interval:
             return
 
