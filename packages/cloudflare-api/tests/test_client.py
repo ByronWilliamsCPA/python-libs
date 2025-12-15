@@ -1,10 +1,9 @@
 """Tests for cloudflare_api client."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from cloudflare._exceptions import AuthenticationError, BadRequestError, NotFoundError
-
 from cloudflare_api.client import CloudflareAPIClient
 from cloudflare_api.exceptions import (
     CloudflareAuthError,
@@ -293,7 +292,9 @@ class TestBulkOperations:
         mock_status.error = "Invalid IP format"
         mock_status.completed = None
 
-        mock_cloudflare_client.rules.lists.bulk_operations.get.return_value = mock_status
+        mock_cloudflare_client.rules.lists.bulk_operations.get.return_value = (
+            mock_status
+        )
 
         with pytest.raises(CloudflareBulkOperationError) as exc_info:
             client._wait_for_bulk_operation("test-op-id")

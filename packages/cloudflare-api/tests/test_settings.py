@@ -4,13 +4,12 @@ import os
 from unittest.mock import patch
 
 import pytest
-from pydantic import ValidationError
-
 from cloudflare_api.settings import (
     CloudflareAPISettings,
     get_cloudflare_api_settings,
     reset_settings,
 )
+from pydantic import ValidationError
 
 
 class TestCloudflareAPISettings:

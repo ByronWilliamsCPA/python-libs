@@ -7,7 +7,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
-
 from cloudflare_api.ip_groups.config import (
     IPGroupConfig,
     IPGroupsConfig,
@@ -121,9 +120,7 @@ class TestLoadConfig:
             ],
         }
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             yaml.dump(config_data, f)
             f.flush()
 
@@ -242,12 +239,14 @@ class TestURLIPFetcher:
             json_path="prefixes[*].cidr",
         )
 
-        json_text = json.dumps({
-            "prefixes": [
-                {"cidr": "192.168.1.0/24"},
-                {"cidr": "10.0.0.0/8"},
-            ]
-        })
+        json_text = json.dumps(
+            {
+                "prefixes": [
+                    {"cidr": "192.168.1.0/24"},
+                    {"cidr": "10.0.0.0/8"},
+                ]
+            }
+        )
 
         ips = fetcher._parse_json(json_text, config)
         assert len(ips) == 2

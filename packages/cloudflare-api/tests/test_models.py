@@ -1,6 +1,5 @@
 """Tests for cloudflare_api models."""
 
-import pytest
 
 from cloudflare_api.models import (
     BulkOperation,

@@ -3,8 +3,6 @@
 import os
 from unittest.mock import patch
 
-import pytest
-
 from cloudflare_auth.settings import (
     CloudflareSettings,
     get_cloudflare_settings,
@@ -57,13 +55,17 @@ class TestCloudflareSettings:
 
     def test_issuer_property_with_domain(self):
         """Test issuer property with domain."""
-        settings = CloudflareSettings(cloudflare_team_domain="myteam.cloudflareaccess.com")
+        settings = CloudflareSettings(
+            cloudflare_team_domain="myteam.cloudflareaccess.com"
+        )
 
         assert settings.issuer == "https://myteam.cloudflareaccess.com"
 
     def test_issuer_property_with_https_prefix(self):
         """Test issuer property when domain already has https."""
-        settings = CloudflareSettings(cloudflare_team_domain="https://myteam.cloudflareaccess.com")
+        settings = CloudflareSettings(
+            cloudflare_team_domain="https://myteam.cloudflareaccess.com"
+        )
 
         assert settings.issuer == "https://myteam.cloudflareaccess.com"
 
@@ -75,9 +77,14 @@ class TestCloudflareSettings:
 
     def test_certs_url_property_with_domain(self):
         """Test certs_url property with domain."""
-        settings = CloudflareSettings(cloudflare_team_domain="myteam.cloudflareaccess.com")
+        settings = CloudflareSettings(
+            cloudflare_team_domain="myteam.cloudflareaccess.com"
+        )
 
-        assert settings.certs_url == "https://myteam.cloudflareaccess.com/cdn-cgi/access/certs"
+        assert (
+            settings.certs_url
+            == "https://myteam.cloudflareaccess.com/cdn-cgi/access/certs"
+        )
 
     def test_parse_comma_separated_domains(self):
         """Test parsing comma-separated email domains."""
@@ -93,7 +100,9 @@ class TestCloudflareSettings:
 
     def test_parse_comma_separated_list(self):
         """Test that list input is preserved."""
-        settings = CloudflareSettings(allowed_email_domains=["example.com", "company.com"])
+        settings = CloudflareSettings(
+            allowed_email_domains=["example.com", "company.com"]
+        )
 
         assert settings.allowed_email_domains == ["example.com", "company.com"]
 

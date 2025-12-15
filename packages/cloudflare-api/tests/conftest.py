@@ -4,7 +4,6 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from cloudflare_api.settings import reset_settings
 
 # Test constants

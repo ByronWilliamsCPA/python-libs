@@ -168,13 +168,15 @@ def main(argv: list[str] | None = None) -> int:
         prog="cloudflare-ip-groups",
     )
     parser.add_argument(
-        "-c", "--config",
+        "-c",
+        "--config",
         type=Path,
         default=Path("ip_groups.yaml"),
         help="Path to config file (default: ip_groups.yaml)",
     )
     parser.add_argument(
-        "-v", "--verbose",
+        "-v",
+        "--verbose",
         action="store_true",
         help="Enable verbose output",
     )
@@ -184,7 +186,8 @@ def main(argv: list[str] | None = None) -> int:
     # Sync command
     sync_parser = subparsers.add_parser("sync", help="Sync IP groups to Cloudflare")
     sync_parser.add_argument(
-        "-g", "--group",
+        "-g",
+        "--group",
         help="Specific group to sync (default: all enabled groups)",
     )
     sync_parser.add_argument(
@@ -195,7 +198,9 @@ def main(argv: list[str] | None = None) -> int:
     sync_parser.set_defaults(func=cmd_sync)
 
     # Preview command
-    preview_parser = subparsers.add_parser("preview", help="Preview changes for a group")
+    preview_parser = subparsers.add_parser(
+        "preview", help="Preview changes for a group"
+    )
     preview_parser.add_argument("group", help="Group name to preview")
     preview_parser.add_argument("--json", action="store_true", help="Output as JSON")
     preview_parser.set_defaults(func=cmd_preview)

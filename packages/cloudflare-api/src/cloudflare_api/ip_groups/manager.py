@@ -343,7 +343,7 @@ class IPGroupManager:
                 )
 
             # Sync the list
-            comments = {ip: f"Managed by {group.name}" for ip in new_ips}
+            comments = dict.fromkeys(new_ips, f"Managed by {group.name}")
             self.client.sync_ip_list(cf_list.id, new_ips, comments)
 
             logger.info(
@@ -413,15 +413,17 @@ class IPGroupManager:
         """
         groups = []
         for group in self.config.groups:
-            groups.append({
-                "name": group.name,
-                "cloudflare_list_name": self._get_cloudflare_list_name(group),
-                "description": group.description,
-                "enabled": group.enabled,
-                "sources_count": len(group.sources),
-                "source_types": [s.type.value for s in group.sources],
-                "tags": group.tags,
-            })
+            groups.append(
+                {
+                    "name": group.name,
+                    "cloudflare_list_name": self._get_cloudflare_list_name(group),
+                    "description": group.description,
+                    "enabled": group.enabled,
+                    "sources_count": len(group.sources),
+                    "source_types": [s.type.value for s in group.sources],
+                    "tags": group.tags,
+                }
+            )
         return groups
 
     def _get_group(self, group_name: str) -> IPGroupConfig:

@@ -19,12 +19,12 @@ from cloudflare_api.ip_groups.config import (
     load_config,
 )
 from cloudflare_api.ip_groups.fetchers import (
+    AWSIPFetcher,
+    GitHubIPFetcher,
+    GoogleCloudIPFetcher,
     IPFetcher,
     StaticIPFetcher,
     URLIPFetcher,
-    GitHubIPFetcher,
-    GoogleCloudIPFetcher,
-    AWSIPFetcher,
 )
 from cloudflare_api.ip_groups.manager import IPGroupManager
 

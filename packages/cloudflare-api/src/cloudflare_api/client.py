@@ -324,7 +324,9 @@ class CloudflareAPIClient:
             return True
         except BadRequestError as e:
             if "in use" in str(e).lower() or "referenced" in str(e).lower():
-                msg = f"Cannot delete list {list_id}: it is referenced by firewall rules"
+                msg = (
+                    f"Cannot delete list {list_id}: it is referenced by firewall rules"
+                )
                 raise CloudflareConflictError(msg, code=409) from e
             self._handle_api_error(e)
             raise
@@ -669,9 +671,6 @@ class CloudflareAPIClient:
             CloudflareAPIError: If the API request fails.
         """
         comments = comments or {}
-        items = [
-            {"ip": ip, "comment": comments.get(ip)}
-            for ip in ips
-        ]
+        items = [{"ip": ip, "comment": comments.get(ip)} for ip in ips]
         self.replace_ip_list_items(list_id, items)
         logger.info("Synced list %s with %d IPs", list_id, len(ips))

@@ -55,7 +55,6 @@ class CloudflareAuthError(CloudflareAPIError):
     """
 
 
-
 class CloudflareRateLimitError(CloudflareAPIError):
     """Rate limit exceeded error.
 
@@ -175,4 +174,3 @@ class CloudflareConflictError(CloudflareAPIError):
     e.g., creating a list with a name that already exists,
     or when another bulk operation is in progress.
     """
-

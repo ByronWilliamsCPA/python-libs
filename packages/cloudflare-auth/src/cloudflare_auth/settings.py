@@ -3,8 +3,6 @@
 Hybrid approach: reads from environment by default, but accepts injected settings.
 """
 
-from functools import lru_cache
-from typing import Optional
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -52,7 +50,7 @@ class CloudflareSettings(BaseSettings):
     )
 
     # Cookies
-    cookie_domain: Optional[str] = Field(default=None, alias="CF_COOKIE_DOMAIN")
+    cookie_domain: str | None = Field(default=None, alias="CF_COOKIE_DOMAIN")
     cookie_path: str = Field(default="/", alias="CF_COOKIE_PATH")
     cookie_secure: bool = Field(default=True, alias="CF_COOKIE_SECURE")
     cookie_samesite: str = Field(default="lax", alias="CF_COOKIE_SAMESITE")
@@ -96,7 +94,7 @@ class CloudflareSettings(BaseSettings):
         return domain in [d.lower() for d in self.allowed_email_domains]
 
 
-_settings_instance: Optional[CloudflareSettings] = None
+_settings_instance: CloudflareSettings | None = None
 
 
 def get_cloudflare_settings() -> CloudflareSettings:

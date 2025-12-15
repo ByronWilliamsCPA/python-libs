@@ -6,7 +6,6 @@ Fetchers retrieve IP ranges from static lists, URLs, or cloud provider APIs.
 import ipaddress
 import json
 import logging
-import re
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -151,8 +150,7 @@ class URLIPFetcher(IPFetcher):
 
         if "json" in content_type:
             return self._parse_json(response.text, config)
-        else:
-            return self._parse_text(response.text, config)
+        return self._parse_text(response.text, config)
 
     def _parse_json(self, text: str, config: IPSourceConfig) -> list[str]:
         """Parse JSON response for IPs.
@@ -218,14 +216,13 @@ class URLIPFetcher(IPFetcher):
                     current = current.get(key, [])
                 if isinstance(current, list):
                     # Continue with remaining path on each element
-                    remaining = ".".join(parts[parts.index(part) + 1:])
+                    remaining = ".".join(parts[parts.index(part) + 1 :])
                     if remaining:
                         results = []
                         for item in current:
                             results.extend(self._extract_json_path(item, remaining))
                         return results
-                    else:
-                        return [str(item) for item in current if item]
+                    return [str(item) for item in current if item]
             elif isinstance(current, dict):
                 current = current.get(part, {})
             else:
@@ -233,11 +230,13 @@ class URLIPFetcher(IPFetcher):
 
         if isinstance(current, list):
             return [str(item) for item in current if item]
-        elif current:
+        if current:
             return [str(current)]
         return []
 
-    def _auto_extract_ips(self, data: Any, results: list[str] | None = None) -> list[str]:
+    def _auto_extract_ips(
+        self, data: Any, results: list[str] | None = None
+    ) -> list[str]:
         """Auto-extract IP-like values from JSON.
 
         Args:
@@ -253,7 +252,9 @@ class URLIPFetcher(IPFetcher):
         if isinstance(data, dict):
             for key, value in data.items():
                 # Check if key suggests IP content
-                if any(hint in key.lower() for hint in ["ip", "cidr", "prefix", "range"]):
+                if any(
+                    hint in key.lower() for hint in ["ip", "cidr", "prefix", "range"]
+                ):
                     if isinstance(value, str) and self.validate_ip(value):
                         results.append(value)
                     elif isinstance(value, list):
@@ -300,9 +301,11 @@ class GitHubIPFetcher(IPFetcher):
         ips: list[str] = []
 
         # GitHub services that contain IP ranges
-        services = config.services if config.services else [
-            "hooks", "web", "api", "git", "actions", "dependabot"
-        ]
+        services = (
+            config.services
+            if config.services
+            else ["hooks", "web", "api", "git", "actions", "dependabot"]
+        )
 
         for service in services:
             if service in data:

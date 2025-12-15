@@ -3,7 +3,6 @@
 Environment-based configuration for Cloudflare API authentication and defaults.
 """
 
-
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
