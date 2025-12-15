@@ -134,7 +134,14 @@ class CloudflareSettings(BaseSettings):
     @field_validator("allowed_tunnel_ips", "allowed_email_domains", mode="before")
     @classmethod
     def parse_comma_separated(cls, v: str | list[str] | None) -> list[str]:
-        """Parse comma-separated strings into lists."""
+        """Parse comma-separated strings into lists.
+
+        Args:
+            v: Comma-separated string or list of strings.
+
+        Returns:
+            List of strings parsed from input.
+        """
         if v is None:
             return []
         if isinstance(v, str):

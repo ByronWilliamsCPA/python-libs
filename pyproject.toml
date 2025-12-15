@@ -117,6 +117,18 @@ dev = [
     # "google-cloud-assured-oss>=0.1.0",  # Package not yet available in PyPI
     "google-api-core>=2.0.0",
     "python-dotenv>=1.0.0",  # For loading .env files
+
+    # Package dependencies for type checking
+    # These are optional deps from workspace packages needed for basedpyright
+    "fastapi>=0.100.0",
+    "starlette>=0.27.0",
+    "redis>=5.0.0",
+    "google-cloud-storage>=2.10.0",
+    "google-genai>=1.0.0",
+    "email-validator>=2.0.0",
+    "pyjwt>=2.8.0",
+    "cryptography>=41.0.0",
+    "httpx>=0.25.0",
 ]
 
 
@@ -471,6 +483,13 @@ exclude = [
     "dist",
 ]
 
+# Extra paths for workspace packages (allows basedpyright to find local packages)
+extraPaths = [
+    "packages/cloudflare-auth/src",
+    "packages/gcs-utilities/src",
+    "packages/gemini-image/src",
+]
+
 # Strict mode customizations
 reportMissingImports = "error"
 reportMissingTypeStubs = "warning"
@@ -525,8 +544,10 @@ deprecateTypingAliases = true          # Warn on deprecated typing module aliase
 # Pytest Configuration
 [tool.pytest.ini_options]
 minversion = "7.0"
-testpaths = ["tests", "packages/cloudflare-auth/tests", "packages/gcs-utilities/tests", "packages/gemini-image/tests"]
 pythonpath = [".", "src", "packages/cloudflare-auth/src", "packages/gcs-utilities/src", "packages/gemini-image/src"]
+# Only include root tests in default testpaths to avoid conftest.py collisions
+# Package tests should be run separately: uv run pytest packages/<name>/tests
+testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

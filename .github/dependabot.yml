@@ -8,8 +8,6 @@ updates:
       day: "monday"
       time: "03:00"
     open-pull-requests-limit: 5
-    reviewers:
-      - "ByronWilliamsCPA"
     assignees:
       - "ByronWilliamsCPA"
     commit-message:
@@ -18,10 +16,6 @@ updates:
       include: "scope"
     pull-request-branch-name:
       separator: "/"
-    ignore:
-      # Add packages to ignore if needed
-      # - dependency-name: "numpy"
-      #   versions: ["0.x"]
     allow:
       - dependency-type: "all"
 
@@ -33,8 +27,6 @@ updates:
       day: "monday"
       time: "04:00"
     open-pull-requests-limit: 5
-    reviewers:
-      - "ByronWilliamsCPA"
     assignees:
       - "ByronWilliamsCPA"
     commit-message:

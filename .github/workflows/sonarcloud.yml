@@ -8,7 +8,7 @@
 #   - Quality gate enforcement
 #   - Pull request decoration
 #
-# SonarCloud Dashboard: https://sonarcloud.io/dashboard?id=ByronWilliamsCPA_python_libs
+# SonarCloud Dashboard: https://sonarcloud.io/dashboard?id=ByronWilliamsCPA_python-libs
 # Documentation: https://docs.sonarsource.com/sonarqube-cloud/
 #
 # Note: This workflow requires SONAR_TOKEN secret to be configured.
@@ -106,17 +106,31 @@ jobs:
           fi
 
       - name: SonarCloud Scan
+        id: sonar-scan
         uses: SonarSource/sonarqube-scan-action@884b79409bbd464b2a59edc326a4b77dc56b2195 # v4.0.0
+        continue-on-error: true  # Don't fail if project not yet configured in SonarCloud
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed for PR decoration
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}      # SonarCloud authentication
         with:
           args: >
             -Dsonar.organization=ByronWilliamsCPA
-            -Dsonar.projectKey=ByronWilliamsCPA_python_libs
+            -Dsonar.projectKey=ByronWilliamsCPA_python-libs
             -Dsonar.python.version=3.12
 
+      - name: SonarCloud Setup Notice
+        if: steps.sonar-scan.outcome == 'failure'
+        run: |
+          echo "::warning::SonarCloud scan failed. This may indicate the project needs to be created."
+          echo ""
+          echo "To set up SonarCloud:"
+          echo "1. Go to https://sonarcloud.io and sign in with GitHub"
+          echo "2. Import the ByronWilliamsCPA/python-libs repository"
+          echo "3. The project key should be: ByronWilliamsCPA_python-libs"
+          echo "4. Re-run this workflow after project creation"
+
       - name: Check Quality Gate
+        if: steps.sonar-scan.outcome == 'success'
         uses: sonarsource/sonarqube-quality-gate-action@master
         timeout-minutes: 5
         env:
@@ -128,7 +142,7 @@ jobs:
         run: |
           echo "### SonarCloud Quality Gate" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "View detailed results: https://sonarcloud.io/dashboard?id=ByronWilliamsCPA_python_libs" >> $GITHUB_STEP_SUMMARY
+          echo "View detailed results: https://sonarcloud.io/dashboard?id=ByronWilliamsCPA_python-libs" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Metrics analyzed:**" >> $GITHUB_STEP_SUMMARY
           echo "- Code Quality (bugs, code smells, maintainability)" >> $GITHUB_STEP_SUMMARY

@@ -2,6 +2,7 @@
 
 import atexit
 import base64
+import binascii
 import json
 import logging
 import os
@@ -74,7 +75,7 @@ class GCSClient:
 
         Raises:
             GCSAuthError: If authentication fails.
-            GCSConfigError: If required configuration is missing.
+            GCSConfigError: If required configuration is missing (raised by _setup_credentials).
         """
         self._credentials_path: str | None = None
         self._cleanup_registered = False
@@ -155,7 +156,7 @@ class GCSClient:
 
             logger.info(f"GCS credentials configured for project: {self.project_id}")
 
-        except (base64.binascii.Error, json.JSONDecodeError) as e:
+        except (binascii.Error, json.JSONDecodeError) as e:
             msg = f"Invalid service account key format: {e}"
             raise GCSAuthError(msg) from e
         except (OSError, ValueError) as e:
@@ -173,6 +174,7 @@ class GCSClient:
 
         Raises:
             GCSNotFoundError: If bucket doesn't exist and auto_create is False.
+            GCSAuthError: If bucket access fails.
         """
         try:
             bucket = self.client.bucket(self.bucket_name)
@@ -284,7 +286,7 @@ class GCSClient:
 
         Raises:
             GCSUploadError: If upload fails.
-            FileNotFoundError: If local file doesn't exist.
+            FileNotFoundError: If local file doesn't exist (raised by _validate_local_path).
         """
         # Validate and sanitize paths
         local_file = self._validate_local_path(Path(local_path), must_exist=True)
@@ -335,8 +337,8 @@ class GCSClient:
             Dict with stats: {"files_uploaded": int, "total_bytes": int, "failed": list}.
 
         Raises:
-            GCSUploadError: If upload fails.
-            FileNotFoundError: If local directory doesn't exist.
+            GCSUploadError: If upload fails (raised indirectly).
+            FileNotFoundError: If local directory doesn't exist (raised by _validate_local_path).
         """
         # Validate local directory path
         local_path = self._validate_local_path(Path(local_dir), must_exist=True)
@@ -344,7 +346,9 @@ class GCSClient:
 
         bucket = self._get_bucket(bucket_name)
 
-        stats = {"files_uploaded": 0, "total_bytes": 0, "failed": []}
+        files_uploaded = 0
+        total_bytes = 0
+        failed: list[str] = []
         exclude_patterns = exclude_patterns or []
 
         # Get all files matching pattern
@@ -368,26 +372,29 @@ class GCSClient:
                 blob.upload_from_filename(str(file_path))
 
                 file_size = file_path.stat().st_size
-                stats["files_uploaded"] += 1
-                stats["total_bytes"] += file_size
+                files_uploaded += 1
+                total_bytes += file_size
 
                 size_mb = file_size / BYTES_PER_MB
                 logger.info(f"✅ {rel_path!s:<50} ({size_mb:>6.2f} MB) → {gcs_path}")
 
             except GoogleCloudError as e:
                 logger.exception(f"❌ Failed to upload {rel_path}: {e}")
-                stats["failed"].append(str(rel_path))
+                failed.append(str(rel_path))
 
-        total_mb = stats["total_bytes"] / BYTES_PER_MB
+        total_mb = total_bytes / BYTES_PER_MB
         logger.info(
-            f"\n📦 Upload complete: {stats['files_uploaded']} files, "
-            f"{total_mb:.2f} MB total"
+            f"\n📦 Upload complete: {files_uploaded} files, {total_mb:.2f} MB total"
         )
 
-        if stats["failed"]:
-            logger.warning(f"⚠️  {len(stats['failed'])} files failed to upload")
+        if failed:
+            logger.warning(f"⚠️  {len(failed)} files failed to upload")
 
-        return stats
+        return {
+            "files_uploaded": files_uploaded,
+            "total_bytes": total_bytes,
+            "failed": failed,
+        }
 
     def download_file(
         self,
@@ -573,6 +580,7 @@ class GCSClient:
 
         Raises:
             GCSNotFoundError: If file doesn't exist and ignore_missing=False.
+            GCSDownloadError: If delete operation fails.
         """
         gcs_path = self._sanitize_gcs_path(gcs_path)
         bucket = self._get_bucket(bucket_name)
@@ -723,11 +731,24 @@ class GCSClient:
         self._cleanup_credentials()
 
     def __enter__(self) -> "GCSClient":
-        """Context manager entry."""
+        """Context manager entry.
+
+        Returns:
+            The GCSClient instance.
+        """
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
-        """Context manager exit with cleanup."""
+        """Context manager exit with cleanup.
+
+        Args:
+            exc_type: Exception type, if any.
+            exc_val: Exception value, if any.
+            exc_tb: Exception traceback, if any.
+
+        Returns:
+            False to propagate exceptions.
+        """
         self.close()
         return False
 

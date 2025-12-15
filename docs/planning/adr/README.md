@@ -8,6 +8,8 @@ tags:
   - planning
   - architecture
   - decisions
+component: Context
+source: "project-planning skill"
 ---
 
 This directory contains Architecture Decision Records (ADRs) for Python Libs.
@@ -83,5 +85,6 @@ See `.claude/skills/project-planning/templates/adr-template.md` for the full tem
 
 ## More Information
 
-- [Document Guide](../.claude/skills/project-planning/reference/document-guide.md)
-- [Prompting Patterns](../.claude/skills/project-planning/reference/prompting-patterns.md)
+<!-- Reference files are in the .claude/skills directory at the project root -->
+- Document Guide: `.claude/skills/project-planning/reference/document-guide.md`
+- Prompting Patterns: `.claude/skills/project-planning/reference/prompting-patterns.md`

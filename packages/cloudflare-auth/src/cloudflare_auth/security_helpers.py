@@ -152,7 +152,11 @@ def create_session_cleanup_task(
     """
 
     async def cleanup_loop() -> None:
-        """Background loop for session cleanup."""
+        """Background loop for session cleanup.
+
+        Raises:
+            asyncio.CancelledError: When the task is cancelled.
+        """
         logger.info("Session cleanup task started (interval: %ds)", cleanup_interval)
         try:
             while True:
@@ -333,12 +337,16 @@ class AuditLogger:
         )
 
 
+_audit_logger_instance: AuditLogger | None = None
+
+
 def get_audit_logger() -> AuditLogger:
     """Get singleton audit logger instance.
 
     Returns:
         AuditLogger instance
     """
-    if not hasattr(get_audit_logger, "_instance"):
-        get_audit_logger._instance = AuditLogger()
-    return get_audit_logger._instance
+    global _audit_logger_instance  # noqa: PLW0603
+    if _audit_logger_instance is None:
+        _audit_logger_instance = AuditLogger()
+    return _audit_logger_instance

@@ -1,5 +1,8 @@
 """Tests for utility functions."""
 
+# ruff: noqa: S101
+# Bandit B101 (assert_used) is expected in test files - pytest uses assert statements
+
 from __future__ import annotations
 
 import base64

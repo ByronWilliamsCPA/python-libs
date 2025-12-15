@@ -28,13 +28,20 @@ from typing import Any
 
 from pydantic import BaseModel, field_validator
 
+_email_validator_available: bool
+_validate_email_func = None
+_email_not_valid_error = None
 try:
     from email_validator import EmailNotValidError, validate_email
 
-    EMAIL_VALIDATOR_AVAILABLE = True
+    _email_validator_available = True
+    _validate_email_func = validate_email
+    _email_not_valid_error = EmailNotValidError
 except ImportError:
-    EMAIL_VALIDATOR_AVAILABLE = False
-    EmailNotValidError = None  # type: ignore
+    _email_validator_available = False
+
+# Expose as uppercase for backwards compatibility
+EMAIL_VALIDATOR_AVAILABLE = _email_validator_available
 
 
 logger = logging.getLogger(__name__)
@@ -548,12 +555,16 @@ class WhitelistManager:
             Normalized email address
 
         Raises:
-            ValueError: If email format is invalid
+            RuntimeError: If email-validator is not available.
+            ValueError: If email format is invalid.
         """
+        if _validate_email_func is None:
+            msg = "email-validator is not available"
+            raise RuntimeError(msg)
         try:
-            valid = validate_email(email, check_deliverability=False)
+            valid = _validate_email_func(email, check_deliverability=False)
             return valid.normalized if not self.validator.case_sensitive else email
-        except EmailNotValidError as e:
+        except _email_not_valid_error as e:  # type: ignore[misc]
             msg = f"Invalid email format: {e!s}"
             raise ValueError(msg) from e
 
@@ -587,7 +598,7 @@ class WhitelistManager:
         Returns:
             Normalized email address
         """
-        if EMAIL_VALIDATOR_AVAILABLE and validate_email is not None:
+        if _email_validator_available and _validate_email_func is not None:
             return self._validate_email_with_library(email)
         self._validate_email_basic(email)
         return email

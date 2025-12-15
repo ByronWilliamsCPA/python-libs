@@ -954,6 +954,15 @@ wheels = [
 ]
 
 [[package]]
+name = "dnspython"
+version = "2.8.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/8c/8b/57666417c0f90f08bcafa776861060426765fdb422eb10212086fb811d26/dnspython-2.8.0.tar.gz", hash = "sha256:181d3c6996452cb1189c4046c61599b84a5a86e099562ffde77d26984ff26d0f", size = 368251, upload-time = "2025-09-07T18:58:00.022Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ba/5a/18ad964b0086c6e62e2e7500f7edc89e3faa45033c71c1893d34eed2b2de/dnspython-2.8.0-py3-none-any.whl", hash = "sha256:01d9bbc4a2d76bf0db7c1f729812ded6d912bd318d3b1cf81d30c0f845dbf3af", size = 331094, upload-time = "2025-09-07T18:57:58.071Z" },
+]
+
+[[package]]
 name = "dparse"
 version = "0.6.4"
 source = { registry = "https://pypi.org/simple" }
@@ -964,6 +973,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/29/ee/96c65e17222b973f0d3d0aa9bad6a59104ca1b0eb5b659c25c2900fccd85/dparse-0.6.4.tar.gz", hash = "sha256:90b29c39e3edc36c6284c82c4132648eaf28a01863eb3c231c2512196132201a", size = 27912, upload-time = "2024-11-08T16:52:06.444Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/56/26/035d1c308882514a1e6ddca27f9d3e570d67a0e293e7b4d910a70c8fe32b/dparse-0.6.4-py3-none-any.whl", hash = "sha256:fbab4d50d54d0e739fbb4dedfc3d92771003a5b9aa8545ca7a7045e3b174af57", size = 11925, upload-time = "2024-11-08T16:52:03.844Z" },
+]
+
+[[package]]
+name = "email-validator"
+version = "2.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dnspython" },
+    { name = "idna" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f5/22/900cb125c76b7aaa450ce02fd727f452243f2e91a61af068b40adba60ea9/email_validator-2.3.0.tar.gz", hash = "sha256:9fc05c37f2f6cf439ff414f8fc46d917929974a82244c20eb10231ba60c54426", size = 51238, upload-time = "2025-08-26T13:09:06.831Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/de/15/545e2b6cf2e3be84bc1ed85613edd75b8aea69807a71c26f4ca6a9258e82/email_validator-2.3.0-py3-none-any.whl", hash = "sha256:80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4", size = 35604, upload-time = "2025-08-26T13:09:05.858Z" },
 ]
 
 [[package]]
@@ -3017,10 +3039,16 @@ dependencies = [
 dev = [
     { name = "bandit" },
     { name = "basedpyright" },
+    { name = "cryptography" },
     { name = "darglint" },
+    { name = "email-validator" },
+    { name = "fastapi" },
     { name = "google-api-core" },
     { name = "google-auth" },
+    { name = "google-cloud-storage" },
+    { name = "google-genai" },
     { name = "griffe-pydantic" },
+    { name = "httpx" },
     { name = "hypothesis" },
     { name = "interrogate" },
     { name = "ipykernel" },
@@ -3036,15 +3064,18 @@ dev = [
     { name = "nox-uv" },
     { name = "pip-audit" },
     { name = "pre-commit" },
+    { name = "pyjwt" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "pytest-xdist" },
     { name = "python-dotenv" },
     { name = "python-frontmatter" },
+    { name = "redis" },
     { name = "ruamel-yaml" },
     { name = "ruff" },
     { name = "safety" },
+    { name = "starlette" },
     { name = "vulture" },
 ]
 
@@ -3052,10 +3083,16 @@ dev = [
 requires-dist = [
     { name = "bandit", marker = "extra == 'dev'", specifier = ">=1.7.0" },
     { name = "basedpyright", marker = "extra == 'dev'", specifier = ">=1.18.0" },
+    { name = "cryptography", marker = "extra == 'dev'", specifier = ">=41.0.0" },
     { name = "darglint", marker = "extra == 'dev'", specifier = ">=1.8.1" },
+    { name = "email-validator", marker = "extra == 'dev'", specifier = ">=2.0.0" },
+    { name = "fastapi", marker = "extra == 'dev'", specifier = ">=0.100.0" },
     { name = "google-api-core", marker = "extra == 'dev'", specifier = ">=2.0.0" },
     { name = "google-auth", marker = "extra == 'dev'", specifier = ">=2.0.0" },
+    { name = "google-cloud-storage", marker = "extra == 'dev'", specifier = ">=2.10.0" },
+    { name = "google-genai", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "griffe-pydantic", marker = "extra == 'dev'", specifier = ">=1.1.0" },
+    { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.25.0" },
     { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.82.0" },
     { name = "interrogate", marker = "extra == 'dev'", specifier = ">=1.7.0" },
     { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.25.0" },
@@ -3073,16 +3110,19 @@ requires-dist = [
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.3.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pydantic-settings", specifier = ">=2.0.0" },
+    { name = "pyjwt", marker = "extra == 'dev'", specifier = ">=2.8.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.21.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = ">=3.3.0" },
     { name = "python-dotenv", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "python-frontmatter", marker = "extra == 'dev'", specifier = ">=1.1.0" },
+    { name = "redis", marker = "extra == 'dev'", specifier = ">=5.0.0" },
     { name = "rich", specifier = ">=13.5.0" },
     { name = "ruamel-yaml", marker = "extra == 'dev'", specifier = ">=0.18.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.9.0" },
     { name = "safety", marker = "extra == 'dev'", specifier = ">=3.7.0" },
+    { name = "starlette", marker = "extra == 'dev'", specifier = ">=0.27.0" },
     { name = "structlog", specifier = ">=23.1.0" },
     { name = "vulture", marker = "extra == 'dev'", specifier = ">=2.11" },
 ]

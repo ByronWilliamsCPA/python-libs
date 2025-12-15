@@ -64,7 +64,9 @@ repos:
         name: TruffleHog Secret Scanner
         description: Detect secrets in your data before committing
         entry: >-
-          bash -c 'command -v trufflehog >/dev/null 2>&1 && trufflehog git file://. --since-commit HEAD --results=verified,unknown --fail || echo "TruffleHog not installed - skipping"'
+          bash -c 'command -v trufflehog >/dev/null 2>&1 &&
+          trufflehog git file://. --since-commit HEAD --results=verified,unknown --fail ||
+          echo "TruffleHog not installed - skipping"'
         language: system
         pass_filenames: false
         stages: [pre-commit]
@@ -144,7 +146,8 @@ repos:
       - id: qlty-check
         name: Qlty Code Quality Check (changed files)
         entry: >-
-          bash -c "command -v qlty >/dev/null 2>&1 && qlty check --filter=diff || echo 'Qlty not installed - skipping (install: curl https://qlty.sh | bash)'"
+          bash -c "command -v qlty >/dev/null 2>&1 && qlty check --filter=diff ||
+          echo 'Qlty not installed - skipping (install: curl https://qlty.sh | bash)'"
         language: system
         types: [file]
         pass_filenames: false

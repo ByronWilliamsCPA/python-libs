@@ -1,5 +1,8 @@
 """Tests for model configurations."""
 
+# ruff: noqa: S101
+# Bandit B101 (assert_used) is expected in test files - pytest uses assert statements
+
 from gemini_image.models import (
     ASPECT_RATIOS,
     DEFAULT_MODEL,

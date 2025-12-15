@@ -40,13 +40,17 @@ import secrets
 from datetime import UTC, datetime
 from typing import Any
 
+_redis_available: bool
 try:
     import redis
 
-    REDIS_AVAILABLE = True
+    _redis_available = True
 except ImportError:
-    REDIS_AVAILABLE = False
+    _redis_available = False
     redis = None  # type: ignore[assignment]
+
+# Expose as uppercase for backwards compatibility
+REDIS_AVAILABLE = _redis_available
 
 logger = logging.getLogger(__name__)
 
@@ -213,7 +217,8 @@ class RedisSessionManager:
             return None
 
         try:
-            session_data = json.loads(session_data_json)
+            # decode_responses=True ensures str type; cast for type checker
+            session_data = json.loads(str(session_data_json))
 
             # Update last accessed timestamp
             session_data["last_accessed"] = datetime.now(tz=UTC).isoformat()
@@ -287,7 +292,8 @@ class RedisSessionManager:
         """
         pattern = f"{self.key_prefix}:*"
         keys = self.redis_client.keys(pattern)
-        return len(keys)
+        # keys() returns a list; cast for type checker
+        return len(list(keys))  # type: ignore[arg-type]
 
     def get_user_sessions(self, email: str) -> list[str]:
         """Get all session IDs for a specific user.
@@ -302,16 +308,25 @@ class RedisSessionManager:
         """
         pattern = f"{self.key_prefix}:*"
         keys = self.redis_client.keys(pattern)
+        # Cast keys for type checker - keys() returns iterable in sync client
+        key_list: list[Any] = list(keys) if hasattr(keys, "__iter__") else []  # type: ignore[arg-type]
 
-        user_sessions = []
-        for key in keys:
+        user_sessions: list[str] = []
+        for key in key_list:
             session_data_json = self.redis_client.get(key)
             if session_data_json:
                 try:
-                    session_data = json.loads(session_data_json)
+                    # Cast from ResponseT to expected type
+                    session_json_str = (
+                        session_data_json
+                        if isinstance(session_data_json, (str, bytes, bytearray))
+                        else str(session_data_json)
+                    )
+                    session_data = json.loads(session_json_str)
                     if session_data.get("email") == email:
                         # Extract session ID from key
-                        session_id = key.replace(f"{self.key_prefix}:", "")
+                        key_str = key if isinstance(key, str) else str(key)
+                        session_id = key_str.replace(f"{self.key_prefix}:", "")
                         user_sessions.append(session_id)
                 except json.JSONDecodeError:
                     continue
@@ -355,6 +370,14 @@ class RedisSessionManager:
             True if Redis is reachable and responsive
         """
         try:
-            return self.redis_client.ping()
-        except redis.ConnectionError:
+            result = self.redis_client.ping()
+            # ping() can return Awaitable[bool] or bool depending on client type
+            if hasattr(result, "__await__"):
+                logger.warning(
+                    "Redis client returned awaitable - async client used with sync manager"
+                )
+                return False
+            return bool(result)
+        except Exception:  # noqa: BLE001
+            # Catch any redis connection errors
             return False

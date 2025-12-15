@@ -114,6 +114,7 @@ path = [
     ".cruft.json",  # Cruft template tracking
     ".env.example",  # Environment example file
     ".markdownlint.json",  # Markdownlint configuration
+    ".darglint",  # Darglint docstring linter configuration
     ".mutmut_config",  # Mutation testing configuration
     ".prettierrc",  # Prettier configuration
     ".shellcheckrc",  # ShellCheck configuration
