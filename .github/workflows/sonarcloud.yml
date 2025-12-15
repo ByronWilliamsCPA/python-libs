@@ -106,7 +106,9 @@ jobs:
           fi
 
       - name: SonarCloud Scan
+        id: sonar-scan
         uses: SonarSource/sonarqube-scan-action@884b79409bbd464b2a59edc326a4b77dc56b2195 # v4.0.0
+        continue-on-error: true  # Don't fail if project not yet configured in SonarCloud
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed for PR decoration
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}      # SonarCloud authentication
@@ -116,7 +118,19 @@ jobs:
             -Dsonar.projectKey=ByronWilliamsCPA_python_libs
             -Dsonar.python.version=3.12
 
+      - name: SonarCloud Setup Notice
+        if: steps.sonar-scan.outcome == 'failure'
+        run: |
+          echo "::warning::SonarCloud scan failed. This may indicate the project needs to be created."
+          echo ""
+          echo "To set up SonarCloud:"
+          echo "1. Go to https://sonarcloud.io and sign in with GitHub"
+          echo "2. Import the ByronWilliamsCPA/python-libs repository"
+          echo "3. The project key should be: ByronWilliamsCPA_python_libs"
+          echo "4. Re-run this workflow after project creation"
+
       - name: Check Quality Gate
+        if: steps.sonar-scan.outcome == 'success'
         uses: sonarsource/sonarqube-quality-gate-action@master
         timeout-minutes: 5
         env:

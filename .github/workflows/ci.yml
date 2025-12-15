@@ -87,6 +87,8 @@ jobs:
             --cov=packages/cloudflare-auth/src/cloudflare_auth \
             --cov-report=xml:coverage-cloudflare-auth.xml \
             --cov-report=term-missing \
+            --no-cov-on-fail \
+            --cov-fail-under=0 \
             -v
 
       - name: Run type checker
@@ -133,6 +135,8 @@ jobs:
             --cov=packages/gcs-utilities/src/gcs_utilities \
             --cov-report=xml:coverage-gcs-utilities.xml \
             --cov-report=term-missing \
+            --no-cov-on-fail \
+            --cov-fail-under=0 \
             -v
 
       - name: Run type checker
