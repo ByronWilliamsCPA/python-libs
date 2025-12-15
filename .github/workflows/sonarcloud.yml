@@ -107,7 +107,7 @@ jobs:
 
       - name: SonarCloud Scan
         id: sonar-scan
-        uses: SonarSource/sonarqube-scan-action@884b79409bbd464b2a59edc326a4b77dc56b2195 # v4.0.0
+        uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9 # v4.0.0
         continue-on-error: true  # Don't fail if project not yet configured in SonarCloud
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed for PR decoration
