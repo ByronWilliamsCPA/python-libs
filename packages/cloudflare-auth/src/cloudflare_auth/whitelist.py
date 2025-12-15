@@ -555,7 +555,8 @@ class WhitelistManager:
             Normalized email address
 
         Raises:
-            ValueError: If email format is invalid
+            RuntimeError: If email-validator is not available.
+            ValueError: If email format is invalid.
         """
         if _validate_email_func is None:
             msg = "email-validator is not available"

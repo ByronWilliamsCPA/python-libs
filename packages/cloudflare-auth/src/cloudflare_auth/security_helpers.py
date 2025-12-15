@@ -152,7 +152,11 @@ def create_session_cleanup_task(
     """
 
     async def cleanup_loop() -> None:
-        """Background loop for session cleanup."""
+        """Background loop for session cleanup.
+
+        Raises:
+            asyncio.CancelledError: When the task is cancelled.
+        """
         logger.info("Session cleanup task started (interval: %ds)", cleanup_interval)
         try:
             while True:

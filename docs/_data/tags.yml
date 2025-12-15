@@ -7,6 +7,10 @@ allowed:
   - framework
   - utilities
   - helpers
+  - project
+  - strategy
+  - feedback
+  - template
 
   # Development & Tooling
   - testing

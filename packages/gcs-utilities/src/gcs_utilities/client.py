@@ -57,7 +57,7 @@ class GCSClient:
         ```
     """
 
-    def __init__(
+    def __init__(  # noqa: DAR402
         self,
         service_account_key_b64: str | None = None,
         bucket_name: str | None = None,
@@ -75,7 +75,7 @@ class GCSClient:
 
         Raises:
             GCSAuthError: If authentication fails.
-            GCSConfigError: If required configuration is missing.
+            GCSConfigError: If required configuration is missing (raised by _setup_credentials).
         """
         self._credentials_path: str | None = None
         self._cleanup_registered = False
@@ -174,6 +174,7 @@ class GCSClient:
 
         Raises:
             GCSNotFoundError: If bucket doesn't exist and auto_create is False.
+            GCSAuthError: If bucket access fails.
         """
         try:
             bucket = self.client.bucket(self.bucket_name)
@@ -263,7 +264,7 @@ class GCSClient:
 
         return gcs_path
 
-    def upload_file(
+    def upload_file(  # noqa: DAR402
         self,
         local_path: str,
         gcs_path: str,
@@ -285,7 +286,7 @@ class GCSClient:
 
         Raises:
             GCSUploadError: If upload fails.
-            FileNotFoundError: If local file doesn't exist.
+            FileNotFoundError: If local file doesn't exist (raised by _validate_local_path).
         """
         # Validate and sanitize paths
         local_file = self._validate_local_path(Path(local_path), must_exist=True)
@@ -315,7 +316,7 @@ class GCSClient:
             msg = f"Failed to upload {local_path} to {gcs_path}: {e}"
             raise GCSUploadError(msg) from e
 
-    def upload_directory(
+    def upload_directory(  # noqa: DAR402
         self,
         local_dir: str,
         gcs_prefix: str,
@@ -336,8 +337,8 @@ class GCSClient:
             Dict with stats: {"files_uploaded": int, "total_bytes": int, "failed": list}.
 
         Raises:
-            GCSUploadError: If upload fails.
-            FileNotFoundError: If local directory doesn't exist.
+            GCSUploadError: If upload fails (raised indirectly).
+            FileNotFoundError: If local directory doesn't exist (raised by _validate_local_path).
         """
         # Validate local directory path
         local_path = self._validate_local_path(Path(local_dir), must_exist=True)
@@ -579,6 +580,7 @@ class GCSClient:
 
         Raises:
             GCSNotFoundError: If file doesn't exist and ignore_missing=False.
+            GCSDownloadError: If delete operation fails.
         """
         gcs_path = self._sanitize_gcs_path(gcs_path)
         bucket = self._get_bucket(bucket_name)
@@ -729,11 +731,24 @@ class GCSClient:
         self._cleanup_credentials()
 
     def __enter__(self) -> "GCSClient":
-        """Context manager entry."""
+        """Context manager entry.
+
+        Returns:
+            The GCSClient instance.
+        """
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
-        """Context manager exit with cleanup."""
+        """Context manager exit with cleanup.
+
+        Args:
+            exc_type: Exception type, if any.
+            exc_val: Exception value, if any.
+            exc_tb: Exception traceback, if any.
+
+        Returns:
+            False to propagate exceptions.
+        """
         self.close()
         return False
 

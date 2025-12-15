@@ -8,11 +8,12 @@ tags:
   - project
   - strategy
 status: published
-owner: "core-maintainer"
+owner: core-maintainer
 authors:
   - name: "Byron Williams"
-purpose: "Document the complete implementation roadmap for Python Libs with detailed phases, milestones, and technical strategy"
-component: "Strategy"
+purpose: "Document the complete implementation roadmap for Python Libs with detailed phases, milestones, and technical strategy."
+component: Strategy
+source: "project-planning skill"
 ---
 
 **Project**: Python Libs

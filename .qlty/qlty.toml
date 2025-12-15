@@ -6,6 +6,8 @@
 config_version = "0"
 
 # File patterns to completely exclude from all analysis
+# Note: gemini_image/generator.py has intentional complexity for comprehensive
+# API response handling - complexity warnings are documented in the file header
 exclude_patterns = [
     "*_min.*",
     "*-min.*",
@@ -70,6 +72,17 @@ default = true
 [smells]
 # Mode: comment (add PR comments) vs block (fail CI)
 mode = "comment"
+
+# Ignore complexity warnings for files with documented intentional complexity
+[[smells.ignore]]
+rules = [
+    "function-complexity",
+    "function-parameters",
+    "nested-control-flow",
+]
+file_patterns = [
+    "**/gemini_image/generator.py",
+]
 
 # Boolean logic complexity
 [smells.boolean_logic]

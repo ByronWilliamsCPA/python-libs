@@ -8,6 +8,8 @@ tags:
   - planning
   - architecture
   - decisions
+component: Context
+source: "project-planning skill"
 ---
 
 This directory contains Architecture Decision Records (ADRs) for Python Libs.

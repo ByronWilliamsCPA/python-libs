@@ -36,7 +36,10 @@ jobs:
       cloudflare-auth: ${{ steps.filter.outputs.cloudflare-auth }}
       gcs-utilities: ${{ steps.filter.outputs.gcs-utilities }}
       shared: ${{ steps.filter.outputs.shared }}
-      any-package: ${{ steps.filter.outputs.cloudflare-auth == 'true' || steps.filter.outputs.gcs-utilities == 'true' || steps.filter.outputs.shared == 'true' }}
+      any-package: >-
+        ${{ steps.filter.outputs.cloudflare-auth == 'true' ||
+        steps.filter.outputs.gcs-utilities == 'true' ||
+        steps.filter.outputs.shared == 'true' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2

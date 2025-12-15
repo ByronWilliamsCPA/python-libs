@@ -1,0 +1,21 @@
+[darglint]
+# Google-style docstrings (matches ruff pydocstyle convention)
+docstring_style = google
+
+# Strictness levels: short, long, full
+# - short: Only documented items must exist in signature
+# - long: All parameters must be documented (recommended)
+# - full: Types in docstring must match annotations
+strictness = long
+
+# Ignore these error codes
+# DAR101: Missing parameter(s) in Docstring
+# DAR201: Missing "Returns" in Docstring
+# DAR202: Excess "Returns" in Docstring (documented but not returned)
+# DAR301: Missing "Yields" in Docstring
+# DAR401: Missing exception(s) in Raises section
+# DAR402: Excess exception(s) in Raises section (documented but not raised directly)
+ignore = DAR101,DAR201,DAR202,DAR301,DAR401,DAR402
+
+# Ignore in these directories (tests, scripts, benchmarks, tools)
+ignore_regex = ^(tests|scripts|benchmarks|tools|\.claude)/.*$
