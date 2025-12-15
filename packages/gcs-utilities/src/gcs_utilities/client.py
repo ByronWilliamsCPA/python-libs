@@ -57,7 +57,7 @@ class GCSClient:
         ```
     """
 
-    def __init__(  # noqa: DAR402
+    def __init__(
         self,
         service_account_key_b64: str | None = None,
         bucket_name: str | None = None,
@@ -264,7 +264,7 @@ class GCSClient:
 
         return gcs_path
 
-    def upload_file(  # noqa: DAR402
+    def upload_file(
         self,
         local_path: str,
         gcs_path: str,
@@ -316,7 +316,7 @@ class GCSClient:
             msg = f"Failed to upload {local_path} to {gcs_path}: {e}"
             raise GCSUploadError(msg) from e
 
-    def upload_directory(  # noqa: DAR402
+    def upload_directory(
         self,
         local_dir: str,
         gcs_prefix: str,

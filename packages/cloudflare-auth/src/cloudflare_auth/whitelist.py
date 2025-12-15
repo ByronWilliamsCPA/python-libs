@@ -564,13 +564,9 @@ class WhitelistManager:
         try:
             valid = _validate_email_func(email, check_deliverability=False)
             return valid.normalized if not self.validator.case_sensitive else email
-        except Exception as e:
-            if _email_not_valid_error is not None and isinstance(
-                e, _email_not_valid_error
-            ):
-                msg = f"Invalid email format: {e!s}"
-                raise ValueError(msg) from e
-            raise
+        except _email_not_valid_error as e:  # type: ignore[misc]
+            msg = f"Invalid email format: {e!s}"
+            raise ValueError(msg) from e
 
     def _validate_email_basic(self, email: str) -> None:
         """Basic email validation without email-validator library.

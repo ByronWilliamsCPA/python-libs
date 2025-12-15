@@ -100,19 +100,19 @@ Python Libs is a [brief description of what the project does]. This document out
 
 ### Module Responsibilities
 
-**[Module 1 Name](relative/path/to/module.py)**
+**Module 1 Name** (`src/module1.py`)
 
 - Core functionality description
 - Key features and capabilities
 - Dependencies and integration points
 
-**[Module 2 Name](relative/path/to/module.py)**
+**Module 2 Name** (`src/module2.py`)
 
 - Core functionality description
 - Key features and capabilities
 - Dependencies and integration points
 
-**[Module 3 Name](relative/path/to/module.py)**
+**Module 3 Name** (`src/module3.py`)
 
 - Core functionality description
 - Key features and capabilities
@@ -532,9 +532,10 @@ git checkout -b feat/phase-1-core
 
 ## Related Documentation
 
-- **[CONTRIBUTING.md](../CONTRIBUTING.md)**: How to contribute to the project
-- **[ADRs/README.md](../ADRs/README.md)**: Architecture Decision Records
-- **[README.md](../../README.md)**: Project overview
+<!-- Update these paths to match your project structure -->
+- **CONTRIBUTING.md**: How to contribute to the project
+- **ADRs/README.md**: Architecture Decision Records
+- **README.md**: Project overview
 - **[Code of Conduct](https://github.com/ByronWilliamsCPA/.github/blob/main/CODE_OF_CONDUCT.md)**: Community guidelines (org-level)
 
 ---

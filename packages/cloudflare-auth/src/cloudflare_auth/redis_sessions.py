@@ -217,13 +217,8 @@ class RedisSessionManager:
             return None
 
         try:
-            # Cast from ResponseT to expected type
-            session_json_str = (
-                session_data_json
-                if isinstance(session_data_json, (str, bytes, bytearray))
-                else str(session_data_json)
-            )
-            session_data = json.loads(session_json_str)
+            # decode_responses=True ensures str type; cast for type checker
+            session_data = json.loads(str(session_data_json))
 
             # Update last accessed timestamp
             session_data["last_accessed"] = datetime.now(tz=UTC).isoformat()
@@ -297,9 +292,8 @@ class RedisSessionManager:
         """
         pattern = f"{self.key_prefix}:*"
         keys = self.redis_client.keys(pattern)
-        # keys() returns a list of keys; cast for type checker
-        key_list: list[str] = list(keys) if hasattr(keys, "__iter__") else []  # type: ignore[arg-type]
-        return len(key_list)
+        # keys() returns a list; cast for type checker
+        return len(list(keys))  # type: ignore[arg-type]
 
     def get_user_sessions(self, email: str) -> list[str]:
         """Get all session IDs for a specific user.
@@ -378,7 +372,12 @@ class RedisSessionManager:
         try:
             result = self.redis_client.ping()
             # ping() can return Awaitable[bool] or bool depending on client type
-            return bool(result) if not hasattr(result, "__await__") else False
+            if hasattr(result, "__await__"):
+                logger.warning(
+                    "Redis client returned awaitable - async client used with sync manager"
+                )
+                return False
+            return bool(result)
         except Exception:  # noqa: BLE001
             # Catch any redis connection errors
             return False

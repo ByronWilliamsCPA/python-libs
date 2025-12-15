@@ -102,5 +102,5 @@ __all__ = [
 ]
 
 # Add RedisSessionManager if available
-if _redis_available and RedisSessionManager is not None:
+if _redis_available:
     __all__.append("RedisSessionManager")
