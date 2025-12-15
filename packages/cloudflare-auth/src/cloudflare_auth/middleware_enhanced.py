@@ -447,9 +447,10 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
         from cloudflare_auth.models import CloudflareJWTClaims
 
         # Create minimal claims for session-based auth
+        issuer = self.settings.issuer or "session-auth"
         claims = CloudflareJWTClaims(
             email=session["email"],
-            iss=self.settings.issuer,
+            iss=issuer,
             aud=[self.settings.cloudflare_audience_tag],
             sub=session.get("email", ""),
             iat=int(session["created_at"].timestamp()),
@@ -476,23 +477,23 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
             session_id: Session ID to set
         """
         # Prepare cookie kwargs from settings
-        cookie_kwargs = {
-            "max_age": self.session_manager.session_timeout,
-            "path": self.settings.cookie_path,
-            "secure": self.settings.cookie_secure,
-            "samesite": self.settings.cookie_samesite,
-        }
-
-        # Add domain if configured
-        if self.settings.cookie_domain:
-            cookie_kwargs["domain"] = self.settings.cookie_domain
+        # Get cookie configuration
+        max_age = self.session_manager.session_timeout
+        path = self.settings.cookie_path
+        secure = self.settings.cookie_secure
+        samesite = self.settings.cookie_samesite
+        domain = self.settings.cookie_domain
 
         # Set session cookie (httponly for security)
         response.set_cookie(
             key="session_id",
             value=session_id,
             httponly=True,
-            **cookie_kwargs,
+            max_age=max_age,
+            path=path,
+            secure=secure,
+            samesite=samesite,
+            domain=domain,
         )
 
         # Set CSRF token cookie (NOT httponly, needs to be readable by JS)
@@ -502,7 +503,11 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
                 key="csrf_token",
                 value=csrf_token,
                 httponly=False,  # Must be readable by JavaScript
-                **cookie_kwargs,
+                max_age=max_age,
+                path=path,
+                secure=secure,
+                samesite=samesite,
+                domain=domain,
             )
 
 
@@ -517,7 +522,7 @@ def setup_cloudflare_auth_enhanced(
     require_auth: bool = True,
     session_timeout: int = 3600,
     settings: CloudflareSettings | None = None,
-) -> CloudflareAuthMiddlewareEnhanced:
+) -> None:
     """Setup enhanced Cloudflare authentication with all features.
 
     This is the recommended setup function that provides:
@@ -540,7 +545,7 @@ def setup_cloudflare_auth_enhanced(
         settings: Optional CloudflareSettings instance
 
     Returns:
-        Configured middleware instance
+        None - middleware is added directly to the app
 
     Example:
         app = FastAPI()
@@ -619,8 +624,6 @@ def setup_cloudflare_auth_enhanced(
         enable_sessions,
         len(all_excluded),
     )
-
-    return None  # Middleware is added directly to app
 
 
 # FastAPI dependencies

@@ -1,5 +1,8 @@
 """Tests for cloudflare_auth models."""
 
+# ruff: noqa: S101
+# Bandit B101 (assert_used) is expected in test files - pytest uses assert statements
+
 
 class TestModels:
     """Test suite for cloudflare_auth models."""

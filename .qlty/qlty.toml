@@ -127,11 +127,19 @@ name = "ruff"
 drivers = ["lint"]
 
 # Python security with Bandit (comment mode - subprocess use is intentional for validation)
-# Note: B101 (assert) warnings in tests are expected and run in comment mode
 # Note: Bandit configured in pyproject.toml to skip tests directory
 [[plugin]]
 name = "bandit"
 mode = "comment"
+
+# Ignore B101 (assert_used) in test files - pytest uses assert statements
+[[plugin.ignore]]
+rule = "bandit:B101"
+file_patterns = [
+    "**/tests/**",
+    "**/test_*.py",
+    "**/*_test.py",
+]
 
 # Shell script linting (comment mode - script styling preferences)
 [[plugin]]

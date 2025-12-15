@@ -333,12 +333,16 @@ class AuditLogger:
         )
 
 
+_audit_logger_instance: AuditLogger | None = None
+
+
 def get_audit_logger() -> AuditLogger:
     """Get singleton audit logger instance.
 
     Returns:
         AuditLogger instance
     """
-    if not hasattr(get_audit_logger, "_instance"):
-        get_audit_logger._instance = AuditLogger()
-    return get_audit_logger._instance
+    global _audit_logger_instance  # noqa: PLW0603
+    if _audit_logger_instance is None:
+        _audit_logger_instance = AuditLogger()
+    return _audit_logger_instance

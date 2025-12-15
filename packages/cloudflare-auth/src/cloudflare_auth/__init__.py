@@ -63,13 +63,14 @@ from cloudflare_auth.whitelist import (
 )
 
 # Optional Redis session manager (requires redis package)
+_redis_available: bool
 try:
     from cloudflare_auth.redis_sessions import RedisSessionManager
 
-    _REDIS_AVAILABLE = True
+    _redis_available = True
 except ImportError:
     RedisSessionManager = None  # type: ignore[assignment]
-    _REDIS_AVAILABLE = False
+    _redis_available = False
 
 __all__ = [
     "AuditLogger",
@@ -101,5 +102,5 @@ __all__ = [
 ]
 
 # Add RedisSessionManager if available
-if _REDIS_AVAILABLE and RedisSessionManager is not None:
+if _redis_available and RedisSessionManager is not None:
     __all__.append("RedisSessionManager")

@@ -2,6 +2,7 @@
 
 import atexit
 import base64
+import binascii
 import json
 import logging
 import os
@@ -155,7 +156,7 @@ class GCSClient:
 
             logger.info(f"GCS credentials configured for project: {self.project_id}")
 
-        except (base64.binascii.Error, json.JSONDecodeError) as e:
+        except (binascii.Error, json.JSONDecodeError) as e:
             msg = f"Invalid service account key format: {e}"
             raise GCSAuthError(msg) from e
         except (OSError, ValueError) as e:
@@ -344,7 +345,9 @@ class GCSClient:
 
         bucket = self._get_bucket(bucket_name)
 
-        stats = {"files_uploaded": 0, "total_bytes": 0, "failed": []}
+        files_uploaded = 0
+        total_bytes = 0
+        failed: list[str] = []
         exclude_patterns = exclude_patterns or []
 
         # Get all files matching pattern
@@ -368,26 +371,29 @@ class GCSClient:
                 blob.upload_from_filename(str(file_path))
 
                 file_size = file_path.stat().st_size
-                stats["files_uploaded"] += 1
-                stats["total_bytes"] += file_size
+                files_uploaded += 1
+                total_bytes += file_size
 
                 size_mb = file_size / BYTES_PER_MB
                 logger.info(f"✅ {rel_path!s:<50} ({size_mb:>6.2f} MB) → {gcs_path}")
 
             except GoogleCloudError as e:
                 logger.exception(f"❌ Failed to upload {rel_path}: {e}")
-                stats["failed"].append(str(rel_path))
+                failed.append(str(rel_path))
 
-        total_mb = stats["total_bytes"] / BYTES_PER_MB
+        total_mb = total_bytes / BYTES_PER_MB
         logger.info(
-            f"\n📦 Upload complete: {stats['files_uploaded']} files, "
-            f"{total_mb:.2f} MB total"
+            f"\n📦 Upload complete: {files_uploaded} files, {total_mb:.2f} MB total"
         )
 
-        if stats["failed"]:
-            logger.warning(f"⚠️  {len(stats['failed'])} files failed to upload")
+        if failed:
+            logger.warning(f"⚠️  {len(failed)} files failed to upload")
 
-        return stats
+        return {
+            "files_uploaded": files_uploaded,
+            "total_bytes": total_bytes,
+            "failed": failed,
+        }
 
     def download_file(
         self,

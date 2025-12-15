@@ -8,6 +8,9 @@ This module shows:
 - Docstring examples that can be tested with doctest
 """
 
+# ruff: noqa: S101
+# Bandit B101 (assert_used) is expected in test files - pytest uses assert statements
+
 import pytest
 
 
@@ -146,7 +149,9 @@ class TestLogging:
         assert call_args[1]["extra_metric"] == 42
 
 
-@pytest.mark.skip(reason="CLI module not implemented yet - placeholder tests from template")
+@pytest.mark.skip(
+    reason="CLI module not implemented yet - placeholder tests from template"
+)
 class TestCLI:
     """Test command-line interface.
 

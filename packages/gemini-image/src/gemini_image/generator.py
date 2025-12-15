@@ -169,7 +169,8 @@ def generate_image(
 
         # Add Google Search grounding if requested
         if use_search:
-            config_kwargs["tools"] = [{"google_search": {}}]
+            # Google API accepts dict format for tools
+            config_kwargs["tools"] = [{"google_search": {}}]  # type: ignore[typeddict-item]
             if verbose:
                 print("Google Search grounding: enabled")  # noqa: T201
 
