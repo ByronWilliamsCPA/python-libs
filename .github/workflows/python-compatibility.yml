@@ -1,7 +1,7 @@
 # Python Compatibility Matrix Testing for Python Libs
 # Tests the project across multiple Python versions and operating systems.
 #
-# Standalone implementation for Python compatibility testing.
+# Uses reusable workflow from: ByronWilliamsCPA/.github
 name: Python Compatibility
 
 on:
@@ -33,55 +33,15 @@ permissions:
   contents: read
 
 jobs:
-  test:
-    name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
-    strategy:
+  compatibility:
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-compatibility.yml@main
+    with:
+      python-versions: '["3.10", "3.11", "3.12", "3.13"]'
+      operating-systems: '["ubuntu-latest"]'
+      include-windows: true
+      include-macos: true
+      source-directory: 'src'
+      coverage-report: true
       fail-fast: false
-      matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13']
-        os: [ubuntu-latest]
-        include:
-          - os: macos-latest
-            python-version: '3.12'
-          - os: windows-latest
-            python-version: '3.12'
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@e4db8464a088ece1b920f60402e813ea4de65b8f # v4
-        with:
-          enable-cache: true
-
-      - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          uv sync --all-extras
-
-      - name: Run tests
-        shell: bash
-        run: |
-          uv run pytest tests/ -v --tb=short -x \
-            --ignore=tests/integration \
-            --ignore=tests/load \
-            -m "not slow and not integration"
-
-  summary:
-    name: Compatibility Summary
-    needs: test
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Check results
-        run: |
-          if [[ "${{ needs.test.result }}" != "success" ]]; then
-            echo "::error::Some compatibility tests failed"
-            exit 1
-          fi
-          echo "All compatibility tests passed!"
+      skip-on-draft: true
+      timeout-minutes: 30
