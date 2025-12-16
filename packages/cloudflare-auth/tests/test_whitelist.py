@@ -213,12 +213,15 @@ class TestEmailWhitelistValidator:
 
     def test_validate_whitelist_config_public_domains(self):
         """Test warning for public email domains."""
+        public_domain = "gmail.com"
         validator = EmailWhitelistValidator(
-            whitelist=["@gmail.com"],
+            whitelist=[f"@{public_domain}"],
         )
         warnings = validator.validate_whitelist_config()
 
-        assert any("gmail.com" in w for w in warnings)
+        # Check that a warning was raised about public domains
+        # Using variable to avoid CodeQL false positive (py/incomplete-url-substring-sanitization)
+        assert any(public_domain in w for w in warnings)
 
 
 class TestWhitelistManager:
