@@ -19,7 +19,7 @@ Called by:
 
 import logging
 import secrets
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -101,8 +101,8 @@ class SimpleSessionManager:
             "email": email,
             "is_admin": is_admin,
             "user_tier": user_tier,
-            "created_at": datetime.now(tz=UTC),
-            "last_accessed": datetime.now(tz=UTC),
+            "created_at": datetime.now(tz=timezone.utc),
+            "last_accessed": datetime.now(tz=timezone.utc),
             "cf_context": cf_context or {},
         }
 
@@ -148,7 +148,7 @@ class SimpleSessionManager:
             return None
 
         # Update last accessed time
-        session["last_accessed"] = datetime.now(tz=UTC)
+        session["last_accessed"] = datetime.now(tz=timezone.utc)
         return session
 
     def invalidate_session(self, session_id: str) -> bool:
@@ -183,7 +183,7 @@ class SimpleSessionManager:
         """
         session = self.sessions.get(session_id)
         if session:
-            session["last_accessed"] = datetime.now(tz=UTC)
+            session["last_accessed"] = datetime.now(tz=timezone.utc)
             return True
         return False
 
@@ -197,7 +197,7 @@ class SimpleSessionManager:
             True if session has exceeded timeout
         """
         expiry = session["last_accessed"] + timedelta(seconds=self.session_timeout)
-        return datetime.now(tz=UTC) >= expiry
+        return datetime.now(tz=timezone.utc) >= expiry
 
     def cleanup_expired_sessions(self) -> int:
         """Remove expired sessions from memory.
@@ -276,7 +276,7 @@ class SimpleSessionManager:
             "created_at": session["created_at"].isoformat(),
             "last_accessed": session["last_accessed"].isoformat(),
             "age_seconds": (
-                datetime.now(tz=UTC) - session["created_at"]
+                datetime.now(tz=timezone.utc) - session["created_at"]
             ).total_seconds(),
         }
 
@@ -286,7 +286,7 @@ class SimpleSessionManager:
         Returns:
             Dictionary with session statistics
         """
-        datetime.now(tz=UTC)
+        datetime.now(tz=timezone.utc)
         active_sessions = []
         expired_sessions = []
 

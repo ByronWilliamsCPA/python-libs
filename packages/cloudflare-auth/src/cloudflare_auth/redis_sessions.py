@@ -37,7 +37,7 @@ Example:
 import json
 import logging
 import secrets
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 _redis_available: bool
@@ -174,8 +174,8 @@ class RedisSessionManager:
             "email": email,
             "is_admin": is_admin,
             "user_tier": user_tier,
-            "created_at": datetime.now(tz=UTC).isoformat(),
-            "last_accessed": datetime.now(tz=UTC).isoformat(),
+            "created_at": datetime.now(tz=timezone.utc).isoformat(),
+            "last_accessed": datetime.now(tz=timezone.utc).isoformat(),
             "cf_context": cf_context or {},
         }
 
@@ -221,7 +221,7 @@ class RedisSessionManager:
             session_data = json.loads(str(session_data_json))
 
             # Update last accessed timestamp
-            session_data["last_accessed"] = datetime.now(tz=UTC).isoformat()
+            session_data["last_accessed"] = datetime.now(tz=timezone.utc).isoformat()
 
             # Update in Redis and refresh TTL
             self.redis_client.setex(key, self.session_timeout, json.dumps(session_data))

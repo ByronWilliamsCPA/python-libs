@@ -16,13 +16,13 @@ from gemini_image.models import ASPECT_RATIOS, DEFAULT_MODEL, IMAGE_SIZES, MODEL
 
 def list_models() -> None:
     """Print available models."""
-    print("Available models:\n")  # noqa: T201
+    print("Available models:\n")
     for key, config in MODELS.items():
-        print(f"  {key}:")  # noqa: T201
-        print(f"    Name: {config['name']}")  # noqa: T201
-        print(f"    ID: {config['id']}")  # noqa: T201
-        print(f"    Description: {config['description']}")  # noqa: T201
-        print()  # noqa: T201
+        print(f"  {key}:")
+        print(f"    Name: {config['name']}")
+        print(f"    ID: {config['id']}")
+        print(f"    Description: {config['description']}")
+        print()
 
 
 def main() -> None:
@@ -171,7 +171,7 @@ Examples:
             )
             sys.exit(0 if result else 1)
         except FileNotFoundError as e:
-            print(f"Error: {e}")  # noqa: T201
+            print(f"Error: {e}")
             sys.exit(1)
 
     if not args.prompt:
@@ -181,7 +181,7 @@ Examples:
     # Story sequence mode
     if args.story_parts:
         if args.story_parts < 2:
-            print("Error: Story must have at least 2 parts")  # noqa: T201
+            print("Error: Story must have at least 2 parts")
             sys.exit(1)
 
         results = generate_story_sequence(
@@ -214,15 +214,15 @@ Examples:
         )
 
         if result and args.draft_mode:
-            print(f"\n{'=' * 60}")  # noqa: T201
-            print("Draft complete! To finalize at higher resolution:")  # noqa: T201
-            print(f"  gemini-image --finalize {result} --size 2K")  # noqa: T201
-            print(f"{'=' * 60}")  # noqa: T201
+            print(f"\n{'=' * 60}")
+            print("Draft complete! To finalize at higher resolution:")
+            print(f"  gemini-image --finalize {result} --size 2K")
+            print(f"{'=' * 60}")
 
         sys.exit(0 if result else 1)
 
     except (ValueError, ImportError) as e:
-        print(f"Error: {e}")  # noqa: T201
+        print(f"Error: {e}")
         sys.exit(1)
 
 

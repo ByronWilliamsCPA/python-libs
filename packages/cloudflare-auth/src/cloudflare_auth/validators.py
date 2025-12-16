@@ -29,7 +29,7 @@ Complexity: O(1) for cached certificates, O(n) for initial fetch
 """
 
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import jwt
@@ -267,7 +267,7 @@ class CloudflareJWTValidator:
                 cache_keys=True,
                 max_cached_keys=self.settings.jwt_cache_max_keys,
             )
-            self._last_key_refresh = datetime.now(tz=UTC)
+            self._last_key_refresh = datetime.now(tz=timezone.utc)
             logger.info("Cloudflare public keys client refreshed")
 
     @property

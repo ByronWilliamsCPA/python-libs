@@ -263,6 +263,9 @@ ignore = [
     "FBT001", # Boolean positional arg (acceptable in DSLs)
     "FBT002", # Boolean default arg (acceptable in DSLs)
     "TRY003", # Long exception messages (descriptive is good)
+
+    # Python 3.10 compatibility (packages support Python 3.10+)
+    "UP017",  # Use datetime.UTC alias (not available in Python 3.10)
 ]
 
 # McCabe Complexity Configuration (Google/Pylint alignment)
@@ -309,6 +312,31 @@ known-first-party = ["python_libs", "cloudflare_auth", "gcs_utilities", "gemini_
     "S113",   # request_without_timeout - test HTTP calls may be mocked
 ]
 
+# Package test files (same relaxed rules as above)
+"packages/*/tests/**/*.py" = [
+    "ANN",    # Type annotations not required in tests
+    "ARG",    # Unused arguments (fixtures)
+    "D",      # Docstrings not required in tests
+    "PLR",    # Pylint refactor suggestions
+    "PLC0415", # Imports inside test functions are idiomatic
+    "ERA",    # Commented code (test debugging)
+    "SLF",    # Private member access (testing internals)
+    "BLE",    # Blind except (test error handling)
+    "EM",     # Error messages (test exceptions)
+    "TRY",    # Exception handling (test assertions)
+    "INP",    # No __init__.py required for test directories
+    "PT011",  # pytest.raises match parameter (not always needed)
+    "F841",   # Unused variables (test setup/teardown)
+    # Security rules OK to skip in tests (specific, not blanket S)
+    "S101",   # assert_used - pytest uses asserts
+    "S105",   # hardcoded_password_string - test credentials are fake
+    "S106",   # hardcoded_password_funcarg - test fixtures with fake passwords
+    "S107",   # hardcoded_password_default - test default values
+    "S108",   # hardcoded_tmp_directory - test temp paths are intentional
+    "S311",   # random - non-crypto random in tests is fine
+    "S113",   # request_without_timeout - test HTTP calls may be mocked
+]
+
 # Scripts (utility code - not packages)
 "scripts/**/*.py" = [
     "ANN", "D", "T20", "TRY", "PTH", "PLR",
@@ -328,6 +356,11 @@ known-first-party = ["python_libs", "cloudflare_auth", "gcs_utilities", "gemini_
     "S311",   # random - non-crypto random in scripts is fine
     "S603",   # subprocess_without_shell_equals_true - scripts validate inputs
     "S607",   # start_process_with_partial_path - scripts use PATH
+]
+
+# CLI files (command-line interfaces use print for output)
+"**/cli.py" = [
+    "T20",    # Print statements are expected in CLI tools
 ]
 
 # Benchmarks (performance testing)

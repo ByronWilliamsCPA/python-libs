@@ -17,7 +17,7 @@ Called by:
     - Application endpoints: For accessing user information
 """
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from pydantic import BaseModel, EmailStr, Field
@@ -75,7 +75,7 @@ class CloudflareJWTClaims(BaseModel):
         Returns:
             Datetime when token was issued
         """
-        return datetime.fromtimestamp(self.iat, tz=UTC)
+        return datetime.fromtimestamp(self.iat, tz=timezone.utc)
 
     @property
     def expires_at(self) -> datetime:
@@ -84,7 +84,7 @@ class CloudflareJWTClaims(BaseModel):
         Returns:
             Datetime when token expires
         """
-        return datetime.fromtimestamp(self.exp, tz=UTC)
+        return datetime.fromtimestamp(self.exp, tz=timezone.utc)
 
     @property
     def is_expired(self) -> bool:
@@ -93,7 +93,7 @@ class CloudflareJWTClaims(BaseModel):
         Returns:
             True if token is expired
         """
-        return datetime.now(tz=UTC) >= self.expires_at
+        return datetime.now(tz=timezone.utc) >= self.expires_at
 
     def get_audience_list(self) -> list[str]:
         """Get audience as a list.
