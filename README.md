@@ -2,22 +2,22 @@
 
 ## Quality & Security
 
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ByronWilliamsCPA/python_libs/badge)](https://securityscorecards.dev/viewer/?uri=github.com/ByronWilliamsCPA/python_libs)
-[![codecov](https://codecov.io/gh/ByronWilliamsCPA/python_libs/graph/badge.svg)](https://codecov.io/gh/ByronWilliamsCPA/python_libs)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ByronWilliamsCPA_python_libs&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ByronWilliamsCPA_python_libs)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ByronWilliamsCPA_python_libs&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=ByronWilliamsCPA_python_libs)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ByronWilliamsCPA_python_libs&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=ByronWilliamsCPA_python_libs)
-[![REUSE Compliance](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/reuse.yml/badge.svg)](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/reuse.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ByronWilliamsCPA/python-libs/badge)](https://securityscorecards.dev/viewer/?uri=github.com/ByronWilliamsCPA/python-libs)
+[![codecov](https://codecov.io/gh/ByronWilliamsCPA/python-libs/graph/badge.svg)](https://codecov.io/gh/ByronWilliamsCPA/python-libs)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ByronWilliamsCPA_python-libs&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ByronWilliamsCPA_python-libs)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ByronWilliamsCPA_python-libs&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=ByronWilliamsCPA_python-libs)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ByronWilliamsCPA_python-libs&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=ByronWilliamsCPA_python-libs)
+[![REUSE Compliance](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/reuse.yml/badge.svg)](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/reuse.yml)
 
 ## CI/CD Status
 
-[![CI Pipeline](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/ci.yml?query=branch%3Amain)
-[![Security Analysis](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/security-analysis.yml/badge.svg?branch=main)](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/security-analysis.yml?query=branch%3Amain)
-[![Documentation](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/docs.yml?query=branch%3Amain)
-[![SBOM & Security Scan](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/sbom.yml/badge.svg?branch=main)](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/sbom.yml?query=branch%3Amain)
-[![PR Validation](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/pr-validation.yml)
-[![Release](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/release.yml/badge.svg)](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/release.yml)
-[![Artifact Registry Publish](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/publish-artifact-registry.yml/badge.svg)](https://github.com/ByronWilliamsCPA/python_libs/actions/workflows/publish-artifact-registry.yml)
+[![CI Pipeline](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/ci.yml?query=branch%3Amain)
+[![Security Analysis](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/security-analysis.yml/badge.svg?branch=main)](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/security-analysis.yml?query=branch%3Amain)
+[![Documentation](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/docs.yml?query=branch%3Amain)
+[![SBOM & Security Scan](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/sbom.yml/badge.svg?branch=main)](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/sbom.yml?query=branch%3Amain)
+[![PR Validation](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/pr-validation.yml)
+[![Release](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/release.yml/badge.svg)](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/release.yml)
+[![Artifact Registry Publish](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/publish-artifact-registry.yml/badge.svg)](https://github.com/ByronWilliamsCPA/python-libs/actions/workflows/publish-artifact-registry.yml)
 
 ## Project Info
 
@@ -104,7 +104,7 @@ pipx install uv
 ```bash
 # Clone repository
 git clone https://github.com/ByronWilliamsCPA/python-libs.git
-cd python_libs
+cd python-libs
 
 # Install dependencies (includes dev tools - REQUIRED for development)
 uv sync --all-extras
