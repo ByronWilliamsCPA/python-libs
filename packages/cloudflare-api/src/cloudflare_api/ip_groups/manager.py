@@ -6,8 +6,9 @@ Orchestrates fetching IPs from various sources and syncing to Cloudflare lists.
 import hashlib
 import json
 import logging
+import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -135,7 +136,8 @@ class IPGroupManager:
             Hash string.
         """
         config_str = json.dumps(source.model_dump(), sort_keys=True)
-        return hashlib.md5(config_str.encode()).hexdigest()[:8]
+        # MD5 used only for cache key generation, not security purposes
+        return hashlib.md5(config_str.encode(), usedforsecurity=False).hexdigest()[:8]
 
     def _is_cache_valid(self, cache: IPCache, source: IPSourceConfig) -> bool:
         """Check if cached IPs are still valid.
@@ -153,10 +155,7 @@ class IPGroupManager:
 
         # Check TTL
         ttl = timedelta(seconds=self.config.cache_ttl_seconds)
-        if datetime.now() - cache.fetched_at > ttl:
-            return False
-
-        return True
+        return datetime.now(tz=timezone.utc) - cache.fetched_at <= ttl
 
     def fetch_source_ips(
         self,
@@ -188,7 +187,7 @@ class IPGroupManager:
         # Update cache
         self._cache[cache_key] = IPCache(
             ips=ips,
-            fetched_at=datetime.now(),
+            fetched_at=datetime.now(tz=timezone.utc),
             source_hash=self._get_source_hash(source),
         )
 
@@ -214,11 +213,10 @@ class IPGroupManager:
             try:
                 ips = self.fetch_source_ips(source, use_cache)
                 all_ips.update(ips)
-            except Exception as e:
-                logger.error(
-                    "Failed to fetch IPs from %s source: %s",
+            except Exception:
+                logger.exception(
+                    "Failed to fetch IPs from %s source",
                     source.type.value,
-                    e,
                 )
                 raise
 
@@ -286,8 +284,6 @@ class IPGroupManager:
         Raises:
             ValueError: If group not found or disabled.
         """
-        import time
-
         start_time = time.time()
         group = self._get_group(group_name)
 
@@ -364,12 +360,12 @@ class IPGroupManager:
                 duration_seconds=time.time() - start_time,
             )
 
-        except Exception as e:
-            logger.error("Failed to sync group '%s': %s", group.name, e)
+        except Exception:
+            logger.exception("Failed to sync group '%s'", group.name)
             return SyncResult(
                 group_name=group.name,
                 cloudflare_list_name=list_name,
-                error=str(e),
+                error="Sync failed - see logs for details",
                 duration_seconds=time.time() - start_time,
             )
 
@@ -411,20 +407,18 @@ class IPGroupManager:
         Returns:
             List of group summaries.
         """
-        groups = []
-        for group in self.config.groups:
-            groups.append(
-                {
-                    "name": group.name,
-                    "cloudflare_list_name": self._get_cloudflare_list_name(group),
-                    "description": group.description,
-                    "enabled": group.enabled,
-                    "sources_count": len(group.sources),
-                    "source_types": [s.type.value for s in group.sources],
-                    "tags": group.tags,
-                }
-            )
-        return groups
+        return [
+            {
+                "name": group.name,
+                "cloudflare_list_name": self._get_cloudflare_list_name(group),
+                "description": group.description,
+                "enabled": group.enabled,
+                "sources_count": len(group.sources),
+                "source_types": [s.type.value for s in group.sources],
+                "tags": group.tags,
+            }
+            for group in self.config.groups
+        ]
 
     def _get_group(self, group_name: str) -> IPGroupConfig:
         """Get a group by name.
