@@ -88,7 +88,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#how-to-generate" class="md-skip">
+        <a href="#technical-implementation-spec-python-libs" class="md-skip">
           Skip to content
         </a>
       
@@ -1099,10 +1099,338 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#how-to-generate" class="md-nav__link">
+  <a href="#technical-implementation-spec-python-libs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How to Generate
+        Technical Implementation Spec: Python Libs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technical Implementation Spec: Python Libs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tldr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TL;DR
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technology-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Technology Stack
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technology Stack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-quality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Quality
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Infrastructure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Component Diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component-responsibilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Component Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gcs-utilities-existing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        gcs-utilities (Existing)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudflare-auth-existing-refactoring-planned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cloudflare-auth (Existing, Refactoring Planned)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python_libscore-workspace-shared" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        python_libs.core (Workspace Shared)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python_libsutils-workspace-shared" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        python_libs.utils (Workspace Shared)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#distribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distribution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Distribution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#git-dependencies-phase-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Git Dependencies (Phase 1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#artifact-registry-phase-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Artifact Registry (Phase 2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Security">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentication-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication Handling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-protection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Protection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Handling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Handling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exception-hierarchy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exception Hierarchy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logging
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance
       
     </span>
   </a>
@@ -1110,32 +1438,110 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pre-filled-context" class="md-nav__link">
+  <a href="#testing" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pre-Filled Context
+        Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#coverage-target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coverage Target
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#what-this-document-contains" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#test-types" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What This Document Contains
+        Test Types
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#template-reference" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#test-structure" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Template Reference
+        Test Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#versioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Versioning
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Versioning">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#semantic-versioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semantic Versioning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#git-tags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Git Tags
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changelog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changelog
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Documents
       
     </span>
   </a>
@@ -1164,45 +1570,280 @@
 
   <h1>Python Libs - Technical Specification</h1>
 
+<h2 id="technical-implementation-spec-python-libs">Technical Implementation Spec: Python Libs<a class="headerlink" href="#technical-implementation-spec-python-libs" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>Status</strong>: Awaiting Generation</p>
+<p><strong>Status</strong>: Active | <strong>Version</strong>: 1.0 | <strong>Updated</strong>: 2025-12-04</p>
 </blockquote>
-<p>This document will be generated by Claude Code based on your project description.</p>
-<h2 id="how-to-generate">How to Generate<a class="headerlink" href="#how-to-generate" title="Permanent link">&para;</a></h2>
-<ol>
-<li>Open Claude Code in this project directory</li>
-<li>Describe your project concept</li>
-<li>Run: <code>/plan &lt;your project description&gt;</code></li>
-</ol>
-<p>Or manually:</p>
-<p>```text
-Generate the Technical Implementation Specification for this project.
-Use the template in .claude/skills/project-planning/templates/tech-spec-template.md
-Write output to docs/planning/tech-spec.md</p>
-<p>Project concept: [describe your project here]
-```text</p>
-<h2 id="pre-filled-context">Pre-Filled Context<a class="headerlink" href="#pre-filled-context" title="Permanent link">&para;</a></h2>
-<p>This project was created with:</p>
+<h3 id="tldr">TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h3>
+<p>UV workspace monorepo hosting independent Python packages for shared utilities. Each package follows framework-agnostic core design with optional adapters. Distribution via Git dependencies initially, migrating to Artifact Registry.</p>
+<h2 id="technology-stack">Technology Stack<a class="headerlink" href="#technology-stack" title="Permanent link">&para;</a></h2>
+<h3 id="core">Core<a class="headerlink" href="#core" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Python</strong>: 3.12</li>
-<li><strong>Package Manager</strong>: UV</li>
-<li><strong>Linter</strong>: Ruff</li>
-<li><strong>Type Checker</strong>: BasedPyright</li>
-<li><strong>Testing</strong>: pytest</li>
+<li><strong>Language</strong>: Python 3.10-3.14</li>
+<li><strong>Package Manager</strong>: UV with workspace support</li>
+<li><strong>Build Backend</strong>: Hatchling</li>
 </ul>
-<h2 id="what-this-document-contains">What This Document Contains<a class="headerlink" href="#what-this-document-contains" title="Permanent link">&para;</a></h2>
-<p>Once generated, this document will include:</p>
+<h3 id="code-quality">Code Quality<a class="headerlink" href="#code-quality" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Technology Stack</strong>: Complete tech choices with versions</li>
-<li><strong>Architecture</strong>: Component diagram and responsibilities</li>
-<li><strong>Data Model</strong>: Entity definitions and relationships</li>
-<li><strong>API Specification</strong>: Endpoints, request/response formats</li>
-<li><strong>Security</strong>: Auth, authorization, data protection</li>
-<li><strong>Error Handling</strong>: Strategy and error codes</li>
-<li><strong>Performance Requirements</strong>: Targets and measurement</li>
+<li><strong>Linter/Formatter</strong>: Ruff (88 chars, Google style)</li>
+<li><strong>Type Checker</strong>: BasedPyright (strict mode)</li>
+<li><strong>Testing</strong>: pytest with pytest-cov, pytest-asyncio</li>
+<li><strong>Security</strong>: Bandit, pip-audit, Safety</li>
 </ul>
-<h2 id="template-reference">Template Reference<a class="headerlink" href="#template-reference" title="Permanent link">&para;</a></h2>
-<p>See <code>.claude/skills/project-planning/templates/tech-spec-template.md</code> for the full template structure.</p>
+<h3 id="infrastructure">Infrastructure<a class="headerlink" href="#infrastructure" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>CI/CD</strong>: GitHub Actions</li>
+<li><strong>Documentation</strong>: MkDocs Material</li>
+<li><strong>Version Control</strong>: Git with conventional commits</li>
+</ul>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<h3 id="pattern">Pattern<a class="headerlink" href="#pattern" title="Permanent link">&para;</a></h3>
+<p>UV Workspace Monorepo - See <a href="../adr/adr-001-monorepo-architecture/">ADR-001</a></p>
+<h3 id="component-diagram">Component Diagram<a class="headerlink" href="#component-diagram" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────────────────┐
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│                     python-libs (workspace)                      │
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├─────────────────────────────────────────────────────────────────┤
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│  packages/                                                       │
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│  ├── cloudflare-auth/          ├── gcs-utilities/               │
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│  │   ├── core/                 │   ├── client.py                │
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│  │   │   ├── models.py         │   ├── exceptions.py            │
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│  │   │   ├── validators.py     │   └── __init__.py              │
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│  │   │   └── exceptions.py     │                                │
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  │   └── fastapi/              └── [future packages]            │
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│  │       ├── middleware.py                                       │
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  │       └── dependencies.py                                     │
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>├─────────────────────────────────────────────────────────────────┤
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│  src/python_libs/              (shared workspace utilities)      │
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  ├── core/                                                       │
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  │   ├── config.py             # Base Pydantic Settings          │
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│  │   └── exceptions.py         # Shared exception hierarchy      │
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│  └── utils/                                                      │
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│      ├── logging.py            # Structured logging setup        │
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│      └── financial.py          # Decimal precision utilities     │
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>└─────────────────────────────────────────────────────────────────┘
+</span></code></pre></div>
+<h3 id="component-responsibilities">Component Responsibilities<a class="headerlink" href="#component-responsibilities" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Purpose</th>
+<th>Key Functions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gcs-utilities</code></td>
+<td>Google Cloud Storage operations</td>
+<td>upload, download, list, delete with auth handling</td>
+</tr>
+<tr>
+<td><code>cloudflare-auth</code></td>
+<td>Zero Trust authentication</td>
+<td>JWT validation, middleware, user models</td>
+</tr>
+<tr>
+<td><code>python_libs.core</code></td>
+<td>Shared foundations</td>
+<td>Base config, exceptions</td>
+</tr>
+<tr>
+<td><code>python_libs.utils</code></td>
+<td>Cross-cutting utilities</td>
+<td>Logging setup, financial calculations</td>
+</tr>
+</tbody>
+</table>
+<h2 id="data-model">Data Model<a class="headerlink" href="#data-model" title="Permanent link">&para;</a></h2>
+<h3 id="gcs-utilities-existing">gcs-utilities (Existing)<a class="headerlink" href="#gcs-utilities-existing" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">gcs_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">GCSClient</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">client</span> <span class="o">=</span> <span class="n">GCSClient</span><span class="p">()</span>  <span class="c1"># Reads GCP_SA_KEY from env</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">client</span><span class="o">.</span><span class="n">upload_file</span><span class="p">(</span><span class="s2">&quot;local.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;remote/path.txt&quot;</span><span class="p">)</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">files</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">list_files</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;remote/&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Core Entities</strong>:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">GCSClient</span><span class="p">:</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">project_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">storage</span><span class="o">.</span><span class="n">Client</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="k">class</span><span class="w"> </span><span class="nc">GCSAuthError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="o">...</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="k">class</span><span class="w"> </span><span class="nc">GCSUploadError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="o">...</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="k">class</span><span class="w"> </span><span class="nc">GCSDownloadError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="o">...</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="k">class</span><span class="w"> </span><span class="nc">GCSNotFoundError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="o">...</span>
+</span></code></pre></div>
+<h3 id="cloudflare-auth-existing-refactoring-planned">cloudflare-auth (Existing, Refactoring Planned)<a class="headerlink" href="#cloudflare-auth-existing-refactoring-planned" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Current (FastAPI-coupled)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">cloudflare_auth</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_cloudflare_auth_enhanced</span><span class="p">,</span> <span class="n">get_current_user</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Future (Framework-agnostic core)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">cloudflare_auth.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudflareJWTValidator</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">cloudflare_auth.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudflareAuthMiddleware</span>
+</span></code></pre></div>
+<p><strong>Core Entities</strong>:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">CloudflareUser</span><span class="p">:</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="n">email</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">user_tier</span><span class="p">:</span> <span class="n">UserTier</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="n">iat</span><span class="p">:</span> <span class="n">datetime</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">exp</span><span class="p">:</span> <span class="n">datetime</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="k">class</span><span class="w"> </span><span class="nc">CloudflareJWTClaims</span><span class="p">:</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="n">email</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    <span class="n">sub</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="n">iat</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>    <span class="n">exp</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>    <span class="n">iss</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    <span class="n">aud</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+<h3 id="python_libscore-workspace-shared">python_libs.core (Workspace Shared)<a class="headerlink" href="#python_libscore-workspace-shared" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">python_libs.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSettings</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">python_libs.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">ConfigurationError</span>
+</span></code></pre></div>
+<h3 id="python_libsutils-workspace-shared">python_libs.utils (Workspace Shared)<a class="headerlink" href="#python_libsutils-workspace-shared" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">python_libs.utils.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span><span class="p">,</span> <span class="n">get_logger</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">python_libs.utils.financial</span><span class="w"> </span><span class="kn">import</span> <span class="n">round_currency</span><span class="p">,</span> <span class="n">validate_amount</span>
+</span></code></pre></div>
+<h2 id="distribution">Distribution<a class="headerlink" href="#distribution" title="Permanent link">&para;</a></h2>
+<h3 id="git-dependencies-phase-1">Git Dependencies (Phase 1)<a class="headerlink" href="#git-dependencies-phase-1" title="Permanent link">&para;</a></h3>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Consumer pyproject.toml</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">[project]</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="s2">&quot;byronwilliamscpa-gcs-utilities @ git+https://github.com/ByronWilliamsCPA/python-libs.git@gcs-utilities-v0.1.0#subdirectory=packages/gcs-utilities&quot;</span><span class="p">,</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="p">]</span>
+</span></code></pre></div>
+<h3 id="artifact-registry-phase-2">Artifact Registry (Phase 2)<a class="headerlink" href="#artifact-registry-phase-2" title="Permanent link">&para;</a></h3>
+<p>See <a href="../adr/adr-003-distribution-strategy/">ADR-003</a> for migration plan.</p>
+<h2 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h2>
+<h3 id="authentication-handling">Authentication Handling<a class="headerlink" href="#authentication-handling" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>GCS</strong>: Base64-encoded service account keys via <code>GCP_SA_KEY</code> environment variable</li>
+<li><strong>Cloudflare</strong>: JWT validation against Cloudflare Access public keys</li>
+<li><strong>Credentials</strong>: Never logged, temporary files cleaned up automatically</li>
+</ul>
+<h3 id="input-validation">Input Validation<a class="headerlink" href="#input-validation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Path traversal prevention in GCS operations (<code>_sanitize_gcs_path</code>)</li>
+<li>JWT size limits to prevent DoS</li>
+<li>Email sanitization in logs</li>
+</ul>
+<h3 id="data-protection">Data Protection<a class="headerlink" href="#data-protection" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>At Rest</strong>: Credentials in environment variables or secrets manager</li>
+<li><strong>In Transit</strong>: All external calls over HTTPS/TLS</li>
+<li><strong>Sensitive Data</strong>: Never log credentials, tokens, or PII</li>
+</ul>
+<h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h2>
+<h3 id="strategy">Strategy<a class="headerlink" href="#strategy" title="Permanent link">&para;</a></h3>
+<p>Fail-fast with descriptive exceptions. Each package defines its own exception hierarchy inheriting from a base exception.</p>
+<h3 id="exception-hierarchy">Exception Hierarchy<a class="headerlink" href="#exception-hierarchy" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># gcs-utilities</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">GCSError</span> <span class="p">(</span><span class="n">base</span><span class="p">)</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="err">├──</span> <span class="n">GCSAuthError</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="err">├──</span> <span class="n">GCSConfigError</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="err">├──</span> <span class="n">GCSUploadError</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="err">├──</span> <span class="n">GCSDownloadError</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="err">└──</span> <span class="n">GCSNotFoundError</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="c1"># cloudflare-auth</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="n">CloudflareAuthError</span> <span class="p">(</span><span class="n">base</span><span class="p">)</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="err">├──</span> <span class="n">TokenValidationError</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="err">├──</span> <span class="n">TokenExpiredError</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="err">└──</span> <span class="n">InvalidAudienceError</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="c1"># python_libs.core</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="n">PythonLibsError</span> <span class="p">(</span><span class="n">base</span><span class="p">)</span>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="err">├──</span> <span class="n">ConfigurationError</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="err">├──</span> <span class="n">ValidationError</span>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="err">└──</span> <span class="n">ExternalServiceError</span>
+</span></code></pre></div>
+<h3 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Format</strong>: Structured JSON via structlog</li>
+<li><strong>Levels</strong>: DEBUG for operations, INFO for success, WARNING for recoverable issues, ERROR for failures</li>
+<li><strong>Sensitive</strong>: Never log credentials, tokens, full file contents</li>
+</ul>
+<h2 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Target</th>
+<th>Measurement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Package install (Git)</td>
+<td>&lt; 30s</td>
+<td>CI/CD timing</td>
+</tr>
+<tr>
+<td>Package install (Artifact Registry)</td>
+<td>&lt; 10s</td>
+<td>CI/CD timing</td>
+</tr>
+<tr>
+<td>JWT validation</td>
+<td>&lt; 10ms</td>
+<td>Unit test benchmark</td>
+</tr>
+<tr>
+<td>GCS small file upload</td>
+<td>&lt; 2s</td>
+<td>Integration test</td>
+</tr>
+</tbody>
+</table>
+<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
+<h3 id="coverage-target">Coverage Target<a class="headerlink" href="#coverage-target" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Minimum: 80%</li>
+<li>Critical paths (auth, credentials): 100%</li>
+</ul>
+<h3 id="test-types">Test Types<a class="headerlink" href="#test-types" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Unit</strong>: Core logic, validators, models (no external calls)</li>
+<li><strong>Integration</strong>: GCS operations with emulator, JWT with test tokens</li>
+<li><strong>Package Tests</strong>: Each package has own test directory</li>
+</ul>
+<h3 id="test-structure">Test Structure<a class="headerlink" href="#test-structure" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>packages/
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>├── gcs-utilities/
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>│   └── tests/
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>│       ├── test_client.py
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>│       ├── test_exceptions.py
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>│       └── conftest.py
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>├── cloudflare-auth/
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>│   └── tests/
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>│       ├── test_validators.py
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>│       ├── test_models.py
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>│       └── conftest.py
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>└── tests/                    # Workspace-level tests
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>    ├── unit/
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>    └── integration/
+</span></code></pre></div>
+<h2 id="versioning">Versioning<a class="headerlink" href="#versioning" title="Permanent link">&para;</a></h2>
+<h3 id="semantic-versioning">Semantic Versioning<a class="headerlink" href="#semantic-versioning" title="Permanent link">&para;</a></h3>
+<p>Each package versioned independently following SemVer:</p>
+<ul>
+<li><strong>Major</strong>: Breaking API changes</li>
+<li><strong>Minor</strong>: New features, backward compatible</li>
+<li><strong>Patch</strong>: Bug fixes, backward compatible</li>
+</ul>
+<h3 id="git-tags">Git Tags<a class="headerlink" href="#git-tags" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>gcs-utilities-v0.1.0
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>cloudflare-auth-v0.2.0
+</span></code></pre></div>
+<h3 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h3>
+<p>Each package maintains its own <code>CHANGELOG.md</code> following Keep a Changelog format.</p>
+<h2 id="related-documents">Related Documents<a class="headerlink" href="#related-documents" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../project-vision/">Project Vision</a></li>
+<li><a href="./adr/">Architecture Decisions</a></li>
+<li><a href="../roadmap/">Development Roadmap</a></li>
+</ul>
 
 
 
@@ -1225,7 +1866,7 @@ Write output to docs/planning/tech-spec.md</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="December 13, 2025 03:17:07 UTC">December 13, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="December 13, 2025 02:40:04 UTC">December 13, 2025</span>
   </span>
 
     

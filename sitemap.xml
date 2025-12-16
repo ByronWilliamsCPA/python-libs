@@ -2,98 +2,118 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://python-libs.readthedocs.io/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/OPENSSF_COMPLIANCE/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/PROJECT_SETUP/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/PYTHON_COMPATIBILITY/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/api-reference/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
+    </url>
+    <url>
+         <loc>https://python-libs.readthedocs.io/cloudflare-api-handoff/</loc>
+         <lastmod>2025-12-16</lastmod>
+    </url>
+    <url>
+         <loc>https://python-libs.readthedocs.io/secure/</loc>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/template_feedback/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/ADRs/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/ADRs/adr-template/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/development/architecture/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/development/code-quality/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/development/contributing/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/development/testing/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/guides/configuration/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/guides/overview/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/guides/usage/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/planning/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/planning/project-plan-template/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/planning/project-vision/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/planning/roadmap/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/planning/tech-spec/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/planning/adr/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
+    </url>
+    <url>
+         <loc>https://python-libs.readthedocs.io/planning/adr/adr-001-monorepo-architecture/</loc>
+         <lastmod>2025-12-16</lastmod>
+    </url>
+    <url>
+         <loc>https://python-libs.readthedocs.io/planning/adr/adr-002-framework-agnostic-design/</loc>
+         <lastmod>2025-12-16</lastmod>
+    </url>
+    <url>
+         <loc>https://python-libs.readthedocs.io/planning/adr/adr-003-distribution-strategy/</loc>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/project/changelog/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/project/license/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
     <url>
          <loc>https://python-libs.readthedocs.io/project/roadmap/</loc>
-         <lastmod>2025-12-15</lastmod>
+         <lastmod>2025-12-16</lastmod>
     </url>
 </urlset>

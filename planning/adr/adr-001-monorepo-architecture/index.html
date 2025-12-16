@@ -12,7 +12,7 @@
         <meta name="author" content="Byron Williams">
       
       
-        <link rel="canonical" href="https://python-libs.readthedocs.io/planning/project-vision/">
+        <link rel="canonical" href="https://python-libs.readthedocs.io/planning/adr/adr-001-monorepo-architecture/">
       
       
       
@@ -20,19 +20,19 @@
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
     
     
       
-        <title>Python Libs - Project Vision & Scope - Python Libs</title>
+        <title>ADR-001: UV Workspace Monorepo Architecture - Python Libs</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.618322db.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,9 +51,9 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
   
@@ -88,7 +88,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#project-vision-scope-python-libs" class="md-skip">
+        <a href="#adr-001-uv-workspace-monorepo-architecture" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Python Libs" class="md-header__button md-logo" aria-label="Python Libs" data-md-component="logo">
+    <a href="../../.." title="Python Libs" class="md-header__button md-logo" aria-label="Python Libs" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Python Libs - Project Vision & Scope
+              ADR-001: UV Workspace Monorepo Architecture
             
           </span>
         </div>
@@ -235,7 +235,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href="../../.." class="md-tabs__link">
         
   
   
@@ -256,7 +256,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guides/overview/" class="md-tabs__link">
+        <a href="../../../guides/overview/" class="md-tabs__link">
           
   
   
@@ -278,7 +278,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../api-reference/" class="md-tabs__link">
+        <a href="../../../api-reference/" class="md-tabs__link">
           
   
   
@@ -300,7 +300,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../development/architecture/" class="md-tabs__link">
+        <a href="../../../development/architecture/" class="md-tabs__link">
           
   
   
@@ -322,7 +322,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../project/roadmap/" class="md-tabs__link">
+        <a href="../../../project/roadmap/" class="md-tabs__link">
           
   
   
@@ -358,7 +358,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Python Libs" class="md-nav__button md-logo" aria-label="Python Libs" data-md-component="logo">
+    <a href="../../.." title="Python Libs" class="md-nav__button md-logo" aria-label="Python Libs" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -388,7 +388,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -484,7 +484,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/overview/" class="md-nav__link">
+      <a href="../../../guides/overview/" class="md-nav__link">
         
   
   
@@ -519,7 +519,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/configuration/" class="md-nav__link">
+      <a href="../../../guides/configuration/" class="md-nav__link">
         
   
   
@@ -554,7 +554,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/usage/" class="md-nav__link">
+      <a href="../../../guides/usage/" class="md-nav__link">
         
   
   
@@ -654,7 +654,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api-reference/" class="md-nav__link">
+      <a href="../../../api-reference/" class="md-nav__link">
         
   
   
@@ -760,7 +760,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/architecture/" class="md-nav__link">
+      <a href="../../../development/architecture/" class="md-nav__link">
         
   
   
@@ -795,7 +795,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/testing/" class="md-nav__link">
+      <a href="../../../development/testing/" class="md-nav__link">
         
   
   
@@ -830,7 +830,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/code-quality/" class="md-nav__link">
+      <a href="../../../development/code-quality/" class="md-nav__link">
         
   
   
@@ -865,7 +865,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/contributing/" class="md-nav__link">
+      <a href="../../../development/contributing/" class="md-nav__link">
         
   
   
@@ -969,7 +969,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../project/roadmap/" class="md-nav__link">
+      <a href="../../../project/roadmap/" class="md-nav__link">
         
   
   
@@ -1004,7 +1004,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../project/changelog/" class="md-nav__link">
+      <a href="../../../project/changelog/" class="md-nav__link">
         
   
   
@@ -1039,7 +1039,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../project/license/" class="md-nav__link">
+      <a href="../../../project/license/" class="md-nav__link">
         
   
   
@@ -1099,17 +1099,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#project-vision-scope-python-libs" class="md-nav__link">
+  <a href="#adr-001-uv-workspace-monorepo-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Project Vision &amp; Scope: Python Libs
+        ADR-001: UV Workspace Monorepo Architecture
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
+    <nav class="md-nav" aria-label="ADR-001: UV Workspace Monorepo Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#tldr" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1119,24 +1120,12 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#problem-statement" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Problem Statement
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Problem Statement">
-      <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#pain-point" class="md-nav__link">
+  <a href="#context" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pain Point
+        Context
       
     </span>
   </a>
@@ -1144,10 +1133,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#target-users" class="md-nav__link">
+  <a href="#decision" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Target Users
+        Decision
       
     </span>
   </a>
@@ -1155,10 +1144,54 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#success-metrics" class="md-nav__link">
+  <a href="#options-considered" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Success Metrics
+        Options Considered
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consequences
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#related" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related
       
     </span>
   </a>
@@ -1167,167 +1200,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#solution-overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Solution Overview
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Solution Overview">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#core-value" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Core Value
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#key-capabilities-current-mvp" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Key Capabilities (Current + MVP)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#scope-definition" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Scope Definition
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Scope Definition">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#in-scope-phase-1-foundation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        In Scope (Phase 1 - Foundation)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#in-scope-phase-2-consolidation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        In Scope (Phase 2 - Consolidation)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#in-scope-phase-3-distribution" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        In Scope (Phase 3 - Distribution)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#out-of-scope" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Out of Scope
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#constraints" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Constraints
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Constraints">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#technical" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Technical
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#business" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Business
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#assumptions-to-validate" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Assumptions to Validate
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#related-documents" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Related Documents
-      
-    </span>
-  </a>
   
 </li>
       
@@ -1351,98 +1223,119 @@
   
 
 
-  <h1>Python Libs - Project Vision & Scope</h1>
+  <h1>ADR-001: UV Workspace Monorepo Architecture</h1>
 
-<h2 id="project-vision-scope-python-libs">Project Vision &amp; Scope: Python Libs<a class="headerlink" href="#project-vision-scope-python-libs" title="Permanent link">&para;</a></h2>
+<h2 id="adr-001-uv-workspace-monorepo-architecture">ADR-001: UV Workspace Monorepo Architecture<a class="headerlink" href="#adr-001-uv-workspace-monorepo-architecture" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>Status</strong>: Active | <strong>Version</strong>: 1.0 | <strong>Updated</strong>: 2025-12-04</p>
+<p><strong>Status</strong>: Accepted
+<strong>Date</strong>: 2025-12-04</p>
 </blockquote>
-<h2 id="tldr">TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h2>
-<p>Python Libs is a UV workspace monorepo providing shared, reusable Python utilities for ByronWilliamsCPA projects. It consolidates common patterns (GCS operations, authentication, logging, configuration) to eliminate duplication across repositories and establish organizational standards.</p>
-<h2 id="problem-statement">Problem Statement<a class="headerlink" href="#problem-statement" title="Permanent link">&para;</a></h2>
-<h3 id="pain-point">Pain Point<a class="headerlink" href="#pain-point" title="Permanent link">&para;</a></h3>
-<p>Multiple projects (data_ingestor, image-preprocessing-detector, ledgerbase, magg, PromptCraft) duplicate identical utilities: GCS authentication patterns, structured logging setup, Pydantic configuration management, and error handling. Each project independently maintains these utilities, leading to:</p>
-<ul>
-<li>Inconsistent implementations across projects</li>
-<li>Duplicated bug fixes and security patches</li>
-<li>Increased maintenance burden</li>
-<li>Diverging patterns that complicate developer onboarding</li>
-</ul>
-<h3 id="target-users">Target Users<a class="headerlink" href="#target-users" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Primary</strong>: ByronWilliamsCPA developers working on Python projects</li>
-<li><strong>Context</strong>: When starting new projects or needing cross-cutting concerns (auth, storage, logging)</li>
-</ul>
-<h3 id="success-metrics">Success Metrics<a class="headerlink" href="#success-metrics" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Code Duplication</strong>: Reduce duplicated utility code by 70% across active projects</li>
-<li><strong>Onboarding Time</strong>: New project setup from template to first commit &lt; 30 minutes</li>
-<li><strong>Adoption</strong>: 100% of new Python projects use python-libs packages</li>
-</ul>
-<h2 id="solution-overview">Solution Overview<a class="headerlink" href="#solution-overview" title="Permanent link">&para;</a></h2>
-<h3 id="core-value">Core Value<a class="headerlink" href="#core-value" title="Permanent link">&para;</a></h3>
-<p>A centralized, well-tested library of shared utilities that any Python project can import, reducing boilerplate and ensuring consistent patterns across the organization.</p>
-<h3 id="key-capabilities-current-mvp">Key Capabilities (Current + MVP)<a class="headerlink" href="#key-capabilities-current-mvp" title="Permanent link">&para;</a></h3>
+<h3 id="tldr">TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h3>
+<p>Use UV workspace monorepo to manage multiple independent packages (gcs-utilities, cloudflare-auth, etc.) in a single repository, enabling coordinated development while maintaining separate versioning and publishing.</p>
+<h3 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h3>
+<h4 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h4>
+<p>The organization needs to share Python utilities across multiple projects (data_ingestor, image-preprocessing-detector, ledgerbase, magg). Options for structuring shared code include:</p>
 <ol>
-<li><strong>GCS Utilities</strong>: Streamlined Google Cloud Storage operations with base64 credential handling</li>
-<li><strong>Cloudflare Auth</strong>: Zero Trust authentication middleware for FastAPI applications</li>
-<li><strong>Structured Logging</strong>: Consistent structlog+rich logging setup across all projects</li>
-<li><strong>Configuration Management</strong>: Pydantic Settings patterns with environment validation</li>
+<li>Single monolithic package with all utilities</li>
+<li>Separate repositories for each utility package</li>
+<li>Monorepo with independent packages</li>
 </ol>
-<h2 id="scope-definition">Scope Definition<a class="headerlink" href="#scope-definition" title="Permanent link">&para;</a></h2>
-<h3 id="in-scope-phase-1-foundation">In Scope (Phase 1 - Foundation)<a class="headerlink" href="#in-scope-phase-1-foundation" title="Permanent link">&para;</a></h3>
+<h4 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h4>
 <ul>
-<li>✅ <strong>gcs-utilities</strong>: Complete GCS client wrapper - <em>Already implemented</em></li>
-<li>✅ <strong>cloudflare-auth</strong>: Cloudflare Access JWT validation - <em>Already implemented</em></li>
-<li>✅ <strong>Core logging utilities</strong>: Unified structlog configuration</li>
-<li>✅ <strong>Core exceptions</strong>: Shared exception hierarchy</li>
-<li>✅ <strong>Configuration patterns</strong>: Base Pydantic Settings classes</li>
+<li><strong>Technical</strong>: Need independent versioning per package; some packages have different dependencies</li>
+<li><strong>Business</strong>: Single developer maintaining multiple projects; minimize context-switching overhead</li>
 </ul>
-<h3 id="in-scope-phase-2-consolidation">In Scope (Phase 2 - Consolidation)<a class="headerlink" href="#in-scope-phase-2-consolidation" title="Permanent link">&para;</a></h3>
+<h4 id="significance">Significance<a class="headerlink" href="#significance" title="Permanent link">&para;</a></h4>
+<p>This decision affects how packages are developed, versioned, tested, and published. Wrong choice leads to either tight coupling (monolithic) or coordination overhead (multiple repos).</p>
+<h3 id="decision">Decision<a class="headerlink" href="#decision" title="Permanent link">&para;</a></h3>
+<p><strong>We will use UV workspace monorepo because it provides independent package management with unified development experience.</strong></p>
+<h4 id="rationale">Rationale<a class="headerlink" href="#rationale" title="Permanent link">&para;</a></h4>
 <ul>
-<li>✅ <strong>Framework adapters</strong>: Separate FastAPI-specific code from core logic</li>
-<li>✅ <strong>Financial utilities</strong>: Decimal precision utilities from ledgerbase patterns</li>
-<li>✅ <strong>Schema base classes</strong>: Reusable Pydantic models for cross-project validation</li>
+<li>UV workspaces allow each package to have its own <code>pyproject.toml</code>, dependencies, and version</li>
+<li>Single <code>uv sync</code> installs all packages in development mode</li>
+<li>Cross-package dependencies resolved automatically within workspace</li>
+<li>Shared CI/CD, linting, and documentation infrastructure</li>
+<li>Already successfully using this pattern (current repo structure)</li>
 </ul>
-<h3 id="in-scope-phase-3-distribution">In Scope (Phase 3 - Distribution)<a class="headerlink" href="#in-scope-phase-3-distribution" title="Permanent link">&para;</a></h3>
+<h3 id="options-considered">Options Considered<a class="headerlink" href="#options-considered" title="Permanent link">&para;</a></h3>
+<h4 id="option-1-uv-workspace-monorepo">Option 1: UV Workspace Monorepo ✓<a class="headerlink" href="#option-1-uv-workspace-monorepo" title="Permanent link">&para;</a></h4>
+<p><strong>Pros</strong>:
+- ✅ Single repository to manage
+- ✅ Unified CI/CD pipeline
+- ✅ Cross-package changes in single PR
+- ✅ Shared dev dependencies and tooling
+- ✅ Independent versioning per package</p>
+<p><strong>Cons</strong>:
+- ❌ Larger repository size over time
+- ❌ Need discipline to maintain package boundaries</p>
+<h4 id="option-2-separate-repositories">Option 2: Separate Repositories<a class="headerlink" href="#option-2-separate-repositories" title="Permanent link">&para;</a></h4>
+<p><strong>Pros</strong>:
+- ✅ Complete isolation between packages
+- ✅ Independent release cycles</p>
+<p><strong>Cons</strong>:
+- ❌ Coordination overhead for cross-package changes
+- ❌ Duplicated CI/CD, linting, documentation setup
+- ❌ Version compatibility issues between packages</p>
+<h4 id="option-3-single-monolithic-package">Option 3: Single Monolithic Package<a class="headerlink" href="#option-3-single-monolithic-package" title="Permanent link">&para;</a></h4>
+<p><strong>Pros</strong>:
+- ✅ Simplest structure
+- ✅ Single version to track</p>
+<p><strong>Cons</strong>:
+- ❌ All-or-nothing dependency: projects must install everything
+- ❌ Tight coupling makes testing harder
+- ❌ Single failure can break entire package</p>
+<h3 id="consequences">Consequences<a class="headerlink" href="#consequences" title="Permanent link">&para;</a></h3>
+<h4 id="positive">Positive<a class="headerlink" href="#positive" title="Permanent link">&para;</a></h4>
 <ul>
-<li>✅ <strong>Artifact Registry publishing</strong>: Private package distribution</li>
-<li>✅ <strong>Cookiecutter integration</strong>: Update template to use python-libs packages</li>
-<li>✅ <strong>Migration guides</strong>: Help existing projects adopt shared packages</li>
+<li>✅ <strong>Reduced overhead</strong>: Single PR for cross-package changes</li>
+<li>✅ <strong>Consistent tooling</strong>: Shared Ruff, BasedPyright, pytest configuration</li>
+<li>✅ <strong>Easier onboarding</strong>: One repository to clone for all shared utilities</li>
 </ul>
-<h3 id="out-of-scope">Out of Scope<a class="headerlink" href="#out-of-scope" title="Permanent link">&para;</a></h3>
+<h4 id="trade-offs">Trade-offs<a class="headerlink" href="#trade-offs" title="Permanent link">&para;</a></h4>
 <ul>
-<li>❌ <strong>Domain-specific logic</strong>: Business logic stays in individual projects</li>
-<li>❌ <strong>ML/AI model code</strong>: Stays in RAG pipeline projects</li>
-<li>❌ <strong>Database migrations</strong>: Project-specific, not shared</li>
-<li>🔄 <strong>Device detection utilities</strong>: Deferred pending RAG pipeline stabilization</li>
+<li>⚠️ <strong>Package discipline required</strong>: Must maintain clear boundaries between packages</li>
+<li>⚠️ <strong>CI complexity</strong>: Need to detect which packages changed for selective testing</li>
 </ul>
-<h2 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h2>
-<h3 id="technical">Technical<a class="headerlink" href="#technical" title="Permanent link">&para;</a></h3>
+<h4 id="technical-debt">Technical Debt<a class="headerlink" href="#technical-debt" title="Permanent link">&para;</a></h4>
 <ul>
-<li><strong>Platform</strong>: Python library packages (installable via UV/pip)</li>
-<li><strong>Language</strong>: Python 3.10-3.14 (matching cookiecutter template)</li>
-<li><strong>Architecture</strong>: UV workspace monorepo with independent packages</li>
-<li><strong>Framework Strategy</strong>: Core logic framework-agnostic, with optional FastAPI adapters</li>
+<li>Consider package-specific CI triggers if test times grow significantly</li>
 </ul>
-<h3 id="business">Business<a class="headerlink" href="#business" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Resources</strong>: Single developer, async development</li>
-<li><strong>Compatibility</strong>: Must work with existing projects without breaking changes</li>
-<li><strong>Distribution</strong>: Private packages only (no public PyPI)</li>
-</ul>
-<h2 id="assumptions-to-validate">Assumptions to Validate<a class="headerlink" href="#assumptions-to-validate" title="Permanent link">&para;</a></h2>
+<h3 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h3>
+<h4 id="components-affected">Components Affected<a class="headerlink" href="#components-affected" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong>Root pyproject.toml</strong>: Workspace configuration with <code>[tool.uv.workspace]</code></li>
+<li><strong>packages/*/pyproject.toml</strong>: Individual package configurations</li>
+<li><strong>CI/CD</strong>: Single workflow testing all packages</li>
+</ol>
+<h4 id="current-structure">Current Structure<a class="headerlink" href="#current-structure" title="Permanent link">&para;</a></h4>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python-libs/
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── pyproject.toml              # Workspace root
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── packages/
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   ├── cloudflare-auth/
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   │   ├── pyproject.toml      # Independent package
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   │   └── src/cloudflare_auth/
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   └── gcs-utilities/
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│       ├── pyproject.toml      # Independent package
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│       └── src/gcs_utilities/
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>└── src/python_libs/            # Shared workspace utilities
+</span></code></pre></div>
+<h3 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h3>
+<h4 id="success-criteria">Success Criteria<a class="headerlink" href="#success-criteria" title="Permanent link">&para;</a></h4>
 <ul class="task-list">
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Git dependencies provide acceptable install performance for CI/CD</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Artifact Registry setup complexity is justified by caching benefits</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Framework-agnostic refactoring of cloudflare-auth is feasible without major rewrites</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Existing projects can migrate incrementally without disruption</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Multiple packages coexist in single repository</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Each package independently versionable</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <code>uv sync</code> resolves all workspace dependencies</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> CI/CD correctly tests affected packages only (future enhancement)</li>
 </ul>
-<h2 id="related-documents">Related Documents<a class="headerlink" href="#related-documents" title="Permanent link">&para;</a></h2>
+<h4 id="review-schedule">Review Schedule<a class="headerlink" href="#review-schedule" title="Permanent link">&para;</a></h4>
 <ul>
-<li><a href="./adr/">Architecture Decisions</a></li>
-<li><a href="../tech-spec/">Technical Spec</a></li>
-<li><a href="../roadmap/">Roadmap</a></li>
+<li>Initial: Complete (current architecture)</li>
+<li>Ongoing: Review if adding &gt;5 packages</li>
+</ul>
+<h3 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="../../tech-spec/#architecture">Tech Spec</a>: Package structure details</li>
+<li><a href="../adr-002-framework-agnostic-design/">ADR-002</a>: Framework coupling strategy</li>
 </ul>
 
 
@@ -1476,7 +1369,7 @@
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="December 4, 2025 16:02:44 UTC">December 4, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="December 13, 2025 02:40:04 UTC">December 13, 2025</span>
   </span>
 
     
@@ -1553,10 +1446,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.e71a0d61.min.js"></script>
       
     
   </body>
