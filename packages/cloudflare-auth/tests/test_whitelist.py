@@ -255,7 +255,7 @@ class TestWhitelistManager:
 
     def test_add_email_invalid_format(self, manager):
         """Test adding invalid email format."""
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Invalid email format"):
             manager.add_email("invalid-email")
 
     def test_add_email_empty(self, manager):
