@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Migrated `sonarcloud.yml` to use `python-sonarcloud.yml` reusable workflow
+- Migrated `pr-validation.yml` to use `python-supplemental-checks.yml` reusable workflow
+- Removed dependency on deprecated `python-pr-validation.yml` workflow
+
+### Fixed
+
+- Resolved CodeQL false positive for incomplete URL substring sanitization in test file
+
 ### Added
 
 - Initial project setup and structure
