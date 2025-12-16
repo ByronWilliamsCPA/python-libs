@@ -29,7 +29,7 @@ jobs:
   # Supplemental PR Checks (Changelog, Link Validation)
   # ==========================================================================
   supplemental-checks:
-    uses: ByronWilliamsCPA/.github/.github/workflows/python-supplemental-checks.yml@main
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-supplemental-checks.yml@4e32cdb5e1096fa94cfa3efbcd908d75dd9ef68b # main
     with:
       # Changelog enforcement
       enable-changelog-check: true
