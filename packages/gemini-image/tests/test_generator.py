@@ -37,12 +37,13 @@ class TestGenerateImage:
         mock_genai = MagicMock()
         mock_types = MagicMock()
 
+        # Need to mock load_dotenv to prevent it from loading .env file
         with (
             patch.object(client_module, "_genai", mock_genai),
             patch.object(client_module, "_types", mock_types),
+            patch("gemini_image.client.load_dotenv"),  # Prevent .env loading
             patch.dict(os.environ, {}, clear=True),
         ):
-            os.environ.pop("GEMINI_API_KEY", None)
             with pytest.raises(ConfigurationError, match="GEMINI_API_KEY"):
                 generate_image("test prompt")
 

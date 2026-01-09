@@ -95,3 +95,11 @@ ignore = [
 "tests/*" = ["S101", "PLR2004", "ANN"]
 # CLI module can use print statements
 "src/gemini_image/cli.py" = ["T201"]
+
+[tool.pytest.ini_options]
+markers = [
+    "functional: marks tests as functional (requiring GEMINI_API_KEY)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]

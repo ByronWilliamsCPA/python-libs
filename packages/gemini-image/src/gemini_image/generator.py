@@ -434,15 +434,19 @@ def generate_story_sequence(
     )
 
     for part_num in range(1, num_parts + 1):
-        # Build output path for this part
-        output_path = output_dir / f"{output_prefix.stem}_part{part_num}.png"
+        # Build output path for this part (base name, extension may change)
+        base_output_path = output_dir / f"{output_prefix.stem}_part{part_num}"
 
-        # Check if we should resume from existing
-        if resume and output_path.exists():
-            logger.info("skipping_existing_part", part=part_num, path=str(output_path))
-            generated_images.append(output_path)
-            previous_image_path = output_path
+        # Check if we should resume from existing (check multiple extensions)
+        existing_path = _find_existing_image(base_output_path)
+        if resume and existing_path is not None:
+            logger.info("skipping_existing_part", part=part_num, path=str(existing_path))
+            generated_images.append(existing_path)
+            previous_image_path = existing_path
             continue
+
+        # Default to .png for output (will be corrected if needed)
+        output_path = base_output_path.with_suffix(".png")
 
         # Build prompt for this part
         part_prompt = _build_story_prompt(base_prompt, part_num, num_parts)
@@ -585,6 +589,29 @@ def finalize_draft(
 
 
 # --- Helper Functions ---
+
+# Supported image extensions for resume checks
+_IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".webp")
+
+
+def _find_existing_image(base_path: Path) -> Path | None:
+    """Find an existing image file with any supported extension.
+
+    This handles the case where a file was saved with a different extension
+    than expected (e.g., .jpg instead of .png due to magic byte detection).
+
+    Args:
+        base_path: Base path without extension (e.g., /path/to/image_part1).
+
+    Returns:
+        Path to the existing file if found, None otherwise.
+
+    """
+    for ext in _IMAGE_EXTENSIONS:
+        candidate = base_path.with_suffix(ext)
+        if candidate.exists():
+            return candidate
+    return None
 
 
 def _validate_model_key(model_key: str) -> None:

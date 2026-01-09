@@ -12,6 +12,24 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
+def pytest_configure(config: pytest.Config) -> None:
+    """Register custom pytest markers."""
+    config.addinivalue_line(
+        "markers",
+        "functional: marks tests as functional (requiring GEMINI_API_KEY)",
+    )
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Add custom command line options."""
+    parser.addoption(
+        "--run-functional",
+        action="store_true",
+        default=False,
+        help="Run functional tests that require GEMINI_API_KEY",
+    )
+
+
 @pytest.fixture
 def sample_image_bytes() -> bytes:
     """Return sample PNG image bytes (1x1 red pixel)."""
