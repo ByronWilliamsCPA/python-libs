@@ -1,7 +1,5 @@
 """Tests for image generation functions."""
 
-# Bandit B101 (assert_used) is expected in test files - pytest uses assert statements
-
 from __future__ import annotations
 
 import os
@@ -10,8 +8,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from gemini_image import generator
-from gemini_image.generator import finalize_draft, generate_story_sequence
+from gemini_image import client as client_module
+from gemini_image.exceptions import FileOperationError, ValidationError
+from gemini_image.generator import (
+    finalize_draft,
+    generate_image,
+    generate_story_sequence,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -21,33 +24,26 @@ class TestGenerateImage:
     """Tests for generate_image function."""
 
     def test_generate_image_invalid_model_raises(self) -> None:
-        """Test that invalid model key raises ValueError."""
-        # Mock genai to avoid ImportError
-        mock_genai = MagicMock()
-        mock_types = MagicMock()
-
-        with (
-            patch.object(generator, "_genai", mock_genai),
-            patch.object(generator, "_types", mock_types),
-            patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}),
-            pytest.raises(ValueError, match="Unknown model"),
-        ):
-            generator.generate_image("test prompt", model_key="invalid")  # type: ignore[arg-type]
+        """Test that invalid model key raises ValidationError."""
+        with pytest.raises(ValidationError, match="Unknown model"):
+            generate_image("test prompt", model_key="invalid")  # type: ignore[arg-type]
 
     def test_generate_image_missing_api_key_raises(self) -> None:
-        """Test that missing API key raises ValueError."""
+        """Test that missing API key raises ConfigurationError."""
+        from gemini_image.exceptions import ConfigurationError
+
         # Mock genai to avoid ImportError
         mock_genai = MagicMock()
         mock_types = MagicMock()
 
         with (
-            patch.object(generator, "_genai", mock_genai),
-            patch.object(generator, "_types", mock_types),
+            patch.object(client_module, "_genai", mock_genai),
+            patch.object(client_module, "_types", mock_types),
             patch.dict(os.environ, {}, clear=True),
         ):
             os.environ.pop("GEMINI_API_KEY", None)
-            with pytest.raises(ValueError, match="GEMINI_API_KEY"):
-                generator.generate_image("test prompt")
+            with pytest.raises(ConfigurationError, match="GEMINI_API_KEY"):
+                generate_image("test prompt")
 
     def test_generate_image_with_mock_client(
         self,
@@ -65,14 +61,15 @@ class TestGenerateImage:
 
         # Patch the lazy-loaded modules
         with (
-            patch.object(generator, "_genai", mock_genai),
-            patch.object(generator, "_types", mock_types),
+            patch.object(client_module, "_genai", mock_genai),
+            patch.object(client_module, "_types", mock_types),
             patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}),
         ):
-            result = generator.generate_image(
+            result = generate_image(
                 prompt="A test image",
                 output_dir=tmp_path,
                 verbose=False,
+                document=False,  # Disable registry for test
             )
 
         assert result is not None
@@ -93,14 +90,15 @@ class TestGenerateImage:
         mock_genai.Client.return_value = mock_client
 
         with (
-            patch.object(generator, "_genai", mock_genai),
-            patch.object(generator, "_types", mock_types),
+            patch.object(client_module, "_genai", mock_genai),
+            patch.object(client_module, "_types", mock_types),
             patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}),
         ):
-            result = generator.generate_image(
+            result = generate_image(
                 prompt="A test draft",
                 output_dir=tmp_path,
                 is_draft=True,
+                document=False,
             )
 
         assert result is not None
@@ -111,8 +109,8 @@ class TestGenerateStorySequence:
     """Tests for generate_story_sequence function."""
 
     def test_story_sequence_invalid_parts_raises(self) -> None:
-        """Test that num_parts < 1 raises ValueError."""
-        with pytest.raises(ValueError, match="at least 1"):
+        """Test that num_parts < 1 raises ValidationError."""
+        with pytest.raises(ValidationError, match="at least 1"):
             generate_story_sequence("test story", num_parts=0)
 
     def test_story_sequence_generates_multiple_images(
@@ -129,15 +127,16 @@ class TestGenerateStorySequence:
         mock_genai.Client.return_value = mock_client
 
         with (
-            patch.object(generator, "_genai", mock_genai),
-            patch.object(generator, "_types", mock_types),
+            patch.object(client_module, "_genai", mock_genai),
+            patch.object(client_module, "_types", mock_types),
             patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}),
         ):
-            results = generator.generate_story_sequence(
+            results = generate_story_sequence(
                 base_prompt="A test story",
                 num_parts=3,
                 output_dir=tmp_path,
                 output_prefix=tmp_path / "story",
+                document=False,
             )
 
         assert len(results) == 3
@@ -150,10 +149,10 @@ class TestFinalizeDraft:
     """Tests for finalize_draft function."""
 
     def test_finalize_missing_draft_raises(self, tmp_path: Path) -> None:
-        """Test that missing draft image raises FileNotFoundError."""
+        """Test that missing draft image raises FileOperationError."""
         missing_path = tmp_path / "nonexistent.png"
 
-        with pytest.raises(FileNotFoundError):
+        with pytest.raises(FileOperationError):
             finalize_draft(missing_path)
 
     def test_finalize_draft_uses_2k_by_default(
@@ -171,13 +170,14 @@ class TestFinalizeDraft:
         mock_genai.Client.return_value = mock_client
 
         with (
-            patch.object(generator, "_genai", mock_genai),
-            patch.object(generator, "_types", mock_types),
+            patch.object(client_module, "_genai", mock_genai),
+            patch.object(client_module, "_types", mock_types),
             patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}),
         ):
-            result = generator.finalize_draft(
+            result = finalize_draft(
                 draft_path=sample_image_path,
                 output_dir=tmp_path,
+                document=False,
             )
 
         assert result is not None

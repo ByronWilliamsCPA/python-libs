@@ -1,6 +1,6 @@
 [project]
 name = "byronwilliamscpa-gemini-image"
-version = "0.1.0"
+version = "0.2.0"
 description = "Image generation using Google Gemini models (Nano Banana / Nano Banana Pro)"
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
@@ -24,6 +24,9 @@ classifiers = [
 
 dependencies = [
     "google-genai>=1.0.0",
+    "tenacity>=8.2.0",
+    "python-dotenv>=1.0.0",
+    "structlog>=24.1.0",
 ]
 
 [project.optional-dependencies]
@@ -64,3 +67,30 @@ changelog_file = "CHANGELOG.md"
 [tool.semantic_release.branches.main]
 match = "(main|master)"
 prerelease = false
+
+# Package-specific ruff overrides
+[tool.ruff.lint]
+ignore = [
+    # Allow exception messages to use string literals and f-strings
+    # (common pattern for user-facing errors in libraries)
+    "EM101",  # Exception must not use a string literal
+    "EM102",  # Exception must not use an f-string literal
+    # Allow catching broad exceptions in specific cases (CLI error handling)
+    "BLE001",
+    # Allow dynamic imports for optional dependencies
+    "PLC0415",
+    # Allow try-except-return pattern
+    "TRY300",
+    # Allow logging.error in exception handlers
+    "TRY400",
+    # Complexity is acceptable for CLI main function and generators
+    "C901",
+    "PLR0912",
+    "PLR0915",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests can use assert and have simpler patterns
+"tests/*" = ["S101", "PLR2004", "ANN"]
+# CLI module can use print statements
+"src/gemini_image/cli.py" = ["T201"]

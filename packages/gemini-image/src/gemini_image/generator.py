@@ -1,55 +1,40 @@
 """Core image generation functions using Google Gemini.
 
-Note: This module has complexity warnings (C901, PLR0912, PLR0915) due to the
-comprehensive response handling logic inherited from the source script.
-The google-genai types are dynamically loaded, causing reportUnknown* warnings.
+This module provides the main entry points for image generation:
+- generate_image(): Single image generation
+- generate_story_sequence(): Multi-part story generation
+- finalize_draft(): Draft-to-final upscaling
 """
-# ruff: noqa: C901, PLR0912, PLR0915, PLC0415
 
 from __future__ import annotations
 
-import base64
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING
 
+import structlog
+
+from gemini_image.client import GeminiClient, _get_genai
+from gemini_image.exceptions import ValidationError
+from gemini_image.io import (
+    get_extension_for_format,
+    load_metadata,
+    save_image,
+    save_metadata,
+)
 from gemini_image.models import (
     ASPECT_RATIOS,
     DEFAULT_MODEL,
     IMAGE_SIZES,
     MODELS,
-    AspectRatio,
-    ImageSize,
-    ModelKey,
 )
-from gemini_image.utils import (
-    get_api_key,
-    get_file_extension,
-    load_image_as_base64,
-)
+from gemini_image.registry import PromptRegistry
+from gemini_image.response_parser import GenerationResponse, parse_response
 
-# Lazy import for google.genai
-_genai = None
-_types = None
+if TYPE_CHECKING:
+    from gemini_image.models import AspectRatio, ImageSize, ModelKey
 
-
-def _get_genai() -> tuple[Any, Any]:
-    """Lazy import google.genai to avoid import errors when not installed."""
-    global _genai, _types  # noqa: PLW0603
-    if _genai is None:
-        try:
-            from google import genai
-            from google.genai import types
-
-            _genai = genai
-            _types = types
-        except ImportError as e:
-            msg = (
-                "google-genai package not installed. "
-                "Install with: pip install google-genai"
-            )
-            raise ImportError(msg) from e
-    return _genai, _types
+logger = structlog.get_logger(__name__)
 
 
 def generate_image(
@@ -64,6 +49,10 @@ def generate_image(
     save_thoughts: bool = False,
     verbose: bool = False,
     is_draft: bool = False,
+    *,
+    document: bool = True,
+    registry_path: Path | None = None,
+    save_metadata_file: bool = True,
 ) -> Path | None:
     """Generate an image using Gemini.
 
@@ -80,229 +69,115 @@ def generate_image(
         save_thoughts: Save intermediate thought images (pro model only).
         verbose: Show detailed thinking process and thought signatures.
         is_draft: Generate at 1K resolution for fast iteration.
+        document: If True, adds entry to PROMPTS.md registry.
+        registry_path: Path to PROMPTS.md file (default: output_dir/PROMPTS.md).
+        save_metadata_file: If True, saves JSON metadata sidecar file.
 
     Returns:
         Path to the generated image, or None on failure.
 
     Raises:
-        ValueError: If model_key is invalid or API key is missing.
-        ImportError: If google-genai is not installed.
+        ValidationError: If model_key, aspect_ratio, or image_size is invalid.
+        ConfigurationError: If API key is missing.
+        GenerationError: If image generation fails.
 
     """
-    genai, types = _get_genai()
-    api_key = get_api_key()
-
-    if model_key not in MODELS:
-        msg = f"Unknown model '{model_key}'. Valid options: {list(MODELS.keys())}"
-        raise ValueError(msg)
+    # Validate inputs
+    _validate_model_key(model_key)
+    _validate_aspect_ratio(aspect_ratio)
+    _validate_image_size(image_size)
 
     model_config = MODELS[model_key]
-    model_id = model_config["id"]
 
-    if verbose:
-        print(f"Using model: {model_config['name']}")  # noqa: T201
-        print(f"Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")  # noqa: T201
-
-    # Initialize client
-    client = genai.Client(api_key=api_key)
-
-    # Build the content parts
-    contents: list = []
-
-    # Add reference images if provided
-    if reference_images:
-        for img_path in reference_images:
-            if not img_path.exists():
-                if verbose:
-                    print(f"Warning: Reference image not found: {img_path}")  # noqa: T201
-                continue
-
-            if verbose:
-                print(f"Including reference image: {img_path}")  # noqa: T201
-            img_data, mime_type = load_image_as_base64(img_path)
-            contents.append(
-                types.Part.from_bytes(
-                    data=base64.standard_b64decode(img_data),
-                    mime_type=mime_type,
-                )
-            )
-
-    # Add the text prompt
-    contents.append(prompt)
-
-    # Build config kwargs
-    config_kwargs = {
-        "response_modalities": ["IMAGE", "TEXT"],
-    }
-
-    # Override size to 1K if draft mode
-    effective_size = "1K" if is_draft else image_size
-
-    # Add image config for pro model
-    if model_config.get("supports_image_config"):
-        image_config_kwargs = {}
-        if aspect_ratio:
-            if aspect_ratio not in ASPECT_RATIOS:
-                if verbose:
-                    print(  # noqa: T201
-                        f"Warning: Invalid aspect ratio '{aspect_ratio}'. "
-                        f"Valid: {ASPECT_RATIOS}"
-                    )
-            else:
-                image_config_kwargs["aspect_ratio"] = aspect_ratio
-                if verbose:
-                    print(f"Aspect ratio: {aspect_ratio}")  # noqa: T201
-        if effective_size:
-            if effective_size not in IMAGE_SIZES:
-                if verbose:
-                    print(  # noqa: T201
-                        f"Warning: Invalid image size '{effective_size}'. "
-                        f"Valid: {IMAGE_SIZES}"
-                    )
-            else:
-                image_config_kwargs["image_size"] = effective_size
-                if verbose:
-                    print(f"Image size: {effective_size}")  # noqa: T201
-
-        if image_config_kwargs:
-            config_kwargs["image_config"] = types.ImageConfig(**image_config_kwargs)
-
-        # Add Google Search grounding if requested
-        if use_search:
-            # Google API accepts dict format for tools
-            config_kwargs["tools"] = [{"google_search": {}}]  # type: ignore[typeddict-item]
-            if verbose:
-                print("Google Search grounding: enabled")  # noqa: T201
-
-    # Configure generation
-    generate_config = types.GenerateContentConfig(**config_kwargs)
-
-    if verbose:
-        print("Generating image...")  # noqa: T201
-
-    response = client.models.generate_content(
-        model=model_id,
-        contents=contents,
-        config=generate_config,
+    logger.info(
+        "generating_image",
+        model=model_config["name"],
+        prompt_preview=prompt[:50] + "..." if len(prompt) > 50 else prompt,
+        is_draft=is_draft,
     )
 
-    # Process response
-    if not response.candidates:
-        if verbose:
-            print("Error: No response candidates returned.")  # noqa: T201
-            if hasattr(response, "prompt_feedback"):
-                print(f"Feedback: {response.prompt_feedback}")  # noqa: T201
+    # Initialize client and types
+    client = GeminiClient()
+    _, types = _get_genai()
+
+    # Build content parts
+    contents = _build_contents(reference_images, prompt, types, verbose=verbose)
+
+    # Build generation config
+    effective_size = "1K" if is_draft else image_size
+    config = _build_generation_config(
+        model_config=model_config,
+        aspect_ratio=aspect_ratio,
+        image_size=effective_size,
+        use_search=use_search,
+        types=types,
+        verbose=verbose,
+    )
+
+    # Generate image
+    response = client.generate_content(
+        model=model_config["id"],
+        contents=contents,
+        config=config,
+    )
+
+    # Parse response
+    parsed = parse_response(response, verbose=verbose)
+
+    if not parsed.has_image:
+        logger.error("generation_failed_no_image")
         return None
 
-    # Track thoughts and final images
-    thought_count = 0
-    final_image_data = None
-    final_mime_type = None
-    final_signature = None
-
-    # Determine output directory
+    # Determine output path
     if output_dir is None:
         output_dir = Path.cwd()
 
-    # Process all parts in response
-    for part in response.candidates[0].content.parts:
-        # Check if this is a thought (intermediate reasoning step)
-        is_thought = hasattr(part, "thought") and part.thought
+    final_path = _determine_output_path(
+        output_path=output_path,
+        output_dir=output_dir,
+        image_format=parsed.image_format or "png",
+        is_draft=is_draft,
+    )
 
-        if is_thought:
-            thought_count += 1
-            if verbose:
-                print(f"\n[Thought {thought_count}]")  # noqa: T201
+    # Save the image (with format correction)
+    assert parsed.image_data is not None  # We checked has_image above
+    saved_path = save_image(parsed.image_data, final_path, correct_extension=True)
 
-            # Handle thought text
-            if part.text is not None and verbose:
-                print(f"Reasoning: {part.text}")  # noqa: T201
+    # Save thought images if requested
+    if save_thoughts and parsed.thought_images:
+        _save_thought_images(parsed, saved_path, output_dir, verbose=verbose)
 
-            # Handle thought image
-            if part.inline_data is not None and save_thoughts:
-                thought_data = part.inline_data.data
-                thought_mime = part.inline_data.mime_type
-                thought_ext = get_file_extension(thought_mime)
+    # Save metadata sidecar
+    if save_metadata_file:
+        save_metadata(
+            saved_path,
+            prompt=prompt,
+            model=model_key,
+            aspect_ratio=aspect_ratio,
+            image_size=effective_size,
+            reference_images=reference_images,
+            thought_signature=(
+                str(parsed.thought_signature) if parsed.thought_signature else None
+            ),
+            is_draft=is_draft,
+        )
 
-                # Save thought image
-                if output_path:
-                    thought_path = (
-                        output_dir
-                        / f"{output_path.stem}_thought{thought_count}{thought_ext}"
-                    )
-                else:
-                    timestamp = datetime.now(tz=UTC).strftime("%Y%m%d_%H%M%S")
-                    thought_path = (
-                        output_dir / f"thought{thought_count}_{timestamp}{thought_ext}"
-                    )
+    # Add to registry
+    if document:
+        reg_path = registry_path or (output_dir / "PROMPTS.md")
+        registry = PromptRegistry(reg_path)
+        registry.add_entry(
+            image_path=saved_path,
+            prompt=prompt,
+            model=model_key,
+            aspect_ratio=aspect_ratio,
+            image_size=effective_size,
+            reference_images=reference_images,
+            is_draft=is_draft,
+        )
 
-                thought_path.parent.mkdir(parents=True, exist_ok=True)
-                with open(thought_path, "wb") as f:
-                    f.write(thought_data)
-
-                if verbose:
-                    print(f"Thought image {thought_count} saved to: {thought_path}")  # noqa: T201
-
-        # Non-thought content (final output)
-        elif part.inline_data is not None:
-            # Final image
-            final_image_data = part.inline_data.data
-            final_mime_type = part.inline_data.mime_type
-
-            # Extract thought signature if available
-            if hasattr(part, "thought_signature") and part.thought_signature:
-                final_signature = part.thought_signature
-                if verbose:
-                    print(f"\n[Thought Signature]: {final_signature[:100]}...")  # noqa: T201
-
-        elif part.text is not None and verbose:
-            # Final text response
-            print(f"\nModel response: {part.text}")  # noqa: T201
-
-            # Extract thought signature from text part if available
-            if hasattr(part, "thought_signature") and part.thought_signature:
-                final_signature = part.thought_signature
-                if verbose:
-                    print(f"[Thought Signature]: {final_signature[:100]}...")  # noqa: T201
-
-    # Save final image
-    if final_image_data is not None:
-        # Determine output filename
-        if output_path is None:
-            timestamp = datetime.now(tz=UTC).strftime("%Y%m%d_%H%M%S")
-            ext = get_file_extension(final_mime_type or "image/png")
-            prefix = "draft_" if is_draft else "generated_"
-            output_path = output_dir / f"{prefix}{timestamp}{ext}"
-        elif not output_path.is_absolute():
-            output_path = output_dir / output_path
-
-        # Ensure output directory exists
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # Write image
-        with open(output_path, "wb") as f:
-            f.write(final_image_data)
-
-        if verbose:
-            if thought_count > 0:
-                print(f"\nProcessed {thought_count} thought step(s)")  # noqa: T201
-            print(f"Final image saved to: {output_path}")  # noqa: T201
-
-        # Optionally save thought signature to sidecar file
-        if final_signature and verbose:
-            sig_path = output_path.with_suffix(".signature.bin")
-            with open(sig_path, "wb") as f:
-                if isinstance(final_signature, bytes):
-                    f.write(final_signature)
-                else:
-                    f.write(str(final_signature).encode())
-            print(f"Thought signature saved to: {sig_path}")  # noqa: T201
-
-        return output_path
-
-    if verbose:
-        print("Error: No image data in response.")  # noqa: T201
-    return None
+    logger.info("image_generated", path=str(saved_path))
+    return saved_path
 
 
 def generate_story_sequence(
@@ -314,8 +189,11 @@ def generate_story_sequence(
     aspect_ratio: AspectRatio | None = None,
     image_size: ImageSize | None = None,
     verbose: bool = False,
+    *,
+    resume: bool = True,
+    document: bool = True,
 ) -> list[Path]:
-    """Generate a multi-part story sequence using conversational refinement.
+    """Generate a multi-part story sequence with visual continuity.
 
     Each subsequent image uses the previous image as a reference for
     visual continuity.
@@ -330,71 +208,61 @@ def generate_story_sequence(
         aspect_ratio: Aspect ratio for all images.
         image_size: Image size for all images.
         verbose: Show detailed process.
+        resume: If True, skips parts that already exist.
+        document: If True, adds entries to PROMPTS.md registry.
 
     Returns:
         List of paths to generated images.
 
     Raises:
-        ValueError: If num_parts < 1.
+        ValidationError: If num_parts < 1.
 
     """
     if num_parts < 1:
-        msg = "Number of story parts must be at least 1"
-        raise ValueError(msg)
+        raise ValidationError(
+            "Number of story parts must be at least 1",
+            field="num_parts",
+            value=num_parts,
+        )
 
     if output_dir is None:
         output_dir = Path.cwd()
 
     if output_prefix is None:
-        timestamp = datetime.now(tz=UTC).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
         output_prefix = Path(f"story_{timestamp}")
 
     generated_images: list[Path] = []
     previous_image_path: Path | None = None
 
-    if verbose:
-        print(f"Generating {num_parts}-part story sequence...")  # noqa: T201
-        print(f"Base prompt: {base_prompt}\n")  # noqa: T201
+    logger.info(
+        "generating_story_sequence",
+        num_parts=num_parts,
+        base_prompt=base_prompt[:50] + "..." if len(base_prompt) > 50 else base_prompt,
+    )
 
     for part_num in range(1, num_parts + 1):
-        if verbose:
-            print(f"\n{'=' * 60}")  # noqa: T201
-            print(f"PART {part_num}/{num_parts}")  # noqa: T201
-            print(f"{'=' * 60}")  # noqa: T201
+        # Build output path for this part
+        output_path = output_dir / f"{output_prefix.stem}_part{part_num}.png"
+
+        # Check if we should resume from existing
+        if resume and output_path.exists():
+            logger.info("skipping_existing_part", part=part_num, path=str(output_path))
+            generated_images.append(output_path)
+            previous_image_path = output_path
+            continue
 
         # Build prompt for this part
-        if part_num == 1:
-            prompt = (
-                f"{base_prompt}\n\n"
-                f"This is part 1 of {num_parts}. Create the opening scene that "
-                "establishes the context and visual style for the entire sequence."
-            )
-        elif part_num == num_parts:
-            prompt = (
-                f"This is part {part_num} of {num_parts}, the final scene. "
-                "Building on the previous image, create a concluding scene that "
-                "resolves the narrative. Maintain visual consistency with the "
-                "established style."
-            )
-        else:
-            prompt = (
-                f"This is part {part_num} of {num_parts}. Building on the previous "
-                "image, advance the narrative while maintaining visual consistency "
-                "with the established style."
-            )
+        part_prompt = _build_story_prompt(base_prompt, part_num, num_parts)
 
-        # Build output path
-        output_path = Path(f"{output_prefix.stem}_part{part_num}.png")
+        logger.info("generating_story_part", part=part_num, total=num_parts)
 
         # Build reference images list
         reference_images = [previous_image_path] if previous_image_path else None
 
-        if verbose:
-            print(f"Prompt: {prompt[:100]}...")  # noqa: T201
-
         # Generate this part
         result = generate_image(
-            prompt=prompt,
+            prompt=part_prompt,
             model_key=model_key,
             reference_images=reference_images,
             output_path=output_path,
@@ -404,27 +272,22 @@ def generate_story_sequence(
             use_search=False,
             save_thoughts=False,
             verbose=verbose,
+            document=document,
         )
 
         if result:
             generated_images.append(result)
             previous_image_path = result
-            if verbose:
-                print(f"Part {part_num} complete: {result}")  # noqa: T201
+            logger.info("story_part_complete", part=part_num, path=str(result))
         else:
-            if verbose:
-                print(f"Failed to generate part {part_num}")  # noqa: T201
+            logger.error("story_part_failed", part=part_num)
             break
 
-    if verbose:
-        print(f"\n{'=' * 60}")  # noqa: T201
-        print(  # noqa: T201
-            f"Story sequence complete: {len(generated_images)}/{num_parts} parts generated"
-        )
-        print(f"{'=' * 60}\n")  # noqa: T201
-
-        for i, path in enumerate(generated_images, 1):
-            print(f"  Part {i}: {path}")  # noqa: T201
+    logger.info(
+        "story_sequence_complete",
+        generated=len(generated_images),
+        total=num_parts,
+    )
 
     return generated_images
 
@@ -438,41 +301,65 @@ def finalize_draft(
     aspect_ratio: AspectRatio | None = None,
     image_size: ImageSize | None = None,
     verbose: bool = False,
+    *,
+    document: bool = True,
 ) -> Path | None:
     """Finalize a draft image by regenerating at higher resolution.
 
+    This function attempts to read the original prompt from the draft's
+    metadata sidecar file. If available, it uses that prompt for better
+    reproduction fidelity.
+
     Args:
         draft_path: Path to the draft image.
-        prompt: Optional refinement prompt. If not provided, uses a
-            default upscaling prompt.
+        prompt: Optional refinement prompt. If not provided, uses the
+            original prompt from metadata or a default upscaling prompt.
         model_key: Model to use.
         output_path: Output path for the final image.
         output_dir: Output directory.
         aspect_ratio: Aspect ratio (default: "16:9").
         image_size: Target resolution (default: "2K").
         verbose: Show detailed process.
+        document: If True, adds entry to PROMPTS.md registry.
 
     Returns:
         Path to the finalized image, or None on failure.
 
     Raises:
-        FileNotFoundError: If the draft image doesn't exist.
+        FileOperationError: If the draft image doesn't exist.
 
     """
+    from gemini_image.exceptions import FileOperationError
+
     if not draft_path.exists():
-        msg = f"Draft image not found: {draft_path}"
-        raise FileNotFoundError(msg)
+        raise FileOperationError(
+            f"Draft image not found: {draft_path}",
+            path=str(draft_path),
+            operation="read",
+        )
+
+    # Try to load original metadata
+    metadata = load_metadata(draft_path)
+    original_prompt = None
+
+    if metadata:
+        original_prompt = metadata.get("prompt")
+        if verbose and original_prompt:
+            logger.info("using_original_prompt", preview=original_prompt[:50])
 
     # Determine final resolution
-    final_size = image_size if image_size else "2K"
-    final_aspect = aspect_ratio if aspect_ratio else "16:9"
+    final_size = image_size or "2K"
+    final_aspect = aspect_ratio or "16:9"
 
-    if verbose:
-        print(f"Finalizing draft image: {draft_path}")  # noqa: T201
-        print(f"Target resolution: {final_size} ({final_aspect})")  # noqa: T201
+    logger.info(
+        "finalizing_draft",
+        draft=str(draft_path),
+        target_size=final_size,
+        target_aspect=final_aspect,
+    )
 
-    # Use provided prompt or default upscaling prompt
-    final_prompt = prompt or (
+    # Use provided prompt, original prompt, or default
+    final_prompt = prompt or original_prompt or (
         "Recreate this image at higher resolution with the same "
         "composition, style, and details"
     )
@@ -490,13 +377,204 @@ def finalize_draft(
         aspect_ratio=final_aspect,
         image_size=final_size,
         verbose=verbose,
+        is_draft=False,
+        document=document,
     )
 
-    if result and verbose:
-        print(f"\n{'=' * 60}")  # noqa: T201
-        print("Finalization complete!")  # noqa: T201
-        print(f"Draft: {draft_path}")  # noqa: T201
-        print(f"Final ({final_size}): {result}")  # noqa: T201
-        print(f"{'=' * 60}")  # noqa: T201
+    if result:
+        logger.info(
+            "finalization_complete",
+            draft=str(draft_path),
+            final=str(result),
+            size=final_size,
+        )
 
     return result
+
+
+# --- Helper Functions ---
+
+
+def _validate_model_key(model_key: str) -> None:
+    """Validate that the model key is valid."""
+    if model_key not in MODELS:
+        raise ValidationError(
+            f"Unknown model '{model_key}'",
+            field="model_key",
+            value=model_key,
+            valid_options=list(MODELS.keys()),
+        )
+
+
+def _validate_aspect_ratio(aspect_ratio: str | None) -> None:
+    """Validate that the aspect ratio is valid."""
+    if aspect_ratio is not None and aspect_ratio not in ASPECT_RATIOS:
+        raise ValidationError(
+            f"Invalid aspect ratio '{aspect_ratio}'",
+            field="aspect_ratio",
+            value=aspect_ratio,
+            valid_options=ASPECT_RATIOS,
+        )
+
+
+def _validate_image_size(image_size: str | None) -> None:
+    """Validate that the image size is valid."""
+    if image_size is not None and image_size not in IMAGE_SIZES:
+        raise ValidationError(
+            f"Invalid image size '{image_size}'",
+            field="image_size",
+            value=image_size,
+            valid_options=IMAGE_SIZES,
+        )
+
+
+def _build_contents(
+    reference_images: list[Path] | None,
+    prompt: str,
+    types: object,
+    *,
+    verbose: bool = False,
+) -> list[object]:
+    """Build the contents list for the API request."""
+    contents: list[object] = []
+
+    if reference_images:
+        for img_path in reference_images:
+            if not img_path.exists():
+                logger.warning("reference_image_not_found", path=str(img_path))
+                continue
+
+            logger.debug("including_reference_image", path=str(img_path))
+
+            # Load image data
+            with open(img_path, "rb") as f:
+                data = f.read()
+
+            # Detect MIME type from extension (will be validated by API)
+            suffix = img_path.suffix.lower()
+            mime_types = {
+                ".png": "image/png",
+                ".jpg": "image/jpeg",
+                ".jpeg": "image/jpeg",
+                ".gif": "image/gif",
+                ".webp": "image/webp",
+            }
+            mime_type = mime_types.get(suffix, "image/png")
+
+            # Add as Part
+            contents.append(
+                types.Part.from_bytes(  # type: ignore[union-attr]
+                    data=data,
+                    mime_type=mime_type,
+                )
+            )
+
+    # Add the text prompt
+    contents.append(prompt)
+    return contents
+
+
+def _build_generation_config(
+    model_config: dict[str, object],
+    aspect_ratio: str | None,
+    image_size: str | None,
+    use_search: bool,
+    types: object,
+    *,
+    verbose: bool = False,
+) -> object:
+    """Build the generation config for the API request."""
+    config_kwargs: dict[str, object] = {
+        "response_modalities": ["IMAGE", "TEXT"],
+    }
+
+    # Add image config for pro model
+    if model_config.get("supports_image_config"):
+        image_config_kwargs: dict[str, str] = {}
+
+        if aspect_ratio:
+            image_config_kwargs["aspect_ratio"] = aspect_ratio
+            logger.debug("config_aspect_ratio", value=aspect_ratio)
+
+        if image_size:
+            image_config_kwargs["image_size"] = image_size
+            logger.debug("config_image_size", value=image_size)
+
+        if image_config_kwargs:
+            config_kwargs["image_config"] = types.ImageConfig(**image_config_kwargs)  # type: ignore[union-attr]
+
+        # Add Google Search grounding if requested
+        if use_search:
+            config_kwargs["tools"] = [{"google_search": {}}]  # type: ignore[typeddict-item]
+            logger.debug("config_search_enabled")
+
+    return types.GenerateContentConfig(**config_kwargs)  # type: ignore[union-attr]
+
+
+def _determine_output_path(
+    output_path: Path | None,
+    output_dir: Path,
+    image_format: str,
+    is_draft: bool,
+) -> Path:
+    """Determine the final output path."""
+    if output_path is not None:
+        # Honor absolute paths as-is
+        if output_path.is_absolute():
+            return output_path
+        return output_dir / output_path
+
+    # Generate timestamped filename
+    timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
+    ext = get_extension_for_format(image_format)
+    prefix = "draft_" if is_draft else "generated_"
+    return output_dir / f"{prefix}{timestamp}{ext}"
+
+
+def _save_thought_images(
+    parsed: GenerationResponse,
+    main_image_path: Path,
+    output_dir: Path,
+    *,
+    verbose: bool = False,
+) -> list[Path]:
+    """Save thought images alongside the main image."""
+    saved_paths: list[Path] = []
+
+    for thought in parsed.thought_images:
+        ext = get_extension_for_format(thought.format)
+        thought_path = output_dir / f"{main_image_path.stem}_thought{thought.index}{ext}"
+
+        save_image(thought.data, thought_path, correct_extension=True)
+        saved_paths.append(thought_path)
+
+        if verbose:
+            logger.info(
+                "thought_image_saved",
+                index=thought.index,
+                path=str(thought_path),
+            )
+
+    return saved_paths
+
+
+def _build_story_prompt(base_prompt: str, part_num: int, total_parts: int) -> str:
+    """Build the prompt for a specific story part."""
+    if part_num == 1:
+        return (
+            f"{base_prompt}\n\n"
+            f"This is part 1 of {total_parts}. Create the opening scene that "
+            "establishes the context and visual style for the entire sequence."
+        )
+    if part_num == total_parts:
+        return (
+            f"This is part {part_num} of {total_parts}, the final scene. "
+            "Building on the previous image, create a concluding scene that "
+            "resolves the narrative. Maintain visual consistency with the "
+            "established style."
+        )
+    return (
+        f"This is part {part_num} of {total_parts}. Building on the previous "
+        "image, advance the narrative while maintaining visual consistency "
+        "with the established style."
+    )

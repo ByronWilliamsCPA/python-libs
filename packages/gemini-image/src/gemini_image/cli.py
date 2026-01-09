@@ -6,6 +6,8 @@ import argparse
 import sys
 from pathlib import Path
 
+import structlog
+
 from gemini_image.generator import (
     finalize_draft,
     generate_image,
@@ -13,12 +15,27 @@ from gemini_image.generator import (
 )
 from gemini_image.models import ASPECT_RATIOS, DEFAULT_MODEL, IMAGE_SIZES, MODELS
 
+logger = structlog.get_logger(__name__)
+
+
+def _configure_logging(verbose: bool) -> None:
+    """Configure structlog for CLI output."""
+    if verbose:
+        structlog.configure(
+            wrapper_class=structlog.make_filtering_bound_logger(10),  # DEBUG
+        )
+    else:
+        structlog.configure(
+            wrapper_class=structlog.make_filtering_bound_logger(20),  # INFO
+        )
+
 
 def list_models() -> None:
     """Print available models."""
     print("Available models:\n")
     for key, config in MODELS.items():
-        print(f"  {key}:")
+        default_marker = " (default)" if key == DEFAULT_MODEL else ""
+        print(f"  {key}{default_marker}:")
         print(f"    Name: {config['name']}")
         print(f"    ID: {config['id']}")
         print(f"    Description: {config['description']}")
@@ -53,6 +70,12 @@ Examples:
   # Multi-part story generation (automatic continuity)
   %(prog)s "A 3-part journey through data governance" --story-parts 3 -o journey
   %(prog)s "Evolution of a data platform" --story-parts 4 --aspect 16:9 --size 2K -o evolution
+
+  # Resume interrupted story generation
+  %(prog)s "Continue story" --story-parts 5 -o story --resume
+
+  # Disable PROMPTS.md documentation
+  %(prog)s "Private prompt" --no-document -o private.png
         """,
     )
 
@@ -132,6 +155,12 @@ Examples:
     )
 
     parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume story generation, skipping existing parts",
+    )
+
+    parser.add_argument(
         "--draft-mode",
         action="store_true",
         help="Generate at 1K resolution for faster, lower-cost iteration",
@@ -145,12 +174,34 @@ Examples:
     )
 
     parser.add_argument(
+        "--no-document",
+        action="store_true",
+        help="Disable PROMPTS.md registry documentation (for privacy)",
+    )
+
+    parser.add_argument(
+        "--no-metadata",
+        action="store_true",
+        help="Disable JSON metadata sidecar file generation",
+    )
+
+    parser.add_argument(
+        "--registry",
+        type=Path,
+        metavar="PATH",
+        help="Path to PROMPTS.md registry file (default: output_dir/PROMPTS.md)",
+    )
+
+    parser.add_argument(
         "--list-models",
         action="store_true",
         help="List available models and exit",
     )
 
     args = parser.parse_args()
+
+    # Configure logging based on verbosity
+    _configure_logging(args.verbose)
 
     if args.list_models:
         list_models()
@@ -168,7 +219,10 @@ Examples:
                 aspect_ratio=args.aspect,
                 image_size=args.size,
                 verbose=args.verbose,
+                document=not args.no_document,
             )
+            if result:
+                print(f"Finalized image saved to: {result}")
             sys.exit(0 if result else 1)
         except FileNotFoundError as e:
             print(f"Error: {e}")
@@ -193,7 +247,14 @@ Examples:
             aspect_ratio=args.aspect,
             image_size=args.size,
             verbose=args.verbose,
+            resume=args.resume,
+            document=not args.no_document,
         )
+
+        if results:
+            print(f"\nGenerated {len(results)} story parts:")
+            for i, path in enumerate(results, 1):
+                print(f"  Part {i}: {path}")
 
         sys.exit(0 if len(results) == args.story_parts else 1)
 
@@ -211,17 +272,22 @@ Examples:
             save_thoughts=args.save_thoughts,
             verbose=args.verbose,
             is_draft=args.draft_mode,
+            document=not args.no_document,
+            registry_path=args.registry,
+            save_metadata_file=not args.no_metadata,
         )
 
-        if result and args.draft_mode:
-            print(f"\n{'=' * 60}")
-            print("Draft complete! To finalize at higher resolution:")
-            print(f"  gemini-image --finalize {result} --size 2K")
-            print(f"{'=' * 60}")
+        if result:
+            print(f"Image saved to: {result}")
+
+            if args.draft_mode:
+                print("\nDraft complete! To finalize at higher resolution:")
+                print(f"  gemini-image --finalize {result} --size 2K")
 
         sys.exit(0 if result else 1)
 
-    except (ValueError, ImportError) as e:
+    except Exception as e:
+        logger.error("generation_failed", error=str(e))
         print(f"Error: {e}")
         sys.exit(1)
 

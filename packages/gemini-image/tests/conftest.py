@@ -23,6 +23,13 @@ def sample_image_bytes() -> bytes:
 
 
 @pytest.fixture
+def sample_jpeg_bytes() -> bytes:
+    """Return minimal JPEG magic bytes for testing."""
+    # JPEG magic bytes followed by padding
+    return b"\xff\xd8\xff\xe0\x00\x10JFIF\x00" + b"\x00" * 100
+
+
+@pytest.fixture
 def sample_image_path(tmp_path: Path, sample_image_bytes: bytes) -> Path:
     """Create a temporary sample image file."""
     image_path = tmp_path / "sample.png"
