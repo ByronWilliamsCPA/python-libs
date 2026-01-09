@@ -30,7 +30,7 @@ pip install byronwilliamscpa-gemini-image
 ### API Key Setup
 
 The library requires a Google Gemini API key. You can obtain one from the
-[Google AI Studio](https://makersuite.google.com/app/apikey).
+[Google AI Studio](https://aistudio.google.com/apikey).
 
 **Option 1: Environment variable**
 

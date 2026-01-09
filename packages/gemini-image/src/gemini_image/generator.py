@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 import structlog
 
 from gemini_image.client import GeminiClient, _get_genai
-from gemini_image.exceptions import ValidationError
+from gemini_image.exceptions import GenerationError, ValidationError
 from gemini_image.io import (
     get_extension_for_format,
     load_metadata,
@@ -143,7 +143,9 @@ def generate_image(
     )
 
     # Save the image (with format correction)
-    assert parsed.image_data is not None  # We checked has_image above
+    if parsed.image_data is None:  # pragma: no cover
+        msg = "Internal error: image_data is None after has_image check"
+        raise GenerationError(msg)
     saved_path = save_image(parsed.image_data, final_path, correct_extension=True)
 
     # Save thought images if requested
