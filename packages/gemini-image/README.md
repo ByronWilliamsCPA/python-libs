@@ -9,6 +9,10 @@ A comprehensive image generation library built on Google's Gemini models (Nano B
 - **Multi-part story generation** - sequential images with visual continuity
 - **Draft-then-finalize workflow** - 75% cost reduction during iteration
 - **Thinking mode** - visualize model reasoning with intermediate images
+- **Batch processing** - generate multiple images from a JSON file
+- **PROMPTS.md registry** - automatic documentation of all generations
+- **Magic byte format detection** - automatic extension correction for API mismatches
+- **Retry logic** - automatic retry with exponential backoff on transient failures
 
 ## Installation
 
@@ -24,6 +28,14 @@ pip install byronwilliamscpa-gemini-image
 
 ### Set API Key
 
+Create a `.env` file in your project directory:
+
+```bash
+GEMINI_API_KEY=your-api-key-here
+```
+
+Or set the environment variable:
+
 ```bash
 export GEMINI_API_KEY='your-api-key'
 ```
@@ -31,7 +43,7 @@ export GEMINI_API_KEY='your-api-key'
 ### Python API
 
 ```python
-from gemini_image import generate_image, generate_story_sequence
+from gemini_image import generate_image, generate_story_sequence, generate_batch
 
 # Basic text-to-image
 result = generate_image("A futuristic city at sunset")
@@ -59,13 +71,19 @@ edited = generate_image(
 )
 
 # Multi-part story sequence
-from gemini_image import generate_story_sequence
-
 images = generate_story_sequence(
     "A journey through data governance evolution",
     num_parts=3,
     aspect_ratio="16:9",
 )
+
+# Batch processing
+prompts = [
+    {"prompt": "A sunset over mountains", "aspect_ratio": "16:9"},
+    {"prompt": "A forest in autumn", "model_key": "pro"},
+    {"prompt": "A city at night", "image_size": "2K"},
+]
+results = generate_batch(prompts, output_dir=Path("./images"))
 ```
 
 ### Command Line
@@ -88,6 +106,15 @@ gemini-image "Make the building taller" -r blueprint.png
 
 # Multi-part story
 gemini-image "Evolution of a data platform" --story-parts 4 -o evolution
+
+# Resume interrupted story generation
+gemini-image "Continue story" --story-parts 5 -o story --resume
+
+# Batch processing from JSON file
+gemini-image --batch prompts.json -d ./output
+
+# Disable PROMPTS.md documentation (for privacy)
+gemini-image "Private prompt" --no-document -o private.png
 
 # Show thinking process
 gemini-image "Complex blueprint design" --save-thoughts --verbose
@@ -134,6 +161,49 @@ gemini-image "Add more detail to the header" -r draft.png --draft-mode -o draft_
 gemini-image --finalize draft_v2.png --size 2K -o final.png
 ```
 
+## Batch Processing
+
+Create a JSON file with prompts:
+
+```json
+[
+    {"prompt": "A sunset over mountains", "aspect_ratio": "16:9"},
+    {"prompt": "A forest in autumn", "model_key": "pro", "image_size": "2K"},
+    {"prompt": "A city at night", "output_path": "city.png"}
+]
+```
+
+Then process:
+
+```bash
+gemini-image --batch prompts.json -d ./output
+```
+
+Supported fields per prompt:
+
+- `prompt` (required): Text description
+- `output_path`: Specific output filename
+- `model_key`: "flash" or "pro"
+- `aspect_ratio`: "1:1", "3:4", "4:3", "9:16", "16:9"
+- `image_size`: "1K", "2K", "4K"
+- `reference_images`: List of reference image paths
+
+## PROMPTS.md Registry
+
+Every generation is automatically logged to `PROMPTS.md` in the output directory:
+
+```markdown
+## Generation Log
+
+### 2026-01-09 13:45:22 - generated_20260109_134522.jpg
+- **Prompt**: A futuristic city at sunset
+- **Model**: pro
+- **Size**: 2K
+- **Aspect**: 16:9
+```
+
+Disable with `--no-document` flag or `document=False` parameter.
+
 ## API Reference
 
 ### `generate_image()`
@@ -151,7 +221,23 @@ def generate_image(
     save_thoughts: bool = False,
     verbose: bool = False,
     is_draft: bool = False,
+    document: bool = True,           # Log to PROMPTS.md
+    registry_path: Path | None = None,
+    save_metadata_file: bool = True,  # Save JSON sidecar
 ) -> Path | None:
+```
+
+### `generate_batch()`
+
+```python
+def generate_batch(
+    prompts: list[dict[str, object]],
+    output_dir: Path | None = None,
+    parallel: int = 1,
+    resume: bool = True,
+    document: bool = True,
+    show_progress: bool = True,
+) -> list[Path | None]:
 ```
 
 ### `generate_story_sequence()`
@@ -166,6 +252,8 @@ def generate_story_sequence(
     aspect_ratio: AspectRatio | None = None,
     image_size: ImageSize | None = None,
     verbose: bool = False,
+    resume: bool = True,   # Skip existing parts
+    document: bool = True,
 ) -> list[Path]:
 ```
 
@@ -181,7 +269,50 @@ def finalize_draft(
     aspect_ratio: AspectRatio | None = None,
     image_size: ImageSize | None = None,
     verbose: bool = False,
+    document: bool = True,
 ) -> Path | None:
+```
+
+## Exception Handling
+
+```python
+from gemini_image import (
+    GeminiImageError,       # Base exception
+    ConfigurationError,     # Missing API key
+    ValidationError,        # Invalid parameters
+    APIError,               # API errors
+    RateLimitError,         # Rate limiting
+    ContentBlockedError,    # Safety filter
+    FileOperationError,     # File I/O errors
+    FormatDetectionError,   # Unknown image format
+)
+
+try:
+    result = generate_image("A sunset")
+except RateLimitError:
+    print("Rate limited, retry automatically handled")
+except ContentBlockedError:
+    print("Content blocked by safety filters")
+except GeminiImageError as e:
+    print(f"Generation failed: {e}")
+```
+
+## Development
+
+```bash
+# Clone and install
+git clone https://github.com/ByronWilliamsCPA/python-libs.git
+cd python-libs/packages/gemini-image
+uv sync --all-extras
+
+# Run tests
+uv run pytest tests -v
+
+# Run functional tests (requires API key)
+uv run pytest tests/test_functional.py -v
+
+# Lint
+uv run ruff check src tests
 ```
 
 ## License
