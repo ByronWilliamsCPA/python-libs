@@ -29,6 +29,72 @@ class TestGenerateImage:
         with pytest.raises(ValidationError, match="Unknown model"):
             generate_image("test prompt", model_key="invalid")  # type: ignore[arg-type]
 
+    def test_generate_image_invalid_aspect_ratio_raises(self) -> None:
+        """Test that invalid aspect ratio raises ValidationError."""
+        with pytest.raises(ValidationError, match="Invalid aspect ratio"):
+            generate_image("test prompt", aspect_ratio="invalid")  # type: ignore[arg-type]
+
+    def test_generate_image_new_aspect_ratios_valid(
+        self,
+        tmp_path: Path,
+        mock_genai_response: MagicMock,
+    ) -> None:
+        """Test that new API aspect ratios are accepted."""
+        mock_genai = MagicMock()
+        mock_types = MagicMock()
+
+        mock_client = MagicMock()
+        mock_client.models.generate_content.return_value = mock_genai_response
+        mock_genai.Client.return_value = mock_client
+
+        # Test one of the new aspect ratios
+        with (
+            patch.object(client_module, "_genai", mock_genai),
+            patch.object(client_module, "_types", mock_types),
+            patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}),
+        ):
+            result = generate_image(
+                prompt="Test with 21:9 ultra-wide",
+                aspect_ratio="21:9",
+                output_dir=tmp_path,
+                document=False,
+            )
+
+        assert result is not None
+        assert result.exists()
+
+    def test_generate_image_too_many_references_flash_raises(
+        self,
+        tmp_path: Path,
+        sample_image_path: Path,
+    ) -> None:
+        """Test that too many reference images for flash model raises ValidationError."""
+        # Flash model allows max 3 reference images
+        too_many_refs = [sample_image_path] * 4
+
+        with pytest.raises(ValidationError, match="Too many reference images"):
+            generate_image(
+                "test prompt",
+                model_key="flash",
+                reference_images=too_many_refs,
+            )
+
+    def test_generate_image_too_many_references_pro_raises(
+        self,
+        tmp_path: Path,
+        sample_image_path: Path,
+    ) -> None:
+        """Test that too many reference images for pro model raises ValidationError."""
+        # Pro model allows max 14 reference images
+        too_many_refs = [sample_image_path] * 15
+
+        with pytest.raises(ValidationError, match="Too many reference images"):
+            generate_image(
+                "test prompt",
+                model_key="pro",
+                reference_images=too_many_refs,
+            )
+
     def test_generate_image_missing_api_key_raises(self) -> None:
         """Test that missing API key raises ConfigurationError."""
         from gemini_image.exceptions import ConfigurationError

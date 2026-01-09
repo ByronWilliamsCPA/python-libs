@@ -113,10 +113,15 @@ result = generate_image(
 Supported aspect ratios:
 
 - `1:1` - Square (social media, profile images)
+- `2:3` - Portrait (2x3, print photos)
+- `3:2` - Landscape (3x2, DSLR photos)
 - `3:4` - Portrait (documents, posters)
 - `4:3` - Standard landscape (presentations)
+- `4:5` - Portrait (Instagram posts)
+- `5:4` - Landscape (5x4, large format)
 - `9:16` - Vertical/mobile (stories, mobile apps)
 - `16:9` - Widescreen (documents, videos)
+- `21:9` - Ultra-wide/cinematic (movie posters, banners)
 
 ```python
 # Square image for social media
@@ -124,6 +129,9 @@ result = generate_image("Profile avatar", aspect_ratio="1:1")
 
 # Vertical for mobile
 result = generate_image("Mobile wallpaper", aspect_ratio="9:16")
+
+# Ultra-wide cinematic
+result = generate_image("Movie poster banner", aspect_ratio="21:9")
 ```
 
 ### Reference-Based Editing
@@ -145,6 +153,11 @@ CLI:
 ```bash
 gemini-image "Add more clouds" -r original.png -o edited.png
 ```
+
+**Reference image limits:**
+
+- Flash model: Up to 3 reference images
+- Pro model: Up to 14 reference images
 
 ### Multi-Part Story Sequences
 

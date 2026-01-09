@@ -6,6 +6,7 @@ from gemini_image.models import (
     ASPECT_RATIOS,
     DEFAULT_MODEL,
     IMAGE_SIZES,
+    MAX_REFERENCE_IMAGES,
     MODELS,
 )
 
@@ -30,11 +31,20 @@ class TestModelConfigurations:
         assert DEFAULT_MODEL == "pro"
 
     def test_aspect_ratios(self) -> None:
-        """Test that all expected aspect ratios are defined."""
-        expected = ["1:1", "3:4", "4:3", "9:16", "16:9"]
+        """Test that all expected aspect ratios are defined per API docs."""
+        # Per API docs: 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9
+        expected = [
+            "1:1", "2:3", "3:2", "3:4", "4:3",
+            "4:5", "5:4", "9:16", "16:9", "21:9",
+        ]
         assert expected == ASPECT_RATIOS
 
     def test_image_sizes(self) -> None:
         """Test that all expected image sizes are defined."""
         expected = ["1K", "2K", "4K"]
         assert expected == IMAGE_SIZES
+
+    def test_max_reference_images(self) -> None:
+        """Test that reference image limits are defined correctly."""
+        assert MAX_REFERENCE_IMAGES["flash"] == 3
+        assert MAX_REFERENCE_IMAGES["pro"] == 14

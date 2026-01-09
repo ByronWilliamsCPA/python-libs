@@ -27,6 +27,7 @@ from gemini_image.models import (
     ASPECT_RATIOS,
     DEFAULT_MODEL,
     IMAGE_SIZES,
+    MAX_REFERENCE_IMAGES,
     MODELS,
 )
 from gemini_image.registry import PromptRegistry
@@ -87,6 +88,7 @@ def generate_image(
     _validate_model_key(model_key)
     _validate_aspect_ratio(aspect_ratio)
     _validate_image_size(image_size)
+    _validate_reference_images(reference_images, model_key)
 
     model_config = MODELS[model_key]
 
@@ -644,6 +646,40 @@ def _validate_image_size(image_size: str | None) -> None:
             field="image_size",
             value=image_size,
             valid_options=IMAGE_SIZES,
+        )
+
+
+def _validate_reference_images(
+    reference_images: list[Path] | None,
+    model_key: str,
+) -> None:
+    """Validate reference images count against model limits.
+
+    Per API documentation:
+    - Flash model: Up to 3 reference images
+    - Pro model: Up to 14 reference images
+
+    Args:
+        reference_images: List of reference image paths.
+        model_key: Model key being used.
+
+    Raises:
+        ValidationError: If too many reference images for the model.
+
+    """
+    if reference_images is None:
+        return
+
+    count = len(reference_images)
+    max_allowed = MAX_REFERENCE_IMAGES.get(model_key, 3)  # type: ignore[arg-type]
+
+    if count > max_allowed:
+        raise ValidationError(
+            f"Too many reference images for {model_key} model: {count} provided, "
+            f"maximum is {max_allowed}",
+            field="reference_images",
+            value=count,
+            valid_options=[f"1-{max_allowed}"],
         )
 
 

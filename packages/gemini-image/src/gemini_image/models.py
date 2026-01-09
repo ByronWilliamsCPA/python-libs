@@ -6,8 +6,14 @@ from typing import Literal, TypedDict
 
 # Type aliases for model configuration
 ModelKey = Literal["flash", "pro"]
-AspectRatio = Literal["1:1", "3:4", "4:3", "9:16", "16:9"]
+AspectRatio = Literal["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"]
 ImageSize = Literal["1K", "2K", "4K"]
+
+# Reference image limits per model
+MAX_REFERENCE_IMAGES: dict[ModelKey, int] = {
+    "flash": 3,
+    "pro": 14,
+}
 
 
 class ModelConfig(TypedDict):
@@ -38,8 +44,20 @@ MODELS: dict[ModelKey, ModelConfig] = {
 
 DEFAULT_MODEL: ModelKey = "pro"
 
-# Valid aspect ratios for pro model
-ASPECT_RATIOS: list[AspectRatio] = ["1:1", "3:4", "4:3", "9:16", "16:9"]
+# Valid aspect ratios (all models)
+# Per API docs: 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9
+ASPECT_RATIOS: list[AspectRatio] = [
+    "1:1",   # Square
+    "2:3",   # Portrait (2x3)
+    "3:2",   # Landscape (3x2)
+    "3:4",   # Portrait (3x4)
+    "4:3",   # Standard landscape
+    "4:5",   # Portrait (Instagram)
+    "5:4",   # Landscape (5x4)
+    "9:16",  # Vertical/mobile
+    "16:9",  # Widescreen
+    "21:9",  # Ultra-wide/cinematic
+]
 
 # Valid image sizes for pro model
 IMAGE_SIZES: list[ImageSize] = ["1K", "2K", "4K"]

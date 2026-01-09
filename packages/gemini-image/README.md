@@ -141,10 +141,15 @@ gemini-image --list-models
 ## Aspect Ratios
 
 - `1:1` - Square
+- `2:3` - Portrait (2x3)
+- `3:2` - Landscape (3x2)
 - `3:4` - Portrait
 - `4:3` - Standard landscape
+- `4:5` - Portrait (Instagram)
+- `5:4` - Landscape (5x4)
 - `9:16` - Vertical/mobile
 - `16:9` - Widescreen (default)
+- `21:9` - Ultra-wide/cinematic
 
 ## Draft-Then-Finalize Workflow
 
@@ -184,9 +189,9 @@ Supported fields per prompt:
 - `prompt` (required): Text description
 - `output_path`: Specific output filename
 - `model_key`: "flash" or "pro"
-- `aspect_ratio`: "1:1", "3:4", "4:3", "9:16", "16:9"
+- `aspect_ratio`: Any supported ratio (see [Aspect Ratios](#aspect-ratios))
 - `image_size`: "1K", "2K", "4K"
-- `reference_images`: List of reference image paths
+- `reference_images`: List of reference image paths (max 3 for flash, 14 for pro)
 
 ## PROMPTS.md Registry
 
