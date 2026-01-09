@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -10,12 +11,33 @@ import structlog
 
 from gemini_image.generator import (
     finalize_draft,
+    generate_batch,
     generate_image,
     generate_story_sequence,
 )
 from gemini_image.models import ASPECT_RATIOS, DEFAULT_MODEL, IMAGE_SIZES, MODELS
 
 logger = structlog.get_logger(__name__)
+
+
+def _show_spinner(message: str) -> object:
+    """Create a spinner context manager for single operations."""
+    try:
+        from rich.console import Console
+        from rich.status import Status
+
+        console = Console()
+        return Status(message, console=console, spinner="dots")
+    except ImportError:
+        # Fallback to a simple context manager that does nothing
+        from contextlib import contextmanager
+
+        @contextmanager
+        def noop():
+            print(message + "...")
+            yield
+
+        return noop()
 
 
 def _configure_logging(verbose: bool) -> None:
@@ -76,6 +98,9 @@ Examples:
 
   # Disable PROMPTS.md documentation
   %(prog)s "Private prompt" --no-document -o private.png
+
+  # Batch processing from JSON file
+  %(prog)s --batch prompts.json -d ./output
         """,
     )
 
@@ -198,6 +223,19 @@ Examples:
         help="List available models and exit",
     )
 
+    parser.add_argument(
+        "--batch",
+        type=Path,
+        metavar="JSON_FILE",
+        help="Process batch of prompts from JSON file. Format: [{\"prompt\": \"...\", ...}, ...]",
+    )
+
+    parser.add_argument(
+        "--no-progress",
+        action="store_true",
+        help="Disable progress bar display (for batch/story modes)",
+    )
+
     args = parser.parse_args()
 
     # Configure logging based on verbosity
@@ -206,6 +244,47 @@ Examples:
     if args.list_models:
         list_models()
         return
+
+    # Batch mode
+    if args.batch:
+        if not args.batch.exists():
+            print(f"Error: Batch file not found: {args.batch}")
+            sys.exit(1)
+
+        try:
+            with open(args.batch) as f:
+                prompts = json.load(f)
+
+            if not isinstance(prompts, list):
+                print("Error: Batch file must contain a JSON array of prompt objects")
+                sys.exit(1)
+
+            results = generate_batch(
+                prompts=prompts,
+                output_dir=args.output_dir,
+                resume=args.resume,
+                document=not args.no_document,
+                show_progress=not args.no_progress,
+            )
+
+            successful = sum(1 for r in results if r is not None)
+            print(f"\nBatch complete: {successful}/{len(prompts)} images generated")
+
+            if successful > 0:
+                print("\nGenerated images:")
+                for i, result in enumerate(results, 1):
+                    status = str(result) if result else "[FAILED]"
+                    print(f"  {i}. {status}")
+
+            sys.exit(0 if successful == len(prompts) else 1)
+
+        except json.JSONDecodeError as e:
+            print(f"Error: Invalid JSON in batch file: {e}")
+            sys.exit(1)
+        except Exception as e:
+            logger.error("batch_failed", error=str(e))
+            print(f"Error: {e}")
+            sys.exit(1)
 
     # Finalize mode
     if args.finalize:

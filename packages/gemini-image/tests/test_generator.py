@@ -12,6 +12,7 @@ from gemini_image import client as client_module
 from gemini_image.exceptions import FileOperationError, ValidationError
 from gemini_image.generator import (
     finalize_draft,
+    generate_batch,
     generate_image,
     generate_story_sequence,
 )
@@ -182,3 +183,126 @@ class TestFinalizeDraft:
 
         assert result is not None
         assert "_final" in result.name
+
+
+class TestGenerateBatch:
+    """Tests for generate_batch function."""
+
+    def test_batch_empty_list_raises(self) -> None:
+        """Test that empty prompts list raises ValidationError."""
+        with pytest.raises(ValidationError, match="cannot be empty"):
+            generate_batch([])
+
+    def test_batch_generates_multiple_images(
+        self,
+        tmp_path: Path,
+        mock_genai_response: MagicMock,
+    ) -> None:
+        """Test that batch generates multiple images."""
+        mock_genai = MagicMock()
+        mock_types = MagicMock()
+
+        mock_client = MagicMock()
+        mock_client.models.generate_content.return_value = mock_genai_response
+        mock_genai.Client.return_value = mock_client
+
+        prompts = [
+            {"prompt": "A sunset over mountains"},
+            {"prompt": "A forest in autumn"},
+        ]
+
+        with (
+            patch.object(client_module, "_genai", mock_genai),
+            patch.object(client_module, "_types", mock_types),
+            patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}),
+        ):
+            results = generate_batch(
+                prompts=prompts,
+                output_dir=tmp_path,
+                document=False,
+                show_progress=False,
+            )
+
+        assert len(results) == 2
+        for result in results:
+            assert result is not None
+            assert result.exists()
+
+    def test_batch_handles_invalid_prompt(
+        self,
+        tmp_path: Path,
+        mock_genai_response: MagicMock,
+    ) -> None:
+        """Test that batch handles invalid prompt configs gracefully."""
+        mock_genai = MagicMock()
+        mock_types = MagicMock()
+
+        mock_client = MagicMock()
+        mock_client.models.generate_content.return_value = mock_genai_response
+        mock_genai.Client.return_value = mock_client
+
+        prompts = [
+            {"prompt": "Valid prompt"},
+            {"no_prompt_key": "Invalid"},  # Missing 'prompt' key
+            {"prompt": "Another valid prompt"},
+        ]
+
+        with (
+            patch.object(client_module, "_genai", mock_genai),
+            patch.object(client_module, "_types", mock_types),
+            patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}),
+        ):
+            results = generate_batch(
+                prompts=prompts,
+                output_dir=tmp_path,
+                document=False,
+                show_progress=False,
+            )
+
+        # Should have 3 results: 2 successful, 1 None for invalid
+        assert len(results) == 3
+        assert results[0] is not None
+        assert results[1] is None  # Invalid prompt
+        assert results[2] is not None
+
+    def test_batch_resume_skips_existing(
+        self,
+        tmp_path: Path,
+        sample_image_bytes: bytes,
+        mock_genai_response: MagicMock,
+    ) -> None:
+        """Test that batch resume skips existing output files."""
+        mock_genai = MagicMock()
+        mock_types = MagicMock()
+
+        mock_client = MagicMock()
+        mock_client.models.generate_content.return_value = mock_genai_response
+        mock_genai.Client.return_value = mock_client
+
+        # Create existing file
+        existing = tmp_path / "existing.png"
+        existing.write_bytes(sample_image_bytes)
+
+        prompts = [
+            {"prompt": "New image"},
+            {"prompt": "Should skip", "output_path": str(existing)},
+        ]
+
+        with (
+            patch.object(client_module, "_genai", mock_genai),
+            patch.object(client_module, "_types", mock_types),
+            patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}),
+        ):
+            results = generate_batch(
+                prompts=prompts,
+                output_dir=tmp_path,
+                resume=True,
+                document=False,
+                show_progress=False,
+            )
+
+        assert len(results) == 2
+        # The existing file should be returned as-is
+        assert results[1] == existing
+        # The API should only be called once (for the new image)
+        assert mock_client.models.generate_content.call_count == 1

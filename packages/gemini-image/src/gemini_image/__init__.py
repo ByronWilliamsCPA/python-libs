@@ -38,6 +38,7 @@ from gemini_image.exceptions import (
 )
 from gemini_image.generator import (
     finalize_draft,
+    generate_batch,
     generate_image,
     generate_story_sequence,
 )
@@ -89,6 +90,7 @@ __all__ = [
     "ValidationError",
     "detect_image_format",
     "finalize_draft",
+    "generate_batch",
     "generate_image",
     "generate_story_sequence",
     "get_api_key",

@@ -2,6 +2,7 @@
 
 This module provides the main entry points for image generation:
 - generate_image(): Single image generation
+- generate_batch(): Batch processing multiple prompts
 - generate_story_sequence(): Multi-part story generation
 - finalize_draft(): Draft-to-final upscaling
 """
@@ -178,6 +179,197 @@ def generate_image(
 
     logger.info("image_generated", path=str(saved_path))
     return saved_path
+
+
+def generate_batch(
+    prompts: list[dict[str, object]],
+    output_dir: Path | None = None,
+    *,
+    parallel: int = 1,
+    resume: bool = True,
+    document: bool = True,
+    show_progress: bool = True,
+) -> list[Path | None]:
+    """Generate multiple images from a list of prompts.
+
+    Each item in the prompts list should be a dictionary with at least a
+    'prompt' key. Other supported keys match generate_image() parameters:
+    - prompt (required): Text description
+    - output_path: Specific output path
+    - model_key: Model to use (default: flash)
+    - aspect_ratio: Aspect ratio for pro model
+    - image_size: Image size
+    - reference_images: List of reference image paths
+
+    Args:
+        prompts: List of prompt dictionaries.
+        output_dir: Output directory for generated images.
+        parallel: Number of concurrent generations (currently only 1 supported).
+        resume: If True, skip prompts that already have output files.
+        document: If True, adds entries to PROMPTS.md registry.
+        show_progress: If True, displays a progress bar.
+
+    Returns:
+        List of paths to generated images (None for failed generations).
+
+    Raises:
+        ValidationError: If prompts list is empty or a prompt is invalid.
+
+    Example:
+        >>> prompts = [
+        ...     {"prompt": "A sunset over mountains", "aspect_ratio": "16:9"},
+        ...     {"prompt": "A forest in autumn", "model_key": "pro"},
+        ... ]
+        >>> results = generate_batch(prompts, output_dir=Path("./images"))
+
+    """
+    if not prompts:
+        raise ValidationError(
+            "Prompts list cannot be empty",
+            field="prompts",
+            value=[],
+        )
+
+    if parallel > 1:
+        logger.warning(
+            "parallel_not_implemented",
+            requested=parallel,
+            using=1,
+            message="Parallel batch processing not yet implemented",
+        )
+        parallel = 1
+
+    if output_dir is None:
+        output_dir = Path.cwd()
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    results: list[Path | None] = []
+
+    logger.info(
+        "batch_generation_started",
+        total_prompts=len(prompts),
+        output_dir=str(output_dir),
+    )
+
+    # Import progress bar conditionally
+    progress_context: object
+    if show_progress:
+        try:
+            from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
+
+            progress_context = Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            )
+        except ImportError:
+            logger.debug("rich_not_available_using_simple_progress")
+            progress_context = None
+    else:
+        progress_context = None
+
+    def process_prompts(progress: object | None) -> list[Path | None]:
+        """Process prompts with optional progress tracking."""
+        batch_results: list[Path | None] = []
+
+        task_id = None
+        if progress is not None:
+            task_id = progress.add_task(  # type: ignore[union-attr]
+                f"Generating {len(prompts)} images...",
+                total=len(prompts),
+            )
+
+        for idx, prompt_config in enumerate(prompts, 1):
+            # Validate prompt config
+            if not isinstance(prompt_config, dict):
+                logger.error(
+                    "invalid_prompt_config",
+                    index=idx,
+                    type=type(prompt_config).__name__,
+                )
+                batch_results.append(None)
+                if progress is not None and task_id is not None:
+                    progress.advance(task_id)  # type: ignore[union-attr]
+                continue
+
+            prompt_text = prompt_config.get("prompt")
+            if not prompt_text or not isinstance(prompt_text, str):
+                logger.error("missing_prompt_text", index=idx)
+                batch_results.append(None)
+                if progress is not None and task_id is not None:
+                    progress.advance(task_id)  # type: ignore[union-attr]
+                continue
+
+            # Check if output already exists (resume support)
+            output_path = prompt_config.get("output_path")
+            if output_path is not None:
+                output_path = Path(output_path)  # type: ignore[arg-type]
+            if resume and output_path is not None and output_path.exists():
+                logger.info("skipping_existing", index=idx, path=str(output_path))
+                batch_results.append(output_path)
+                if progress is not None and task_id is not None:
+                    progress.advance(task_id)  # type: ignore[union-attr]
+                continue
+
+            # Extract other parameters
+            model_key = prompt_config.get("model_key", DEFAULT_MODEL)
+            aspect_ratio = prompt_config.get("aspect_ratio")
+            image_size = prompt_config.get("image_size")
+            reference_images = prompt_config.get("reference_images")
+
+            if reference_images:
+                reference_images = [Path(p) for p in reference_images]  # type: ignore[union-attr]
+
+            logger.info(
+                "batch_generating",
+                index=idx,
+                total=len(prompts),
+                prompt_preview=prompt_text[:30] + "..." if len(prompt_text) > 30 else prompt_text,
+            )
+
+            try:
+                result = generate_image(
+                    prompt=prompt_text,
+                    model_key=model_key,  # type: ignore[arg-type]
+                    reference_images=reference_images,  # type: ignore[arg-type]
+                    output_path=output_path,
+                    output_dir=output_dir,
+                    aspect_ratio=aspect_ratio,  # type: ignore[arg-type]
+                    image_size=image_size,  # type: ignore[arg-type]
+                    document=document,
+                )
+                batch_results.append(result)
+            except Exception as e:
+                logger.error(
+                    "batch_item_failed",
+                    index=idx,
+                    error=str(e),
+                )
+                batch_results.append(None)
+
+            if progress is not None and task_id is not None:
+                progress.advance(task_id)  # type: ignore[union-attr]
+
+        return batch_results
+
+    # Run with or without progress bar
+    if progress_context is not None:
+        with progress_context:  # type: ignore[union-attr]
+            results = process_prompts(progress_context)
+    else:
+        results = process_prompts(None)
+
+    # Summary
+    successful = sum(1 for r in results if r is not None)
+    logger.info(
+        "batch_generation_complete",
+        successful=successful,
+        failed=len(prompts) - successful,
+        total=len(prompts),
+    )
+
+    return results
 
 
 def generate_story_sequence(
