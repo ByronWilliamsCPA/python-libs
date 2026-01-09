@@ -302,6 +302,37 @@ except GeminiImageError as e:
     print(f"Generation failed: {e}")
 ```
 
+## Security
+
+### API Key Handling
+
+The library loads API keys securely:
+
+- **Environment variable**: Set `GEMINI_API_KEY` in your environment
+- **`.env` file**: The library auto-loads `.env` files via python-dotenv
+- **Never logged**: API keys are never included in exception messages or logs
+- **Never stored**: Keys are not persisted to disk by the library
+
+**Best practices:**
+
+```bash
+# Add to .gitignore
+echo ".env" >> .gitignore
+
+# Set permissions (Unix)
+chmod 600 .env
+```
+
+**What NOT to do:**
+
+```python
+# ❌ Don't hardcode API keys
+generate_image("prompt", api_key="AIza...")  # Not supported, use env var
+
+# ❌ Don't commit .env files
+# ❌ Don't log or print API keys
+```
+
 ## Development
 
 ```bash

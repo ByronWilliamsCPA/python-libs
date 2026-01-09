@@ -248,9 +248,28 @@ gemini-image --batch prompts.json -d ./output
 | `prompt` | str | Text description (required) |
 | `output_path` | str | Specific output filename |
 | `model_key` | str | "flash" or "pro" |
-| `aspect_ratio` | str | "1:1", "3:4", "4:3", "9:16", "16:9" |
+| `aspect_ratio` | str | Any supported ratio (see [Aspect Ratios](#aspect-ratios)) |
 | `image_size` | str | "1K", "2K", "4K" |
 | `reference_images` | list | Paths to reference images |
+
+**Memory Considerations:**
+
+When generating 4K images in batch, be aware of memory usage:
+
+- **4K images**: ~50-100MB per uncompressed image in memory
+- **Batch of 10 at 4K**: May require 500MB-1GB+ RAM during processing
+- **Recommendation**: For large 4K batches, process in smaller chunks or use 2K resolution
+
+```python
+# For memory-constrained environments, chunk large batches
+def chunked_batch(prompts: list, chunk_size: int = 5) -> list:
+    """Process batch in chunks to limit memory usage."""
+    results = []
+    for i in range(0, len(prompts), chunk_size):
+        chunk = prompts[i:i + chunk_size]
+        results.extend(generate_batch(chunk, output_dir=Path("./output")))
+    return results
+```
 
 ## Workflow Patterns
 

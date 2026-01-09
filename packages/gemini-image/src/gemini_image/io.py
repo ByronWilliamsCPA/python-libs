@@ -61,7 +61,7 @@ def detect_image_format(data: bytes) -> str:
         data: Raw image bytes.
 
     Returns:
-        Format string: 'png', 'jpeg', 'gif', or 'webp'.
+        The detected format ('png', 'jpeg', 'gif', or 'webp').
 
     Raises:
         FormatDetectionError: If the format cannot be detected.
