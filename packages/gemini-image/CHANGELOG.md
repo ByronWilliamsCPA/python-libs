@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2026-01-09
 
 ### Added
 
@@ -41,12 +41,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `generate_image()` function for text-to-image generation
 - `generate_story_sequence()` function for multi-part stories
 - `finalize_draft()` function for draft-to-final workflow
-- CLI interface (`gemini-image` command)
+- CLI (`gemini-image` command)
 - Support for Gemini 2.5 Flash and Gemini 3 Pro models
 - Aspect ratio and resolution configuration
 - Reference image support for editing
 - Thinking mode with intermediate image visualization
 - Draft mode for cost-effective iteration
 
-[Unreleased]: https://github.com/ByronWilliamsCPA/python-libs/compare/gemini-image-v0.1.0...HEAD
+[0.2.0]: https://github.com/ByronWilliamsCPA/python-libs/compare/gemini-image-v0.1.0...gemini-image-v0.2.0
 [0.1.0]: https://github.com/ByronWilliamsCPA/python-libs/releases/tag/gemini-image-v0.1.0

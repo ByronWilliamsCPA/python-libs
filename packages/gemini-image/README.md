@@ -197,15 +197,34 @@ Supported fields per prompt:
 
 Every generation is automatically logged to `PROMPTS.md` in the output directory:
 
-```markdown
+````markdown
 ## Generation Log
 
-### 2026-01-09 13:45:22 - generated_20260109_134522.jpg
-- **Prompt**: A futuristic city at sunset
-- **Model**: pro
-- **Size**: 2K
-- **Aspect**: 16:9
+| Image | Model | Date | Type |
+|-------|-------|------|------|
+| generated_20260109_134522.jpg | pro | 2026-01-09 | generated |
+
+---
+
+### generated_20260109_134522.jpg
+
+| Property | Value |
+|----------|-------|
+| **File** | `output/generated_20260109_134522.jpg` |
+| **Model** | pro |
+| **Date** | 2026-01-09 13:45:22 |
+| **Type** | generated |
+| **Aspect Ratio** | 16:9 |
+| **Size** | 2K |
+
+**Prompt:**
+
 ```
+A futuristic city at sunset
+```
+
+---
+````
 
 Disable with `--no-document` flag or `document=False` parameter.
 

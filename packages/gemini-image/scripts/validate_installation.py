@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2024 Byron Williams <byronawilliams@gmail.com>
+# SPDX-License-Identifier: MIT
 """Validate gemini-image installation and configuration.
 
 Usage:
@@ -90,9 +92,8 @@ def check_api_key() -> bool:
 
         key = get_api_key()
         if key and len(key) > 10:
-            # Mask the key for security
-            masked = f"{key[:4]}...{key[-4:]}"
-            print(f"OK (key: {masked})")
+            # Key found and valid length - don't log any part of the key
+            print("OK (API key configured)")
             return True
         print("FAILED: API key too short or empty")
         return False

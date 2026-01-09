@@ -8,7 +8,9 @@
 
 ## Summary
 
-The `byronwilliamscpa-cloudflare-auth` package has broken imports that prevent it from being used as a dependency in other projects. This violates the core purpose of python-libs as a shared library repository.
+The `byronwilliamscpa-cloudflare-auth` package has broken imports that prevent it from being used
+as a dependency in other projects. This violates the core purpose of python-libs as a shared
+library repository.
 
 ## Issues Found
 
@@ -27,6 +29,7 @@ The `byronwilliamscpa-cloudflare-auth` package has broken imports that prevent i
 - And potentially others
 
 **Example**:
+
 ```python
 # Incorrect (current in repo)
 from src.cloudflare_auth.models import CloudflareUser
@@ -38,6 +41,7 @@ from cloudflare_auth.middleware import CloudflareAuthMiddleware
 ```
 
 **Fix Applied**:
+
 ```bash
 cd packages/cloudflare-auth
 find src -name "*.py" -exec sed -i 's/from src\.cloudflare_auth/from cloudflare_auth/g' {} \;
@@ -56,6 +60,7 @@ find src -name "*.py" -exec sed -i 's/import src\.cloudflare_auth/import cloudfl
 - `packages/cloudflare-auth/src/cloudflare_auth/middleware_enhanced.py`
 
 **Import Statement**:
+
 ```python
 from src.config.settings import CloudflareSettings, get_cloudflare_settings
 ```
@@ -88,6 +93,7 @@ def get_cloudflare_settings() -> CloudflareSettings:
 ```
 
 Then update imports:
+
 ```python
 # In validators.py, middleware.py, middleware_enhanced.py
 from cloudflare_auth.settings import CloudflareSettings, get_cloudflare_settings
@@ -133,6 +139,7 @@ The package appears to have been copied from a different project structure where
 ### Immediate (Required for PR #54)
 
 1. **Commit local import fixes**:
+
    ```bash
    cd packages/cloudflare-auth
    git add src/cloudflare_auth/*.py
@@ -146,6 +153,7 @@ The package appears to have been copied from a different project structure where
    - Test imports work correctly
 
 3. **Add import tests**:
+
    ```python
    # tests/test_imports.py
    def test_public_imports():
@@ -159,6 +167,7 @@ The package appears to have been copied from a different project structure where
    ```
 
 4. **Add CI check**:
+
    ```yaml
    # .github/workflows/ci.yml
    - name: Test package imports

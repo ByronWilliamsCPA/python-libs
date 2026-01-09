@@ -391,6 +391,9 @@ The library automatically retries with exponential backoff. If you still hit lim
 ```python
 import time
 
+from gemini_image import generate_image
+from gemini_image.exceptions import RateLimitError
+
 for prompt in prompts:
     try:
         result = generate_image(prompt)

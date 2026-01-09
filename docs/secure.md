@@ -1,7 +1,7 @@
 # python-libs Publishing Handoff Document
 
-> **Repository:** [ByronWilliamsCPA/python-libs](https://github.com/ByronWilliamsCPA/python-libs)  
-> **Last Updated:** 2025-12-04  
+> **Repository:** [ByronWilliamsCPA/python-libs](https://github.com/ByronWilliamsCPA/python-libs)
+> **Last Updated:** 2025-12-04
 > **Status:** Ready for Implementation
 
 ## Overview
@@ -144,7 +144,7 @@ jobs:
         run: |
           TAG="${{ github.ref_name }}"
           echo "Processing tag: $TAG"
-          
+
           if [[ "$TAG" == cloudflare-auth-v* ]]; then
             echo "package_dir=packages/cloudflare-auth" >> $GITHUB_OUTPUT
             echo "package_name=byronwilliamscpa-cloudflare-auth" >> $GITHUB_OUTPUT
@@ -240,60 +240,60 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class CloudflareSettings(BaseSettings):
     """Configuration for Cloudflare Access authentication."""
-    
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
         case_sensitive=False,
     )
-    
+
     # Required
     cloudflare_team_domain: str = Field(default="", alias="CLOUDFLARE_TEAM_DOMAIN")
     cloudflare_audience_tag: str = Field(default="", alias="CLOUDFLARE_AUDIENCE_TAG")
     cloudflare_enabled: bool = Field(default=True, alias="CLOUDFLARE_ENABLED")
-    
+
     # Headers
     jwt_header_name: str = Field(default="Cf-Access-Jwt-Assertion", alias="CF_JWT_HEADER")
     email_header_name: str = Field(default="Cf-Access-Authenticated-User-Email", alias="CF_EMAIL_HEADER")
-    
+
     # Security
     require_email_verification: bool = Field(default=True, alias="CF_REQUIRE_EMAIL_VERIFICATION")
     log_auth_failures: bool = Field(default=True, alias="CF_LOG_AUTH_FAILURES")
     require_cloudflare_headers: bool = Field(default=True, alias="CF_REQUIRE_CLOUDFLARE_HEADERS")
-    
+
     # Access control
     allowed_email_domains: list[str] = Field(default_factory=list, alias="CF_ALLOWED_EMAIL_DOMAINS")
     allowed_tunnel_ips: list[str] = Field(default_factory=list, alias="CF_ALLOWED_TUNNEL_IPS")
-    
+
     # Cookies
     cookie_domain: Optional[str] = Field(default=None, alias="CF_COOKIE_DOMAIN")
     cookie_path: str = Field(default="/", alias="CF_COOKIE_PATH")
     cookie_secure: bool = Field(default=True, alias="CF_COOKIE_SECURE")
     cookie_samesite: str = Field(default="lax", alias="CF_COOKIE_SAMESITE")
-    
+
     # JWT
     jwt_algorithm: str = Field(default="RS256", alias="CF_JWT_ALGORITHM")
     jwt_cache_max_keys: int = Field(default=16, alias="CF_JWT_CACHE_MAX_KEYS")
-    
+
     @field_validator("allowed_email_domains", "allowed_tunnel_ips", mode="before")
     @classmethod
     def parse_comma_separated(cls, v):
         if isinstance(v, str):
             return [item.strip() for item in v.split(",") if item.strip()] if v.strip() else []
         return v or []
-    
+
     @property
     def issuer(self) -> str:
         if not self.cloudflare_team_domain:
             return ""
         domain = self.cloudflare_team_domain.rstrip("/")
         return f"https://{domain}" if not domain.startswith("https://") else domain
-    
+
     @property
     def certs_url(self) -> str:
         return f"{self.issuer}/cdn-cgi/access/certs" if self.issuer else ""
-    
+
     def is_email_allowed(self, email: str) -> bool:
         if not self.allowed_email_domains:
             return True

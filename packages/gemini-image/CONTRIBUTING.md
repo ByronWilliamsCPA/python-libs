@@ -74,7 +74,7 @@ Use conventional branch names:
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-```
+```text
 feat(generator): add retry logic for API calls
 fix(cli): handle missing API key gracefully
 docs(readme): update installation instructions
@@ -119,12 +119,14 @@ def generate_image(
 1. **Create a feature branch** from `main`
 2. **Make your changes** with tests
 3. **Run quality checks**:
+
    ```bash
    uv run ruff format .
    uv run ruff check .
    uv run basedpyright src
    uv run pytest --cov
    ```
+
 4. **Update documentation** if needed
 5. **Submit a pull request** with:
    - Clear description of changes
