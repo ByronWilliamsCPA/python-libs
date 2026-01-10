@@ -42,6 +42,31 @@ test_patterns = [
     "**/*.spec.*",
 ]
 
+# ============================================================================
+# Issue Triage - Rule-level Ignores
+# ============================================================================
+# Ignore Bandit B101 (assert_used) in test files - pytest uses assert statements
+[[triage]]
+match.plugins = ["bandit"]
+match.rules = ["bandit:B101"]
+match.file_patterns = [
+    "**/tests/**",
+    "**/test_*.py",
+    "**/*_test.py",
+]
+set.ignored = true
+
+# Ignore Bandit B108 (hardcoded_tmp_directory) in test files - test fixtures use /tmp
+[[triage]]
+match.plugins = ["bandit"]
+match.rules = ["bandit:B108"]
+match.file_patterns = [
+    "**/tests/**",
+    "**/test_*.py",
+    "**/*_test.py",
+]
+set.ignored = true
+
 # Default source for plugin definitions
 [[source]]
 name = "default"
@@ -72,17 +97,8 @@ default = true
 [smells]
 # Mode: comment (add PR comments) vs block (fail CI)
 mode = "comment"
-
-# Ignore complexity warnings for files with documented intentional complexity
-[[smells.ignore]]
-rules = [
-    "function-complexity",
-    "function-parameters",
-    "nested-control-flow",
-]
-file_patterns = [
-    "**/gemini_image/generator.py",
-]
+# Note: Complexity warnings for gemini_image/generator.py are intentional
+# and documented in the file header. Use exclude_patterns at top level if needed.
 
 # Boolean logic complexity
 [smells.boolean_logic]
@@ -144,15 +160,6 @@ drivers = ["lint"]
 [[plugin]]
 name = "bandit"
 mode = "comment"
-
-# Ignore B101 (assert_used) in test files - pytest uses assert statements
-[[plugin.ignore]]
-rule = "bandit:B101"
-file_patterns = [
-    "**/tests/**",
-    "**/test_*.py",
-    "**/*_test.py",
-]
 
 # Shell script linting (comment mode - script styling preferences)
 [[plugin]]
