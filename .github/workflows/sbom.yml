@@ -35,7 +35,7 @@ permissions:
 jobs:
   sbom:
     name: SBOM & Security
-    uses: ByronWilliamsCPA/.github/.github/workflows/python-sbom.yml@main
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-sbom.yml@e8fc83c98c2971ad1ece71573d28171463e30c16 # main
     with:
       python-version: '3.12'
       fail-on-vulnerabilities: true

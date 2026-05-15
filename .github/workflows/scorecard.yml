@@ -20,13 +20,15 @@ on:
 
 permissions:
   contents: read
-  security-events: write
-  id-token: write
-  actions: read
 
 jobs:
   scorecard:
-    uses: ByronWilliamsCPA/.github/.github/workflows/python-scorecard.yml@main
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+      actions: read
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-scorecard.yml@e8fc83c98c2971ad1ece71573d28171463e30c16 # main
     with:
       publish-results: true
       upload-sarif: true
