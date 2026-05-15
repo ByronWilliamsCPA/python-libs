@@ -224,12 +224,12 @@ def mask_sensitive_data(
     def mask_match(match: re.Match[str]) -> str:
         """Replace a regex match with a masked representation.
 
-        For email-like matches (containing ``@``), masks the local and domain
+        For email-like matches (containing '@'), masks the local and domain
         parts separately. For all other matches, replaces every character
-        with ``*``.
+        with '*'.
 
         Args:
-            match: Regex match object produced by :func:`re.sub`.
+            match: Regex match object produced by re.sub.
 
         Returns:
             Masked replacement string for the matched text.
