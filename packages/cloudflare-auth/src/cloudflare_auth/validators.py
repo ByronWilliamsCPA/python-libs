@@ -165,19 +165,15 @@ class CloudflareJWTValidator:
             raise RuntimeError(msg)
 
         try:
-            # Defence-in-depth: re-check the algorithm pulled from the
-            # unverified header against the allowlist. PyJWT also enforces
-            # ``algorithms``, but rejecting early yields a clearer error
-            # and prevents accidental relaxation if the decode options
-            # are ever modified.
-            self._reject_unsafe_header_algorithm(token)
-
             # Get the signing key from the JWT header
             signing_key = self.jwks_client.get_signing_key_from_jwt(token)
 
             # Decode and validate the token. All security-relevant options
             # are explicit so future PyJWT default changes cannot silently
-            # weaken validation.
+            # weaken validation. The ``algorithms`` argument is fixed to
+            # the constructor-validated value, so PyJWT will reject any
+            # token whose header advertises an algorithm outside the
+            # asymmetric allowlist.
             payload = jwt.decode(
                 token,
                 signing_key.key,
@@ -266,29 +262,6 @@ class CloudflareJWTValidator:
             logger.warning("JWT validation failed: %s", str(e))
             msg = "Token validation failed"
             raise ValueError(msg) from e
-
-    @staticmethod
-    def _reject_unsafe_header_algorithm(token: str) -> None:
-        """Reject tokens whose header advertises an unsafe algorithm.
-
-        Args:
-            token: Raw JWT token string.
-
-        Raises:
-            ValueError: If the header's ``alg`` is missing or not in the
-                allowlist of asymmetric algorithms.
-        """
-        try:
-            header = jwt.get_unverified_header(token)
-        except jwt.DecodeError as e:
-            msg = "Invalid token header"
-            raise ValueError(msg) from e
-
-        alg = header.get("alg")
-        if not alg or alg not in _ALLOWED_JWT_ALGORITHMS:
-            logger.warning("Rejected JWT with unsafe alg header: %r", alg)
-            msg = f"Unsafe or missing JWT algorithm: {alg!r}"
-            raise ValueError(msg)
 
     def _validate_required_claims(self, payload: dict[str, Any]) -> None:
         """Validate that required claims are present.
