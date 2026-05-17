@@ -20,10 +20,13 @@ on:
       - master
       - develop
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   reuse:
+    permissions:
+      contents: read
     uses: ByronWilliamsCPA/.github/.github/workflows/python-reuse.yml@e8fc83c98c2971ad1ece71573d28171463e30c16 # main
     with:
       generate-spdx: true

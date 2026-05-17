@@ -30,11 +30,13 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   sbom:
     name: SBOM & Security
+    permissions:
+      contents: read
+      security-events: write
     uses: ByronWilliamsCPA/.github/.github/workflows/python-sbom.yml@e8fc83c98c2971ad1ece71573d28171463e30c16 # main
     with:
       python-version: '3.12'

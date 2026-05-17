@@ -34,6 +34,8 @@ from typing import Any
 
 import jwt
 from jwt import PyJWKClient
+from jwt.exceptions import PyJWKClientError
+from pydantic import ValidationError
 
 from cloudflare_auth.config import CloudflareSettings, get_cloudflare_settings
 from cloudflare_auth.models import CloudflareJWTClaims
@@ -114,7 +116,7 @@ class CloudflareJWTValidator:
 
         self._last_key_refresh: datetime | None = None
 
-    def validate_token(  # noqa: C901  -- per-PyJWT-exception handlers are flat and clearer than nesting
+    def validate_token(  # noqa: C901, PLR0912  -- per-PyJWT-exception handlers are flat and clearer than nesting
         self,
         token: str,
     ) -> CloudflareJWTClaims:
@@ -164,6 +166,17 @@ class CloudflareJWTValidator:
             msg = "JWT validator not configured. Set CLOUDFLARE_TEAM_DOMAIN."
             raise RuntimeError(msg)
 
+        # #CRITICAL: Security: an unset audience tag means PyJWT skips
+        # audience verification entirely, which would let any token
+        # signed by this issuer pass -- not only tokens minted for this
+        # application. Refuse to validate at all in that case.
+        if not self.settings.cloudflare_audience_tag:
+            msg = (
+                "JWT validator misconfigured: cloudflare_audience_tag must "
+                "be set so PyJWT can enforce the audience claim."
+            )
+            raise RuntimeError(msg)
+
         try:
             # Get the signing key from the JWT header
             signing_key = self.jwks_client.get_signing_key_from_jwt(token)
@@ -186,8 +199,8 @@ class CloudflareJWTValidator:
                     "verify_exp": True,
                     "verify_nbf": True,
                     "verify_iat": True,
-                    "verify_aud": bool(self.settings.cloudflare_audience_tag),
-                    "verify_iss": bool(self.settings.issuer),
+                    "verify_aud": True,
+                    "verify_iss": True,
                     "require": ["exp", "iat", "iss", "sub", "aud"],
                 },
             )
@@ -261,6 +274,23 @@ class CloudflareJWTValidator:
             # errors and ruff BLE001).
             logger.warning("JWT validation failed: %s", str(e))
             msg = "Token validation failed"
+            raise ValueError(msg) from e
+
+        except PyJWKClientError as e:
+            # Raised by ``get_signing_key_from_jwt`` when the ``kid`` is
+            # missing, unknown to the JWKS endpoint, or the JWKS fetch
+            # fails. Treat as an authentication failure so the middleware
+            # returns 401 rather than 500.
+            logger.warning("JWKS lookup failed: %s", str(e))
+            msg = "Could not resolve JWT signing key"
+            raise ValueError(msg) from e
+
+        except ValidationError as e:
+            # ``CloudflareJWTClaims(**payload)`` rejected the decoded
+            # claims (e.g. malformed ``email``). Surface as an auth
+            # failure rather than a 500.
+            logger.warning("JWT claims failed schema validation: %s", str(e))
+            msg = "Invalid token claims"
             raise ValueError(msg) from e
 
     def _validate_required_claims(self, payload: dict[str, Any]) -> None:

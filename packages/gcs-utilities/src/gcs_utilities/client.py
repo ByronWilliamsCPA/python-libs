@@ -10,6 +10,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from google.auth.exceptions import GoogleAuthError
 from google.cloud import storage
 from google.cloud.exceptions import GoogleCloudError, NotFound
 
@@ -192,7 +193,10 @@ class GCSClient:
             return bucket
         except GCSNotFoundError:
             raise
-        except (GoogleCloudError, OSError, ValueError) as e:
+        except (GoogleCloudError, GoogleAuthError, OSError, ValueError) as e:
+            # GoogleAuthError covers DefaultCredentialsError / RefreshError
+            # which are not subclasses of GoogleCloudError but should still
+            # surface as GCSAuthError to callers.
             msg = f"Failed to access bucket '{self.bucket_name}': {e}"
             raise GCSAuthError(msg) from e
 
@@ -278,10 +282,11 @@ class GCSClient:
             msg = "GCS path cannot be empty"
             raise ValueError(msg)
 
-        # Reject ``..`` as a path segment to block traversal. We check
-        # segments rather than substring so legitimate names like
-        # ``v1..1`` (no slash) are still rejected (safer default) while
-        # ``my..file`` callers get a clear error and can rename.
+        # Reject any ``.`` / ``..`` path segment AND any ``..`` substring
+        # anywhere in the path. This is deliberately stricter than the
+        # POSIX traversal rule: callers with legitimate names that
+        # happen to contain ``..`` (e.g. ``v1..1``) must rename. The
+        # segment check is kept first so the more specific error wins.
         segments = gcs_path.split("/")
         if any(seg in {"..", "."} for seg in segments):
             msg = "GCS path cannot contain '.' or '..' segments"
@@ -393,12 +398,14 @@ class GCSClient:
                 continue
 
             # Construct and re-sanitize the joined GCS path. ``rel_path``
-            # comes from a filesystem walk so should be safe, but
-            # symlinks or unusual filenames could still introduce
-            # traversal sequences -- defence in depth.
+            # comes from a filesystem walk so should be safe, but symlinks
+            # or unusual filenames could still introduce traversal
+            # sequences -- defence in depth. ``as_posix()`` ensures
+            # Windows ``\`` separators don't get rejected by the
+            # sanitizer's backslash check.
             try:
                 gcs_path = self._sanitize_gcs_path(
-                    f"{gcs_prefix.rstrip('/')}/{rel_path}"
+                    f"{gcs_prefix.rstrip('/')}/{rel_path.as_posix()}"
                 )
             except ValueError as e:
                 logger.warning("Skipping file with unsafe path %s: %s", rel_path, e)

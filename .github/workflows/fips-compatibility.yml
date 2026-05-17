@@ -48,10 +48,12 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   fips-check:
+    permissions:
+      contents: read
+      pull-requests: write
     uses: ByronWilliamsCPA/.github/.github/workflows/python-fips-compatibility.yml@e8fc83c98c2971ad1ece71573d28171463e30c16 # main
     with:
       strict-mode: ${{ github.event.inputs.strict_mode == 'true' }}

@@ -83,7 +83,7 @@ class TestConstructorConfigState:
 
 
 class TestValidateTokenWithoutJWKS:
-    """``validate_token`` raises RuntimeError when no JWKS client is configured."""
+    """``validate_token`` raises RuntimeError when configuration is incomplete."""
 
     def test_validate_token_raises_runtime_error_when_unconfigured(self):
         """Calling validate_token without a JWKS client must fail loudly."""
@@ -94,6 +94,14 @@ class TestValidateTokenWithoutJWKS:
             )
         )
         with pytest.raises(RuntimeError, match="not configured"):
+            v.validate_token("token.value.here")
+
+    def test_validate_token_raises_when_audience_missing(self):
+        """Missing audience must abort validation rather than skip aud check."""
+        v = CloudflareJWTValidator(
+            _settings(cloudflare_audience_tag="")
+        )
+        with pytest.raises(RuntimeError, match="cloudflare_audience_tag"):
             v.validate_token("token.value.here")
 
 
@@ -221,4 +229,31 @@ class TestValidateTokenErrorMapping:
             "cloudflare_auth.validators.jwt.decode",
             side_effect=getattr(pyjwt, exc_cls)("boom"),
         ), pytest.raises(ValueError, match=expected_substring):
+            v.validate_token("any.jwt.token")
+
+    def test_pyjwk_client_error_becomes_value_error(self):
+        """JWKS resolution failures should surface as 401-equivalent errors."""
+        from jwt.exceptions import PyJWKClientError
+
+        v = CloudflareJWTValidator(_settings())
+        v.jwks_client = MagicMock()
+        v.jwks_client.get_signing_key_from_jwt.side_effect = PyJWKClientError(
+            "kid not found"
+        )
+
+        with pytest.raises(ValueError, match="signing key"):
+            v.validate_token("any.jwt.token")
+
+    def test_pydantic_validation_error_becomes_value_error(self, valid_jwt_payload):
+        """A malformed claims payload should not produce a 500."""
+        v = CloudflareJWTValidator(_settings())
+        v.jwks_client = MagicMock()
+        v.jwks_client.get_signing_key_from_jwt.return_value = MagicMock(key="k")
+
+        bad_payload = dict(valid_jwt_payload)
+        bad_payload["email"] = "not-an-email"
+        with patch(
+            "cloudflare_auth.validators.jwt.decode",
+            return_value=bad_payload,
+        ), pytest.raises(ValueError, match="Invalid token claims"):
             v.validate_token("any.jwt.token")
