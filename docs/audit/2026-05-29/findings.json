@@ -1,0 +1,815 @@
+{
+  "repo": "byronwilliamscpa/python-libs",
+  "generated_at": "2026-05-29T00:00:00Z",
+  "commit": "c0eb24a",
+  "findings": [
+    {
+      "id": "ARCH-03",
+      "title": "cloudflare-auth ships settings.py and config.py with divergent CloudflareSettings; dead module is test-only",
+      "domain": "architecture",
+      "severity": "Critical",
+      "effort": "S",
+      "files": [
+        "packages/cloudflare-auth/src/cloudflare_auth/config.py",
+        "packages/cloudflare-auth/src/cloudflare_auth/settings.py",
+        "packages/cloudflare-auth/tests/conftest.py"
+      ],
+      "evidence": "Production imports cloudflare_auth.config; tests import cloudflare_auth.settings; the two CloudflareSettings classes diverge on env aliases (CF_* vs CLOUDFLARE_*), require_cloudflare_headers default (True vs False), and certs_url. Tests validate a module the package does not ship.",
+      "recommendation": "Delete settings.py, repoint its tests to config.py, and reconcile the env-var contract before publishing.",
+      "cve": ""
+    },
+    {
+      "id": "CI-01",
+      "title": "CI tests only 2 of 4 packages; cloudflare-api and gemini-image published with no CI",
+      "domain": "cicd",
+      "severity": "Critical",
+      "effort": "M",
+      "files": [
+        "ci.yml:32-156",
+        "packages/",
+        "publish-artifact-registry.yml:96"
+      ],
+      "evidence": "ci.yml defines test jobs only for cloudflare-auth (line 63) and gcs-utilities (line 111); detect-changes (51-60) lists only those two. cloudflare-api and gemini-image are published to Artifact Registry with zero test, lint, or type-check in CI.",
+      "recommendation": "Add test-cloudflare-api and test-gemini-image jobs and path filters mirroring the existing two; wire both into ci-gate.",
+      "cve": ""
+    },
+    {
+      "id": "CI-02",
+      "title": "Coverage gate disabled in CI (--cov-fail-under=0) while house standard is 80%",
+      "domain": "cicd",
+      "severity": "High",
+      "effort": "S",
+      "files": [
+        "ci.yml:94",
+        "ci.yml:142",
+        "pyproject.toml:595"
+      ],
+      "evidence": "Both CI test jobs pass --cov-fail-under=0 plus --no-cov-on-fail; release.yml uses 80%. A regression dropping coverage to near zero passes CI and only fails at release.",
+      "recommendation": "Set --cov-fail-under=80 in both CI jobs, or enforce a combined threshold in ci-gate.",
+      "cve": ""
+    },
+    {
+      "id": "CI-03",
+      "title": "Coverage artifact name mismatch silently breaks Codecov/Qlty uploads",
+      "domain": "cicd",
+      "severity": "High",
+      "effort": "S",
+      "files": [
+        "ci.yml:107",
+        "ci.yml:155",
+        "codecov.yml:28",
+        "qlty.yml:23"
+      ],
+      "evidence": "CI uploads coverage-cloudflare-auth and coverage-gcs-utilities; the workflow_run consumers expect a single artifact named coverage-reports. No step produces coverage-reports, so downstream uploads process nothing.",
+      "recommendation": "Rename CI artifacts to coverage-reports (merged XML) or change the three consumers to a coverage-* pattern.",
+      "cve": ""
+    },
+    {
+      "id": "CI-04",
+      "title": "Bandit runs with || true, so security findings never fail CI",
+      "domain": "cicd",
+      "severity": "High",
+      "effort": "S",
+      "files": [
+        "ci.yml:181"
+      ],
+      "evidence": "ci.yml:181 Bandit step ends in || true; the Security Scan job always passes. Contradicts CLAUDE.md 'fail on HIGH/CRITICAL by default'.",
+      "recommendation": "Remove || true from the Bandit step; assert_used config already skips test asserts so a failure is signal.",
+      "cve": ""
+    },
+    {
+      "id": "DEP-01",
+      "title": "Vulnerable production crypto/auth deps at locked versions (pyjwt, cryptography, starlette)",
+      "domain": "dependencies",
+      "severity": "High",
+      "effort": "S",
+      "files": [
+        "packages/cloudflare-auth/pyproject.toml:29-45",
+        "uv.lock"
+      ],
+      "evidence": "uvx pip-audit 2.10.0 against exported lock: pyjwt 2.10.1 (PYSEC-2026-120, fix 2.12.0), cryptography 46.0.3 (CVE-2026-26007/PYSEC-2026-35/36, fix 46.0.7), starlette 0.50.0 (PYSEC-2026-161, fix 1.0.1). Open version floors mean a re-resolve pulls fixes.",
+      "recommendation": "Re-resolve the lock and confirm fixed versions; verify FastAPI compatibility before the starlette major bump. Re-run pip-audit to confirm advisories are current.",
+      "cve": "PYSEC-2026-120;PYSEC-2025-183;CVE-2026-26007;PYSEC-2026-35;PYSEC-2026-36;PYSEC-2026-161"
+    },
+    {
+      "id": "DEP-03",
+      "title": "Lockfile stale ~5.5 months; reproducible but out of date, root cause of persisting CVEs",
+      "domain": "dependencies",
+      "severity": "High",
+      "effort": "S",
+      "files": [
+        "uv.lock",
+        "pyproject.toml"
+      ],
+      "evidence": "uv.lock last modified by commit 2d84e06 on 2025-12-15; HEAD is 2026-05-07. Open >= floors mean DEP-01/DEP-02 fixes exist upstream but were never re-resolved into the lock.",
+      "recommendation": "Run uv lock, commit, re-audit; add a scheduled uv lock --upgrade plus pip-audit job so drift is caught.",
+      "cve": ""
+    },
+    {
+      "id": "DOC-01",
+      "title": "Handoff doc says cloudflare-api belongs in another repo while README ships it as first-class",
+      "domain": "docs",
+      "severity": "High",
+      "effort": "S",
+      "files": [
+        "docs/cloudflare-api-handoff.md",
+        "README.md:46",
+        "packages/cloudflare-api/"
+      ],
+      "evidence": "cloudflare-api-handoff.md:14 states the package 'was developed in the wrong repository ... ready for migration to homelab-infra'; README.md:46 lists it as maintained and it is a live workspace member.",
+      "recommendation": "Decide ownership: if it stays, delete the handoff doc and add a normal package README/ADR.",
+      "cve": ""
+    },
+    {
+      "id": "SEC-02",
+      "title": "IP allowlist uses string prefix matching, not CIDR",
+      "domain": "security",
+      "severity": "High",
+      "effort": "S",
+      "files": [
+        "packages/cloudflare-auth/src/cloudflare_auth/middleware.py:193-197"
+      ],
+      "evidence": "client_ip.startswith(allowed_ip.rstrip('/') + '.') is a string test: a 10.0.0.0/8 entry becomes prefix 10.0.0.0. and matches nothing, while a short 10.0 over-matches. No IPv6 handling. Sibling cloudflare-api already has correct ipaddress-based logic.",
+      "recommendation": "Use ipaddress.ip_address(client_ip) in ipaddress.ip_network(allowed_ip, strict=False); reject unparseable entries at config load; add subnet/IPv6 tests.",
+      "cve": ""
+    },
+    {
+      "id": "ARCH-02",
+      "title": "Five independent exception hierarchies reimplement one message+context+serialize pattern",
+      "domain": "architecture",
+      "severity": "High",
+      "effort": "M",
+      "files": [
+        "src/python_libs/core/exceptions.py",
+        "packages/cloudflare-api/src/cloudflare_api/exceptions.py",
+        "packages/gcs-utilities/src/gcs_utilities/exceptions.py"
+      ],
+      "evidence": "ProjectBaseError(to_dict, error_code, details), CloudflareAPIError(code, errors, response), and GCSError(bare pass) solve the same concern with incompatible constructors; cross-package error handling needs two attribute sets.",
+      "recommendation": "Reparent per-package errors onto the existing ProjectBaseError, or at minimum align the message/details/error_code/to_dict contract.",
+      "cve": ""
+    },
+    {
+      "id": "ARCH-04",
+      "title": "Two full middleware implementations; original superseded but still exported",
+      "domain": "architecture",
+      "severity": "High",
+      "effort": "M",
+      "files": [
+        "packages/cloudflare-auth/src/cloudflare_auth/middleware.py",
+        "packages/cloudflare-auth/src/cloudflare_auth/middleware_enhanced.py",
+        "packages/cloudflare-auth/src/cloudflare_auth/__init__.py"
+      ],
+      "evidence": "middleware_enhanced.py does not subclass middleware.py; both define their own BaseHTTPMiddleware subclass, setup function, and get_current_user with copy-and-evolve bodies. __init__ exports both classes but only the enhanced setup.",
+      "recommendation": "Remove middleware.py or make enhanced extend it so shared request/JWT logic lives once; export one get_current_user.",
+      "cve": ""
+    },
+    {
+      "id": "CQ-06",
+      "title": "Placeholder assert-True tests; package tests cannot run in-env; 99% coverage figure covers ~1% of code",
+      "domain": "code-quality",
+      "severity": "High",
+      "effort": "M",
+      "files": [
+        "packages/gcs-utilities/tests/test_exceptions.py:10",
+        "tests/unit/test_correlation.py:16",
+        "pyproject.toml:595"
+      ],
+      "evidence": "Root suite reports 99.32% but only covers src/python_libs (115 statements); the four packages (>9000 LOC) are excluded. cloudflare-auth tests fail collection (no fastapi). Three assert True placeholders; pytest-cov not installed so documented pytest --cov is broken.",
+      "recommendation": "Add pytest-cov and package runtime deps to the dev group, scope the 80% gate across all packages, and replace or delete the placeholder tests.",
+      "cve": ""
+    },
+    {
+      "id": "DOC-03",
+      "title": "CLAUDE.md Project Structure omits all 4 packages where shipped code lives",
+      "domain": "docs",
+      "severity": "High",
+      "effort": "M",
+      "files": [
+        "CLAUDE.md:417-434",
+        "CLAUDE.md:447"
+      ],
+      "evidence": "CLAUDE.md tree is rooted at src/python_libs/ and never mentions packages/{cloudflare-auth,cloudflare-api,gcs-utilities,gemini-image}; coverage example uses --cov=src. Agents following it look in the wrong place.",
+      "recommendation": "Replace the structure block with the real monorepo layout and fix coverage examples to span packages.",
+      "cve": ""
+    },
+    {
+      "id": "DOC-04",
+      "title": "CONTRIBUTING.md describes a single-package layout that does not exist",
+      "domain": "docs",
+      "severity": "High",
+      "effort": "M",
+      "files": [
+        "CONTRIBUTING.md:52-65",
+        "CONTRIBUTING.md:239"
+      ],
+      "evidence": "CONTRIBUTING tree shows src/python_libs/ with a core.py file (reality is core/ directory); the import example from python_libs.core import YourModule is a non-existent symbol. No packages/ mention.",
+      "recommendation": "Rewrite the structure section for the monorepo and replace fake import examples with a real one.",
+      "cve": ""
+    },
+    {
+      "id": "DOC-05",
+      "title": "API reference documents only the optional shared package, none of the 4 published packages",
+      "domain": "docs",
+      "severity": "High",
+      "effort": "M",
+      "files": [
+        "docs/api-reference.md:16",
+        "docs/api-reference.md:25",
+        "mkdocs.yml:76"
+      ],
+      "evidence": "api-reference.md has two autodoc blocks (python_libs.core.config, python_libs.utils.logging); the 4 shipped packages have none. mkdocs paths: [src] cannot resolve packages/*/src symbols.",
+      "recommendation": "Add packages/*/src to mkdocstrings paths and add per-package API pages to nav.",
+      "cve": ""
+    },
+    {
+      "id": "SEC-01",
+      "title": "CSRF validation never verifies the session-bound HMAC token",
+      "domain": "security",
+      "severity": "High",
+      "effort": "M",
+      "files": [
+        "packages/cloudflare-auth/src/cloudflare_auth/csrf.py:72",
+        "packages/cloudflare-auth/src/cloudflare_auth/csrf.py:98"
+      ],
+      "evidence": "generate_token builds an HMAC bound to session_id, but validate_token only does secrets.compare_digest(cookie_token, header_token); it never re-derives the HMAC or checks session binding. Scheme degrades to plain double-submit. token_bytes(32) at csrf.py:82 is dead.",
+      "recommendation": "Recompute and verify the HMAC from session id and secret_key in validate_token (or validate against a server-side store); remove the dead token_bytes call; add rejection tests.",
+      "cve": ""
+    },
+    {
+      "id": "ARCH-01",
+      "title": "Umbrella python_libs core is dead weight; no package depends on it",
+      "domain": "architecture",
+      "severity": "High",
+      "effort": "L",
+      "files": [
+        "src/python_libs/core/exceptions.py",
+        "src/python_libs/core/config.py",
+        "pyproject.toml:749-757"
+      ],
+      "evidence": "Repo-wide grep for python_libs inside packages/ returns nothing; no package lists the umbrella as a dependency, and it is not a workspace member. core/exceptions.py defines the base every package reimplements yet is imported by nobody outside the umbrella.",
+      "recommendation": "Either make the four packages depend on python_libs and reuse its base error/config/logging, or delete src/python_libs/core and utils if packages are standalone.",
+      "cve": ""
+    },
+    {
+      "id": "CQ-01",
+      "title": "BasedPyright not installed; cloudflare-auth carries 513 strict warnings, 13 errors, 81 Any uses",
+      "domain": "code-quality",
+      "severity": "High",
+      "effort": "L",
+      "files": [
+        "packages/cloudflare-auth/src/cloudflare_auth/",
+        "src/python_libs/utils/logging.py"
+      ],
+      "evidence": "uv run basedpyright fails (not installed). Run via --with: src 0 errors/21 warnings; cloudflare-auth 13 errors/513 warnings (errors are unresolved optional imports). Any appears 81 times across 18 source files; 6 type:ignore plus 1 pyright:ignore.",
+      "recommendation": "Add basedpyright to the dev group, install package optional deps for analysis, then drive reportAny warnings down starting with client.py and fetchers.py.",
+      "cve": ""
+    },
+    {
+      "id": "CQ-02",
+      "title": "middleware.py and middleware_enhanced.py are near-duplicate (11 shared methods, ~27% of package)",
+      "domain": "code-quality",
+      "severity": "High",
+      "effort": "L",
+      "files": [
+        "packages/cloudflare-auth/src/cloudflare_auth/middleware.py",
+        "packages/cloudflare-auth/src/cloudflare_auth/middleware_enhanced.py"
+      ],
+      "evidence": "The two files share 11 identically named methods (dispatch, _authenticate_request, _check_rate_limit, get_current_user, etc.); together 1,309 LOC, roughly 27% of the package's 4,887 LOC.",
+      "recommendation": "Collapse to one middleware gated by config flags, or extract the shared methods into a base class.",
+      "cve": ""
+    },
+    {
+      "id": "ARCH-07",
+      "title": "CLAUDE.md and CONTRIBUTING omit the packages/ monorepo (overlaps DOC-03)",
+      "domain": "architecture",
+      "severity": "Medium",
+      "effort": "S",
+      "files": [
+        "CLAUDE.md",
+        "CONTRIBUTING.md",
+        "docs/planning/adr/adr-001-monorepo-architecture.md"
+      ],
+      "evidence": "CLAUDE.md Project Structure shows only src/python_libs/; CONTRIBUTING never mentions monorepo/packages/workspace; ADR-001 documents the workspace monorepo, so the onboarding doc contradicts the intended structure.",
+      "recommendation": "Rewrite the CLAUDE.md structure section to show packages/* as the primary code location and add a CONTRIBUTING section on per-package layout.",
+      "cve": ""
+    },
+    {
+      "id": "CI-06",
+      "title": "Pre-commit lacks the Ruff and BasedPyright hooks CI enforces",
+      "domain": "cicd",
+      "severity": "Medium",
+      "effort": "S",
+      "files": [
+        ".pre-commit-config.yaml:134-135"
+      ],
+      "evidence": "Lines 134-135 are comments naming Ruff and BasedPyright but no such hook exists; CI enforces both. Ruff/type checks route through the qlty hook, which is in the pre-commit.ci skip list, so hosted runs skip them too.",
+      "recommendation": "Add astral-sh/ruff-pre-commit (check + format) and a BasedPyright hook, or confirm qlty runs Ruff in the commit path.",
+      "cve": ""
+    },
+    {
+      "id": "CI-09",
+      "title": "12 org reusable workflows pinned to mutable @main (overlaps SEC-04)",
+      "domain": "cicd",
+      "severity": "Medium",
+      "effort": "S",
+      "files": [
+        ".github/workflows/sbom.yml:38",
+        ".github/workflows/slsa-provenance.yml:101",
+        ".github/workflows/security-analysis.yml:37"
+      ],
+      "evidence": "41/41 third-party actions are SHA-pinned, but 12 callers of ByronWilliamsCPA/.github reusable workflows use @main; two already pin to a SHA. A reusable workflow can swap the leaf actions it runs, defeating leaf pinning.",
+      "recommendation": "Pin all 12 to a SHA or release tag as the two already done; let Renovate bump them.",
+      "cve": ""
+    },
+    {
+      "id": "CI-11",
+      "title": "Path filters and scan targets watch src/ while code lives in packages/",
+      "domain": "cicd",
+      "severity": "Medium",
+      "effort": "S",
+      "files": [
+        "python-compatibility.yml:11",
+        "sonarcloud.yml:39",
+        "noxfile.py:429",
+        "pyproject.toml:712"
+      ],
+      "evidence": "python-compatibility, fips-compatibility, and mutation-testing path-trigger on src/**/*.py only; Sonar source-directory is src; basedpyright/Bandit/Vulture targets are src. None run on package-only changes, so the four packages are unscanned on package PRs.",
+      "recommendation": "Add packages/** to path filters and point source-directory and scan targets at packages.",
+      "cve": ""
+    },
+    {
+      "id": "DOC-02",
+      "title": "Python version drift across docs (3.12 vs 3.10-3.14)",
+      "domain": "docs",
+      "severity": "Medium",
+      "effort": "S",
+      "files": [
+        "CLAUDE.md:36",
+        "README.md:24",
+        "docs/index.md:24",
+        "pyproject.toml:12"
+      ],
+      "evidence": "pyproject and PYTHON_COMPATIBILITY say 3.10-3.14; CLAUDE.md:36 says 3.12, README badge says 3.12 (body text correctly says 3.10+), index.md says 3.12+.",
+      "recommendation": "State '3.10-3.14 (3.12 recommended)' consistently in CLAUDE.md, the README badge, and index.md.",
+      "cve": ""
+    },
+    {
+      "id": "DOC-06",
+      "title": "Planning README still marks docs 'Awaiting Generation' though all are written",
+      "domain": "docs",
+      "severity": "Medium",
+      "effort": "S",
+      "files": [
+        "docs/planning/README.md:37-40"
+      ],
+      "evidence": "The status table marks project-vision, tech-spec, roadmap, adr as 'Awaiting Generation' but all four exist with real content (project-vision 112 lines, tech-spec 292, roadmap 269, 3 accepted ADRs).",
+      "recommendation": "Update the status column to Complete/Active with dates so the work is not re-run and overwritten.",
+      "cve": ""
+    },
+    {
+      "id": "DOC-07",
+      "title": "README references a missing .claude/claude.md and a .claude/standard/ subtree that do not exist",
+      "domain": "docs",
+      "severity": "Medium",
+      "effort": "S",
+      "files": [
+        "README.md:284-313"
+      ],
+      "evidence": "README references .claude/claude.md (actual is .claude/README.md) and documents a .claude/standard/ git subtree with a subtree pull command; the directory does not exist. The project uses cruft + .standards/ instead.",
+      "recommendation": "Remove the subtree section or replace it with the actual cruft/.standards workflow; fix the .claude path.",
+      "cve": ""
+    },
+    {
+      "id": "DOC-08",
+      "title": "Install/usage docs reference a nonexistent python-libs PyPI package and placeholder imports",
+      "domain": "docs",
+      "severity": "Medium",
+      "effort": "S",
+      "files": [
+        "docs/index.md:17",
+        "README.md:120-126"
+      ],
+      "evidence": "index.md:17 says pip install python-libs (never published; repo publishes 4 byronwilliamscpa-* packages to Artifact Registry). README Basic Usage uses from python_libs import YourModule, a placeholder symbol.",
+      "recommendation": "Replace with the per-package install and a real import example.",
+      "cve": ""
+    },
+    {
+      "id": "DOC-10",
+      "title": "SECURITY.md required by project standards is absent from repo root",
+      "domain": "docs",
+      "severity": "Medium",
+      "effort": "S",
+      "files": [
+        "SECURITY.md",
+        "README.md:489",
+        "CONTRIBUTING.md:386"
+      ],
+      "evidence": "CLAUDE.md 'Required Project Files' lists SECURITY.md as mandatory; no SECURITY.md exists at root. README and CONTRIBUTING redirect to the org-level policy, which conflicts with the repo's own requirement and Scorecard's expectation of a discoverable policy.",
+      "recommendation": "Add a local SECURITY.md (a stub linking to the org policy satisfies Scorecard) or amend the Required Project Files list to note org delegation.",
+      "cve": ""
+    },
+    {
+      "id": "LEG-01",
+      "title": "Naive datetime defaults in field factories (latent TypeError in IP-cache path)",
+      "domain": "legacy-code",
+      "severity": "Medium",
+      "effort": "S",
+      "files": [
+        "packages/cloudflare-api/src/cloudflare_api/ip_groups/manager.py:65",
+        "packages/cloudflare-auth/src/cloudflare_auth/models.py:149"
+      ],
+      "evidence": "Both fields default to datetime.now (naive) while surrounding code is tz-aware UTC. manager.py:158 subtracts a naive default from an aware now, raising TypeError if the default is ever used; models.py:149 records local wall-clock for an auth timestamp.",
+      "recommendation": "Use default_factory=lambda: datetime.now(tz=timezone.utc) for both; the manager case is a correctness bug.",
+      "cve": ""
+    },
+    {
+      "id": "SEC-04",
+      "title": "Reusable org workflows pinned to mutable @main while leaf actions are SHA-pinned",
+      "domain": "security",
+      "severity": "Medium",
+      "effort": "S",
+      "files": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/scorecard.yml",
+        ".github/workflows/release.yml"
+      ],
+      "evidence": "Third-party actions are SHA-pinned, but first-party reusable workflows mostly use @main; two are already SHA-pinned, proving inconsistency. pr-validation.yml and release.yml pass secrets: inherit, so a force-push to .github main reaches this repo's secrets.",
+      "recommendation": "Pin every reusable-workflow uses: to a commit SHA with a version comment; let Renovate keep them current.",
+      "cve": ""
+    },
+    {
+      "id": "ARCH-05",
+      "title": "Two session managers with no shared interface; redis variant import-guarded not abstracted",
+      "domain": "architecture",
+      "severity": "Medium",
+      "effort": "M",
+      "files": [
+        "packages/cloudflare-auth/src/cloudflare_auth/sessions.py",
+        "packages/cloudflare-auth/src/cloudflare_auth/redis_sessions.py",
+        "packages/cloudflare-auth/src/cloudflare_auth/__init__.py"
+      ],
+      "evidence": "SimpleSessionManager and RedisSessionManager share no base or Protocol; middleware_enhanced.py and security_helpers.py hardwire SimpleSessionManager. A backing-store choice modeled as two disconnected types.",
+      "recommendation": "Define a SessionManager Protocol both implement and have the middleware depend on it so Redis is a drop-in.",
+      "cve": ""
+    },
+    {
+      "id": "ARCH-06",
+      "title": "Inconsistent error and config patterns across packages (gemini-image raises raw stdlib errors)",
+      "domain": "architecture",
+      "severity": "Medium",
+      "effort": "M",
+      "files": [
+        "packages/gemini-image/src/gemini_image/generator.py",
+        "packages/cloudflare-api/src/cloudflare_api/settings.py",
+        "packages/cloudflare-api/src/cloudflare_api/ip_groups/config.py"
+      ],
+      "evidence": "gemini-image has no exceptions module and raises stdlib ValueError/FileNotFoundError/ImportError; cloudflare-api splits config between env BaseSettings and YAML BaseModel with no stated rule on which to use.",
+      "recommendation": "Add gemini_image/exceptions.py with a package base; document or consolidate the env-vs-YAML config split.",
+      "cve": ""
+    },
+    {
+      "id": "CI-05",
+      "title": "Static-analysis Python-version drift across four tool/matrix sets",
+      "domain": "cicd",
+      "severity": "Medium",
+      "effort": "M",
+      "files": [
+        "pyproject.toml:12",
+        "pyproject.toml:153",
+        "noxfile.py:295",
+        "sonar-project.properties:22"
+      ],
+      "evidence": "Code claims 3.10-3.14; Ruff/BasedPyright/Sonar validate only 3.12; CI tests 3.10-3.13; nox tests 3.10-3.14. Ruff target-version py312 means 3.10/3.11-incompatible syntax is not flagged.",
+      "recommendation": "Pick one floor; if 3.10 is real set Ruff target-version to py310 so down-level checks fire, and align nox/CI/compat matrices.",
+      "cve": ""
+    },
+    {
+      "id": "CI-07",
+      "title": "Redundant coverage destinations and duplicate Qlty caller",
+      "domain": "cicd",
+      "severity": "Medium",
+      "effort": "M",
+      "files": [
+        "ci.yml:200",
+        "codecov.yml",
+        "qlty.yml",
+        "coverage.yml"
+      ],
+      "evidence": "Coverage ships to Codecov (inline plus a dedicated caller), Qlty (qlty.yml and coverage.yml both call the same reusable workflow), and SonarCloud. Duplicated minutes and duplicate PR comments.",
+      "recommendation": "Pick one coverage host; remove coverage.yml or qlty.yml and drop one of the two Codecov paths.",
+      "cve": ""
+    },
+    {
+      "id": "CQ-03",
+      "title": "Each package reimplements its own exception hierarchy; shared core hierarchy unused",
+      "domain": "code-quality",
+      "severity": "Medium",
+      "effort": "M",
+      "files": [
+        "src/python_libs/core/exceptions.py",
+        "packages/cloudflare-api/src/cloudflare_api/exceptions.py",
+        "packages/gcs-utilities/src/gcs_utilities/exceptions.py"
+      ],
+      "evidence": "grep for 'from python_libs' across packages/ returns nothing; to_dict serialization exists only in core and is not reused. Violates the CLAUDE.md 'Reuse First' principle.",
+      "recommendation": "Have package exceptions subclass the core hierarchy, or document that packages stay standalone and drop the unused core module from the shared-value claim.",
+      "cve": ""
+    },
+    {
+      "id": "CQ-04",
+      "title": "Repeated settings singleton/global boilerplate across packages; duplicate CloudflareSettings name",
+      "domain": "code-quality",
+      "severity": "Medium",
+      "effort": "M",
+      "files": [
+        "packages/cloudflare-auth/src/cloudflare_auth/config.py:27",
+        "packages/cloudflare-auth/src/cloudflare_auth/settings.py:11",
+        "packages/cloudflare-api/src/cloudflare_api/settings.py"
+      ],
+      "evidence": "The global _settings_instance + reset_settings pattern is hand-copied across cloudflare_api/settings.py, cloudflare_auth/settings.py, csrf.py, rate_limiter.py, security_helpers.py (two PLW0603 ruff findings). cloudflare-auth defines CloudflareSettings twice.",
+      "recommendation": "Provide a single cached_settings/reset helper in core and reuse it; pick one CloudflareSettings (see ARCH-03).",
+      "cve": ""
+    },
+    {
+      "id": "CQ-05",
+      "title": "Complexity hotspots over the C901 limit; four files exceed 700 LOC",
+      "domain": "code-quality",
+      "severity": "Medium",
+      "effort": "M",
+      "files": [
+        "packages/cloudflare-api/src/cloudflare_api/ip_groups/fetchers.py:237",
+        "packages/cloudflare-auth/src/cloudflare_auth/whitelist.py",
+        "packages/gcs-utilities/src/gcs_utilities/client.py"
+      ],
+      "evidence": "ruff C901 (limit 10) flags _auto_extract_ips at 11; lowering to 6 surfaces 16 functions in the 7-11 band. Worst files by length: whitelist.py 787, gcs client.py 759, middleware_enhanced.py 740, cloudflare-api client.py 676.",
+      "recommendation": "Split _auto_extract_ips into typed handlers, decompose validate_token/get_user_tier, and treat the four 700+ LOC files as refactor candidates.",
+      "cve": ""
+    },
+    {
+      "id": "DEP-02",
+      "title": "Vulnerable transitive and dev-tool dependencies (60 advisory rows across 30 packages)",
+      "domain": "dependencies",
+      "severity": "Medium",
+      "effort": "M",
+      "files": [
+        "uv.lock",
+        "pyproject.toml:79-132"
+      ],
+      "evidence": "uvx pip-audit: production-reachable transitives urllib3 2.5.0 (fix 2.7.0), idna 3.11 (fix 3.15), requests 2.32.5 (fix 2.33.0), protobuf 6.33.1 (fix 6.33.5), pyasn1 0.6.1 (fix 0.6.3); plus a jupyter/nltk/safety dev cluster. SBOM gate fails only on CRITICAL/HIGH so Mediums pass.",
+      "recommendation": "Re-resolve to pull fixed transitive versions; lower the SBOM fail threshold to include MEDIUM or document why not.",
+      "cve": "CVE-2026-21441;CVE-2026-45409;CVE-2026-25645;CVE-2026-0994;CVE-2026-23490"
+    },
+    {
+      "id": "DEP-05",
+      "title": "Inconsistent Python version policy; 3.10 EOL Oct 2026; 3.14 declared but untested",
+      "domain": "dependencies",
+      "severity": "Medium",
+      "effort": "M",
+      "files": [
+        "pyproject.toml:12",
+        "pyproject.toml:153",
+        ".github/workflows/ci.yml:71",
+        "CLAUDE.md"
+      ],
+      "evidence": "requires-python >=3.10,<3.15 (ceiling 3.14), CI matrix stops at 3.13, classifiers stop at 3.13, Ruff/BasedPyright pinned to 3.12, CLAUDE.md says 3.12. Python 3.10 reaches EOL in October 2026 (~5 months out).",
+      "recommendation": "Pick one policy: add 3.14 to CI and classifiers or lower the ceiling; plan to drop the 3.10 floor by its EOL; align CLAUDE.md.",
+      "cve": ""
+    },
+    {
+      "id": "DOC-09",
+      "title": "Missing ADRs for dual middleware and redis sessions; two ADR directories",
+      "domain": "docs",
+      "severity": "Medium",
+      "effort": "M",
+      "files": [
+        "docs/planning/adr/",
+        "docs/ADRs/",
+        "packages/cloudflare-auth/src/cloudflare_auth/"
+      ],
+      "evidence": "ADR-001..003 cover monorepo/framework/distribution but nothing explains dual middleware or the redis session backend. docs/ADRs/ (root) holds only template files while real ADRs live in docs/planning/adr/; README points at the empty one.",
+      "recommendation": "Add ADRs for the dual-middleware and redis-session choices; consolidate or cross-link the two ADR directories and point README at the populated one.",
+      "cve": ""
+    },
+    {
+      "id": "SEC-03",
+      "title": "get_client_ip trusts CF-Connecting-IP regardless of upstream",
+      "domain": "security",
+      "severity": "Medium",
+      "effort": "M",
+      "files": [
+        "packages/cloudflare-auth/src/cloudflare_auth/utils.py:235-263"
+      ],
+      "evidence": "CF-Connecting-IP header is read unconditionally; if the service is reachable directly any client can forge it. The value feeds the rate limiter and IP allowlist, so a spoofed header defeats throttling and may satisfy the tunnel allowlist.",
+      "recommendation": "Honor CF-Connecting-IP only when request.client.host is in a configured trusted-proxy range; make the trust boundary explicit in settings.",
+      "cve": ""
+    },
+    {
+      "id": "ARCH-08",
+      "title": "Workspace declares cross-package sources that nothing uses",
+      "domain": "architecture",
+      "severity": "Low",
+      "effort": "S",
+      "files": [
+        "pyproject.toml:753-757",
+        "packages/"
+      ],
+      "evidence": "[tool.uv.sources] marks all four distributions workspace=true 'to allow packages to depend on each other', but no package lists another or the umbrella in dependencies. The declared coupling channel is untested scaffolding.",
+      "recommendation": "Remove the unused source entries until a real cross-package dependency exists, or add the dependency that ARCH-01/ARCH-02 imply.",
+      "cve": ""
+    },
+    {
+      "id": "CI-10",
+      "title": "setup-uv version skew and mislabeled SHA version comments",
+      "domain": "cicd",
+      "severity": "Low",
+      "effort": "S",
+      "files": [
+        ".github/workflows/"
+      ],
+      "evidence": "One setup-uv SHA carries two different version comments (# v4 in 7 uses, # v4.2.0 in codeql.yml:52); one workflow runs v6.8.0. checkout SHA 34e1148 is labeled both # v4 and # v4.3.1.",
+      "recommendation": "Normalize on one setup-uv major across all workflows and fix the mislabeled comments; Renovate keeps them aligned.",
+      "cve": ""
+    },
+    {
+      "id": "CI-12",
+      "title": "Formatter width disagreements between Prettier, markdownlint, and yamllint",
+      "domain": "cicd",
+      "severity": "Low",
+      "effort": "S",
+      "files": [
+        "pyproject.toml:152",
+        ".prettierrc",
+        ".markdownlint.json",
+        ".yamllint:11"
+      ],
+      "evidence": "Python 88 is consistent. Markdown: CLAUDE.md/Prettier say 120 but markdownlint disables MD013. YAML: Prettier printWidth 120 vs yamllint max 150 (warning). No hard conflict, three sources disagree.",
+      "recommendation": "Set .yamllint line-length max to 120 to match Prettier and decide whether markdownlint should enforce MD013 at 120.",
+      "cve": ""
+    },
+    {
+      "id": "CQ-07",
+      "title": "34 standing ruff findings including S104, LOG015, SLF001, str-Enum",
+      "domain": "code-quality",
+      "severity": "Low",
+      "effort": "S",
+      "files": [
+        "packages/"
+      ],
+      "evidence": "ruff check . reports 34 errors, 6 auto-fixable: 9 TRY300, 5 PERF401, 4 UP042 (str,Enum -> StrEnum), 3 FURB110, 3 PLC0207, 2 PLW0603, 2 SIM117, plus single C901/LOG015/RUF022/S104/SIM102/SLF001. S104 binds all interfaces; LOG015 root-logger call contradicts structured-logging convention.",
+      "recommendation": "Run ruff check . --fix for the 6 safe fixes, migrate the four (str, Enum) classes to StrEnum, confirm S104 is intentional.",
+      "cve": ""
+    },
+    {
+      "id": "CQ-08",
+      "title": "Few but stale TODO markers (2025-12-14); one disabled CI secrets path",
+      "domain": "code-quality",
+      "severity": "Low",
+      "effort": "S",
+      "files": [
+        "packages/gcs-utilities/tests/test_exceptions.py:9",
+        ".github/workflows/publish-artifact-registry.yml:160"
+      ],
+      "evidence": "~21 TODO-family hits, mostly template scaffolding; only two actionable: a placeholder test TODO and a 'Re-enable Infisical once Cloudflare Access is configured' TODO in publish CI. Both date to 2025-12-14, ~5.5 months old.",
+      "recommendation": "Resolve the test placeholder (see CQ-06) and convert the Infisical CI TODO into a tracked issue.",
+      "cve": ""
+    },
+    {
+      "id": "DEP-04",
+      "title": "Abandoned dev-transitive package py 1.11.0 (last release 2021)",
+      "domain": "dependencies",
+      "severity": "Low",
+      "effort": "S",
+      "files": [
+        "uv.lock",
+        "osv-scanner.toml:51-78"
+      ],
+      "evidence": "py 1.11.0 resolved with upload-time 2021-11-04 (~4.5 years, unmaintained); pip-audit flags the disputed PYSEC-2022-42969. Dev-only transitive, already excepted in osv-scanner.toml. The only dependency past the 18-month-no-release line.",
+      "recommendation": "Keep the documented exception, or pin the consuming dev tool to a version that has dropped py. No production exposure.",
+      "cve": "CVE-2022-42969"
+    },
+    {
+      "id": "DEP-06",
+      "title": "SBOM workflow unpinned @main, MEDIUM advisories not gated, pip-audit not run in CI",
+      "domain": "dependencies",
+      "severity": "Low",
+      "effort": "S",
+      "files": [
+        ".github/workflows/sbom.yml:36-44",
+        "osv-scanner.toml",
+        "pyproject.toml:92"
+      ],
+      "evidence": "sbom.yml delegates to an org reusable workflow pinned @main with security-events: write; severity-threshold CRITICAL,HIGH lets ~25 Medium advisories pass; pip-audit is a declared dev dep but no workflow runs it.",
+      "recommendation": "Pin the reusable workflow to a SHA, lower the fail threshold to include MEDIUM, and add a scheduled lock-refresh plus pip-audit gate.",
+      "cve": ""
+    },
+    {
+      "id": "DEP-07",
+      "title": "No migration residue (confirming finding)",
+      "domain": "dependencies",
+      "severity": "Low",
+      "effort": "S",
+      "files": [
+        "(tree-wide)"
+      ],
+      "evidence": "find and git ls-files for requirements*.txt, setup.py, setup.cfg, poetry.lock, Pipfile all return nothing. Cleanly on PEP 621 + uv. scripts/generate_requirements.sh produces requirements on demand but commits none.",
+      "recommendation": "No action; note that requirements files produced with --no-hashes would bypass the lock's hash pinning.",
+      "cve": ""
+    },
+    {
+      "id": "DOC-12",
+      "title": "CHANGELOG [0.1.0] - TBD placeholder; uneven per-package changelogs",
+      "domain": "docs",
+      "severity": "Low",
+      "effort": "S",
+      "files": [
+        "CHANGELOG.md:24"
+      ],
+      "evidence": "CHANGELOG.md:24 reads ## [0.1.0] - TBD while README states current version 0.1.0 and all four packages declare 0.1.0. cloudflare-api and gemini-image have no package CHANGELOG.",
+      "recommendation": "Set the 0.1.0 date or mark it unreleased clearly; add CHANGELOG stubs to the two packages missing them.",
+      "cve": ""
+    },
+    {
+      "id": "LEG-02",
+      "title": "timezone.utc instead of datetime.UTC at 31 sites (mixed with one modern use)",
+      "domain": "legacy-code",
+      "severity": "Low",
+      "effort": "S",
+      "files": [
+        "packages/cloudflare-auth/src/cloudflare_auth/",
+        "packages/cloudflare-api/src/cloudflare_api/ip_groups/manager.py"
+      ],
+      "evidence": "31 uses of timezone.utc across 9 files; only gemini-image/generator.py uses the 3.11 datetime.UTC shorthand. datetime.UTC requires 3.11 and the floor is 3.10, so a straight swap would break 3.10.",
+      "recommendation": "Keep timezone.utc everywhere for consistency given the 3.10 floor, or raise the floor to 3.11 and standardize on UTC; do not leave it mixed.",
+      "cve": ""
+    },
+    {
+      "id": "LEG-03",
+      "title": "Single os.path.exists use where pathlib is the house standard",
+      "domain": "legacy-code",
+      "severity": "Low",
+      "effort": "S",
+      "files": [
+        "packages/gcs-utilities/src/gcs_utilities/client.py:717"
+      ],
+      "evidence": "One occurrence repo-wide: os.path.exists(self._credentials_path). CLAUDE.md states pathlib is the house standard.",
+      "recommendation": "Replace with Path(self._credentials_path).exists(); verify whether import os is still needed afterward.",
+      "cve": ""
+    },
+    {
+      "id": "SEC-05",
+      "title": "No detect-secrets baseline; TruffleHog pre-commit hook no-ops if the binary is absent",
+      "domain": "security",
+      "severity": "Low",
+      "effort": "S",
+      "files": [
+        ".pre-commit-config.yaml:61-72"
+      ],
+      "evidence": "No .secrets.baseline (project uses TruffleHog, not detect-secrets). The local hook prints 'TruffleHog not installed - skipping' and passes when the binary is missing, so pre-commit secret scanning is best-effort. CI security workflows mitigate server-side.",
+      "recommendation": "Add detect-secrets with a committed baseline, or make the TruffleHog hook fail (not skip) when the binary is missing in CI context.",
+      "cve": ""
+    },
+    {
+      "id": "CI-08",
+      "title": "Seven-plus overlapping SAST/dependency scanners for a small library",
+      "domain": "cicd",
+      "severity": "Low",
+      "effort": "M",
+      "files": [
+        ".github/workflows/codeql.yml",
+        ".github/workflows/sonarcloud.yml",
+        ".github/workflows/qlty.yml",
+        ".semgrep.yml"
+      ],
+      "evidence": "Python SAST is covered by CodeQL, SonarCloud, Qlty (wraps Ruff+Bandit), inline Bandit, and Semgrep; dependency vulns by OSV, Safety, dependency-review, and Renovate. High run-cost and review-noise, much stacked Monday mornings.",
+      "recommendation": "Keep CodeQL plus one of SonarCloud/Qlty, drop the redundant one and the inline Bandit (Qlty already runs Bandit), and document the chosen stack.",
+      "cve": ""
+    },
+    {
+      "id": "DOC-11",
+      "title": "Large doc set excluded from mkdocs nav (orphaned from the rendered site)",
+      "domain": "docs",
+      "severity": "Low",
+      "effort": "M",
+      "files": [
+        "mkdocs.yml:160-181",
+        "docs/"
+      ],
+      "evidence": "Not in nav and so unreachable on the built site: OPENSSF_COMPLIANCE, PROJECT_SETUP, PYTHON_COMPATIBILITY, secure.md, the ADRs/ planning/ diagrams/ _data/ trees. strict: false suppresses the warning.",
+      "recommendation": "Add the onboarding/compliance docs and the planning/ADR section to nav; leave handoff/feedback out or remove them.",
+      "cve": ""
+    },
+    {
+      "id": "LEG-04",
+      "title": "Actively-maintained parallel basic/enhanced middleware risks double-patching (overlaps ARCH-04/CQ-02)",
+      "domain": "legacy-code",
+      "severity": "Low",
+      "effort": "M",
+      "files": [
+        "packages/cloudflare-auth/src/cloudflare_auth/middleware.py",
+        "packages/cloudflare-auth/src/cloudflare_auth/middleware_enhanced.py"
+      ],
+      "evidence": "Both middleware classes are exported and edited in the same recent commits (52e5c27, 476736c, 2249de5), so 'enhanced' is a live second variant, not a stale fork; the rate-limit fix had to touch both. Sessions/redis_sessions split is legitimate.",
+      "recommendation": "Confirm both are intentionally supported and factor shared handling into a base, or mark the basic variant deprecated (see ARCH-04).",
+      "cve": ""
+    }
+  ]
+}
