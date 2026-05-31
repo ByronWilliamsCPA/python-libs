@@ -50,10 +50,8 @@ class CloudflareJWTValidator:
     - Expiration checking
     - Claim extraction and validation
 
-    Attributes:
-        settings: Cloudflare configuration settings
-        jwks_client: Client for fetching JWT signing keys
-        _last_key_refresh: Timestamp of last key refresh
+    Args:
+        settings (CloudflareSettings | None): Optional CloudflareSettings instance (uses default if not provided)
 
     Example:
         validator = CloudflareJWTValidator()
@@ -65,11 +63,6 @@ class CloudflareJWTValidator:
     """
 
     def __init__(self, settings: CloudflareSettings | None = None) -> None:
-        """Initialize JWT validator.
-
-        Args:
-            settings: Optional CloudflareSettings instance (uses default if not provided)
-        """
         self.settings = settings or get_cloudflare_settings()
 
         if not self.settings.cloudflare_team_domain:
@@ -104,11 +97,11 @@ class CloudflareJWTValidator:
         5. Required claims presence
 
         Args:
-            token: JWT token string from Cf-Access-Jwt-Assertion header
-            verify_exp: Whether to verify token expiration (default: True)
+            token (str): JWT token string from Cf-Access-Jwt-Assertion header
+            verify_exp (bool): Whether to verify token expiration (default: True)
 
         Returns:
-            CloudflareJWTClaims object with validated claims
+            CloudflareJWTClaims: CloudflareJWTClaims object with validated claims
 
         Raises:
             ValueError: If token is invalid, expired, or claims are missing
@@ -211,7 +204,7 @@ class CloudflareJWTValidator:
         """Validate that required claims are present.
 
         Args:
-            payload: Decoded JWT payload
+            payload (dict[str, Any]): Decoded JWT payload
 
         Raises:
             ValueError: If required claims are missing
@@ -236,14 +229,11 @@ class CloudflareJWTValidator:
         is CPU-bound and not truly async.
 
         Args:
-            token: JWT token string
-            verify_exp: Whether to verify token expiration
+            token (str): JWT token string
+            verify_exp (bool): Whether to verify token expiration
 
         Returns:
-            CloudflareJWTClaims object with validated claims
-
-        Raises:
-            ValueError: If token is invalid
+            CloudflareJWTClaims: CloudflareJWTClaims object with validated claims
         """
         # JWT validation is CPU-bound, not I/O bound
         # But we provide async interface for consistency
@@ -275,7 +265,7 @@ class CloudflareJWTValidator:
         """Check if validator is properly configured.
 
         Returns:
-            True if validator has necessary configuration
+            bool: True if validator has necessary configuration
         """
         return bool(
             self.settings.cloudflare_team_domain
@@ -290,10 +280,10 @@ class CloudflareJWTValidator:
         Only use for debugging or non-security-critical inspection.
 
         Args:
-            token: JWT token string
+            token (str): JWT token string
 
         Returns:
-            Dictionary of unverified claims
+            dict[str, Any]: Dictionary of unverified claims
 
         Example:
             # For debugging only

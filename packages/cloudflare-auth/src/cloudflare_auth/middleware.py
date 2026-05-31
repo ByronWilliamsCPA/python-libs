@@ -74,11 +74,15 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
     Cloudflare Access headers. It validates tokens, extracts user
     information, and makes it available via request.state.user.
 
-    Attributes:
-        validator: JWT token validator instance
-        settings: Cloudflare configuration settings
-        excluded_paths: Paths that bypass authentication
-        require_auth: Whether to enforce authentication (True) or just parse it (False)
+    Args:
+        app (Any): The ASGI application
+        settings (CloudflareSettings | None): Optional CloudflareSettings instance
+        validator (CloudflareJWTValidator | None): Optional CloudflareJWTValidator instance
+        excluded_paths (list[str] | None): List of paths to exclude from authentication
+        require_auth (bool): Whether to require authentication (vs. optional)
+        enable_rate_limiting (bool): Whether to enable rate limiting (default: True)
+        rate_limit_attempts (int): Max authentication attempts per window (default: 5)
+        rate_limit_window (int): Rate limit window in seconds (default: 60)
 
     Example:
         # In your FastAPI app
@@ -100,18 +104,6 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
         rate_limit_attempts: int = 5,
         rate_limit_window: int = 60,
     ) -> None:
-        """Initialize Cloudflare authentication middleware.
-
-        Args:
-            app: The ASGI application
-            settings: Optional CloudflareSettings instance
-            validator: Optional CloudflareJWTValidator instance
-            excluded_paths: List of paths to exclude from authentication
-            require_auth: Whether to require authentication (vs. optional)
-            enable_rate_limiting: Whether to enable rate limiting (default: True)
-            rate_limit_attempts: Max authentication attempts per window (default: 5)
-            rate_limit_window: Rate limit window in seconds (default: 60)
-        """
         super().__init__(app)
         self.settings = settings or get_cloudflare_settings()
         self.validator = validator or CloudflareJWTValidator(self.settings)
@@ -140,10 +132,10 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
         """Check if a path should bypass authentication.
 
         Args:
-            path: Request path to check
+            path (str): Request path to check
 
         Returns:
-            True if path is in excluded list
+            bool: True if path is in excluded list
         """
         # Exact match or prefix match
         return any(
@@ -158,7 +150,7 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
         tunnel and not directly to the application (bypassing Cloudflare Access).
 
         Args:
-            request: The incoming request
+            request (Request): The incoming request
 
         Raises:
             HTTPException: If request doesn't have required Cloudflare headers
@@ -223,11 +215,11 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
         5. Process request through application
 
         Args:
-            request: The incoming request
-            call_next: The next middleware/endpoint in the chain
+            request (Request): The incoming request
+            call_next (Callable): The next middleware/endpoint in the chain
 
         Returns:
-            Response from the application
+            Response: Response from the application
 
         Raises:
             HTTPException: If authentication fails and is required
@@ -403,13 +395,10 @@ class CloudflareAuthMiddleware(BaseHTTPMiddleware):
         """Authenticate request using Cloudflare headers.
 
         Args:
-            request: The incoming request
+            request (Request): The incoming request
 
         Returns:
-            CloudflareUser object if authentication succeeds, None if optional
-
-        Raises:
-            HTTPException: If authentication fails and is required
+            CloudflareUser | None: CloudflareUser object if authentication succeeds, None if optional
         """
         self._check_rate_limit(request)
 
@@ -449,10 +438,10 @@ def setup_cloudflare_auth(
     to your FastAPI application with sensible defaults.
 
     Args:
-        app: The FastAPI application instance
-        excluded_paths: Optional list of paths to exclude from auth
-        require_auth: Whether authentication is required (vs. optional)
-        settings: Optional CloudflareSettings instance
+        app (Any): The FastAPI application instance
+        excluded_paths (list[str] | None): Optional list of paths to exclude from auth
+        require_auth (bool): Whether authentication is required (vs. optional)
+        settings (CloudflareSettings | None): Optional CloudflareSettings instance
 
     Example:
         from fastapi import FastAPI
@@ -512,10 +501,10 @@ def get_current_user(request: Request) -> CloudflareUser:
     the authenticated user in route handlers.
 
     Args:
-        request: The FastAPI request object
+        request (Request): The FastAPI request object
 
     Returns:
-        CloudflareUser object
+        CloudflareUser: CloudflareUser object
 
     Raises:
         HTTPException: If user is not authenticated
@@ -551,10 +540,10 @@ def get_current_user_optional(request: Request) -> CloudflareUser | None:
     raising an exception if the user is not authenticated.
 
     Args:
-        request: The FastAPI request object
+        request (Request): The FastAPI request object
 
     Returns:
-        CloudflareUser object or None if not authenticated
+        CloudflareUser | None: CloudflareUser object or None if not authenticated
 
     Example:
         from fastapi import Depends

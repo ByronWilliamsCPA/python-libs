@@ -31,7 +31,7 @@ class SimpleSessionManager:
     This manager provides session tracking for authenticated users,
     maintaining session state and handling expiration.
 
-    ⚠️ SECURITY WARNING:
+    SECURITY WARNING:
         This in-memory implementation is NOT suitable for production use:
         - Sessions are lost on application restart
         - Not shared across multiple instances
@@ -50,6 +50,9 @@ class SimpleSessionManager:
         For production use with multiple instances, consider using a distributed
         session store (Redis, Memcached, etc.).
 
+    Args:
+        session_timeout (int): Session timeout in seconds (default: 1 hour)
+
     Example:
         manager = SimpleSessionManager(session_timeout=3600)
         session_id = manager.create_session(
@@ -61,11 +64,6 @@ class SimpleSessionManager:
     """
 
     def __init__(self, session_timeout: int = 3600) -> None:
-        """Initialize session manager.
-
-        Args:
-            session_timeout: Session timeout in seconds (default: 1 hour)
-        """
         self.sessions: dict[str, dict[str, Any]] = {}
         self.session_timeout = session_timeout
         logger.info("Initialized session manager with %ss timeout", session_timeout)
@@ -80,13 +78,13 @@ class SimpleSessionManager:
         """Create a new session for the user.
 
         Args:
-            email: User email address
-            is_admin: Whether user has admin privileges
-            user_tier: User tier (admin, full, limited)
-            cf_context: Additional Cloudflare context (headers, metadata)
+            email (str): User email address
+            is_admin (bool): Whether user has admin privileges
+            user_tier (str): User tier (admin, full, limited)
+            cf_context (dict[str, Any] | None): Additional Cloudflare context (headers, metadata)
 
         Returns:
-            Session ID (cryptographically secure random token)
+            str: Session ID (cryptographically secure random token)
 
         Example:
             session_id = manager.create_session(
@@ -123,10 +121,10 @@ class SimpleSessionManager:
         for valid sessions.
 
         Args:
-            session_id: Session identifier
+            session_id (str): Session identifier
 
         Returns:
-            Session data if valid, None if expired or not found
+            dict[str, Any] | None: Session data if valid, None if expired or not found
 
         Example:
             session = manager.get_session(session_id)
@@ -155,10 +153,10 @@ class SimpleSessionManager:
         """Invalidate a session.
 
         Args:
-            session_id: Session to invalidate
+            session_id (str): Session to invalidate
 
         Returns:
-            True if session was found and removed
+            bool: True if session was found and removed
 
         Example:
             # Logout
@@ -176,10 +174,10 @@ class SimpleSessionManager:
         """Refresh a session's last accessed time.
 
         Args:
-            session_id: Session to refresh
+            session_id (str): Session to refresh
 
         Returns:
-            True if session was found and refreshed
+            bool: True if session was found and refreshed
         """
         session = self.sessions.get(session_id)
         if session:
@@ -191,10 +189,10 @@ class SimpleSessionManager:
         """Check if session has expired.
 
         Args:
-            session: Session data dictionary
+            session (dict[str, Any]): Session data dictionary
 
         Returns:
-            True if session has exceeded timeout
+            bool: True if session has exceeded timeout
         """
         expiry = session["last_accessed"] + timedelta(seconds=self.session_timeout)
         return datetime.now(tz=timezone.utc) >= expiry
@@ -206,7 +204,7 @@ class SimpleSessionManager:
         expired sessions and free memory.
 
         Returns:
-            Number of sessions cleaned up
+            int: Number of sessions cleaned up
 
         Example:
             # In a background task
@@ -235,7 +233,7 @@ class SimpleSessionManager:
         """Get the current number of active sessions.
 
         Returns:
-            Number of active sessions
+            int: Number of active sessions
         """
         return len(self.sessions)
 
@@ -243,10 +241,10 @@ class SimpleSessionManager:
         """Get all session IDs for a specific user.
 
         Args:
-            email: User email address
+            email (str): User email address
 
         Returns:
-            List of session IDs for the user
+            list[str]: List of session IDs for the user
         """
         return [
             session_id
@@ -260,10 +258,10 @@ class SimpleSessionManager:
         Returns session data without sensitive information.
 
         Args:
-            session_id: Session identifier
+            session_id (str): Session identifier
 
         Returns:
-            Safe session information or None if not found
+            dict[str, Any] | None: Safe session information or None if not found
         """
         session = self.sessions.get(session_id)
         if not session:
@@ -284,7 +282,7 @@ class SimpleSessionManager:
         """Get session manager statistics.
 
         Returns:
-            Dictionary with session statistics
+            dict[str, Any]: Dictionary with session statistics
         """
         datetime.now(tz=timezone.utc)
         active_sessions = []
@@ -308,7 +306,7 @@ class SimpleSessionManager:
         """Count sessions by user tier.
 
         Returns:
-            Dictionary with tier counts
+            dict[str, int]: Dictionary with tier counts
         """
         tier_counts: dict[str, int] = {"admin": 0, "full": 0, "limited": 0}
 

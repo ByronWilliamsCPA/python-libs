@@ -31,22 +31,23 @@ class CloudflareSettings(BaseSettings):
     variables with sensible defaults for development.
 
     Attributes:
-        cloudflare_team_domain: Cloudflare Access team domain (e.g., "myteam")
-        cloudflare_audience_tag: Application audience tag from CF dashboard
-        cloudflare_enabled: Whether CF authentication is enabled
-        jwt_header_name: Header containing the JWT token
-        email_header_name: Header containing the authenticated email
-        jwt_algorithm: Algorithm for JWT validation (default: RS256)
-        jwt_cache_max_keys: Maximum cached signing keys
-        require_email_verification: Require email claim in token
-        log_auth_failures: Log failed authentication attempts
-        require_cloudflare_headers: Require CF-Ray header for validation
-        allowed_tunnel_ips: List of allowed tunnel IPs (optional)
-        allowed_email_domains: Restrict to specific email domains
-        cookie_path: Session cookie path
-        cookie_secure: Use secure cookies
-        cookie_samesite: Cookie SameSite attribute
-        cookie_domain: Cookie domain (optional)
+        model_config: Pydantic settings configuration
+        cloudflare_team_domain (str): Cloudflare Access team domain (e.g., "myteam")
+        cloudflare_audience_tag (str): Application audience tag from CF dashboard
+        cloudflare_enabled (bool): Whether CF authentication is enabled
+        jwt_header_name (str): Header containing the JWT token
+        email_header_name (str): Header containing the authenticated email
+        jwt_algorithm (str): Algorithm for JWT validation (default: RS256)
+        jwt_cache_max_keys (int): Maximum cached signing keys
+        require_email_verification (bool): Require email claim in token
+        log_auth_failures (bool): Log failed authentication attempts
+        require_cloudflare_headers (bool): Require CF-Ray header for validation
+        allowed_tunnel_ips (list[str]): List of allowed tunnel IPs (optional)
+        allowed_email_domains (list[str]): Restrict to specific email domains
+        cookie_path (str): Session cookie path
+        cookie_secure (bool): Use secure cookies
+        cookie_samesite (Literal['lax', 'strict', 'none']): Cookie SameSite attribute
+        cookie_domain (str | None): Cookie domain (optional)
     """
 
     model_config = SettingsConfigDict(
@@ -137,10 +138,10 @@ class CloudflareSettings(BaseSettings):
         """Parse comma-separated strings into lists.
 
         Args:
-            v: Comma-separated string or list of strings.
+            v (str | list[str] | None): Comma-separated string or list of strings.
 
         Returns:
-            List of strings parsed from input.
+            list[str]: List of strings parsed from input.
         """
         if v is None:
             return []
@@ -153,7 +154,7 @@ class CloudflareSettings(BaseSettings):
         """Get the Cloudflare certificate URL.
 
         Returns:
-            URL for JWKS endpoint, or None if team domain not configured.
+            str | None: URL for JWKS endpoint, or None if team domain not configured.
         """
         if not self.cloudflare_team_domain:
             return None
@@ -164,7 +165,7 @@ class CloudflareSettings(BaseSettings):
         """Get the expected token issuer.
 
         Returns:
-            Issuer URL, or None if team domain not configured.
+            str | None: Issuer URL, or None if team domain not configured.
         """
         if not self.cloudflare_team_domain:
             return None
@@ -174,10 +175,10 @@ class CloudflareSettings(BaseSettings):
         """Check if an email address is allowed.
 
         Args:
-            email: Email address to check
+            email (str): Email address to check
 
         Returns:
-            True if email is allowed (no restrictions or matches allowed domains)
+            bool: True if email is allowed (no restrictions or matches allowed domains)
         """
         if not self.allowed_email_domains:
             return True
@@ -197,7 +198,7 @@ def get_cloudflare_settings() -> CloudflareSettings:
     Settings are loaded from environment variables and .env file.
 
     Returns:
-        CloudflareSettings instance
+        CloudflareSettings: CloudflareSettings instance
 
     Example:
         settings = get_cloudflare_settings()

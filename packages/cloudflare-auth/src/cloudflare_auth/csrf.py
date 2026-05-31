@@ -32,6 +32,11 @@ class CSRFProtection:
     2. Setting it in both a cookie and requiring it in request headers/body
     3. Validating that both values match
 
+    Args:
+        cookie_name (str): Name of CSRF cookie (default: "csrf_token")
+        header_name (str): Name of CSRF header (default: "X-CSRF-Token")
+        secret_key (str | None): Optional secret key for token generation
+
     Example:
         csrf = CSRFProtection()
 
@@ -52,13 +57,6 @@ class CSRFProtection:
         header_name: str = "X-CSRF-Token",
         secret_key: str | None = None,
     ) -> None:
-        """Initialize CSRF protection.
-
-        Args:
-            cookie_name: Name of CSRF cookie (default: "csrf_token")
-            header_name: Name of CSRF header (default: "X-CSRF-Token")
-            secret_key: Optional secret key for token generation
-        """
         self.cookie_name = cookie_name
         self.header_name = header_name
         self.secret_key = secret_key or secrets.token_hex(32)
@@ -73,10 +71,10 @@ class CSRFProtection:
         """Generate a new CSRF token.
 
         Args:
-            session_id: Optional session ID to bind token to
+            session_id (str | None): Optional session ID to bind token to
 
         Returns:
-            CSRF token string
+            str: CSRF token string
         """
         # Generate random token
         secrets.token_bytes(32)
@@ -104,12 +102,12 @@ class CSRFProtection:
         """Validate CSRF token from cookie and header.
 
         Args:
-            cookie_token: Token from cookie
-            header_token: Token from header
-            constant_time: Use constant-time comparison (default: True)
+            cookie_token (str | None): Token from cookie
+            header_token (str | None): Token from header
+            constant_time (bool): Use constant-time comparison (default: True)
 
         Returns:
-            True if tokens match and are valid
+            bool: True if tokens match and are valid
         """
         # Both tokens must be present
         if not cookie_token or not header_token:
@@ -137,10 +135,10 @@ class CSRFProtection:
 
         Args:
             request: FastAPI/Starlette Request object
-            methods_to_protect: HTTP methods that require CSRF validation
+            methods_to_protect (set[str] | None): HTTP methods that require CSRF validation
 
         Returns:
-            True if validation passes or not required for this method
+            bool: True if validation passes or not required for this method
         """
         # Skip CSRF check for safe methods
         if methods_to_protect is None:
@@ -167,11 +165,11 @@ def get_csrf_protection(
     """Get or create global CSRF protection instance.
 
     Args:
-        cookie_name: Name of CSRF cookie
-        header_name: Name of CSRF header
+        cookie_name (str): Name of CSRF cookie
+        header_name (str): Name of CSRF header
 
     Returns:
-        CSRFProtection instance
+        CSRFProtection: CSRFProtection instance
     """
     global _global_csrf_protection  # noqa: PLW0603
 

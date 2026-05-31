@@ -40,13 +40,13 @@ def sanitize_for_logging(
     - Converting to string safely
 
     Args:
-        value: Value to sanitize (any type)
-        max_length: Maximum length of output (default: 200)
-        replace_newlines: Replace newlines with space (default: True)
-        replace_control_chars: Replace control chars with � (default: True)
+        value (Any): Value to sanitize (any type)
+        max_length (int): Maximum length of output (default: 200)
+        replace_newlines (bool): Replace newlines with space (default: True)
+        replace_control_chars (bool): Replace control chars with replacement chars� (default: True)
 
     Returns:
-        Sanitized string safe for logging
+        str: Sanitized string safe for logging
 
     Example:
         >>> sanitize_for_logging("user@example.com\\nINJECTED LINE")
@@ -86,11 +86,11 @@ def sanitize_email(email: str, max_length: int = 254) -> str:
     Validates email format and sanitizes for safe logging.
 
     Args:
-        email: Email address to sanitize
-        max_length: Maximum email length (default: 254 per RFC 5321)
+        email (str): Email address to sanitize
+        max_length (int): Maximum email length (default: 254 per RFC 5321)
 
     Returns:
-        Sanitized email address
+        str: Sanitized email address
 
     Example:
         >>> sanitize_email("user@example.com")
@@ -111,11 +111,11 @@ def sanitize_path(path: str, max_length: int = 200) -> str:
     r"""Sanitize URL path for logging.
 
     Args:
-        path: URL path to sanitize
-        max_length: Maximum path length
+        path (str): URL path to sanitize
+        max_length (int): Maximum path length
 
     Returns:
-        Sanitized path
+        str: Sanitized path
 
     Example:
         >>> sanitize_path("/api/users/123")
@@ -130,11 +130,11 @@ def sanitize_ip(ip: str, max_length: int = 45) -> str:
     r"""Sanitize IP address for logging.
 
     Args:
-        ip: IP address to sanitize
-        max_length: Maximum length (45 for IPv6)
+        ip (str): IP address to sanitize
+        max_length (int): Maximum length (45 for IPv6)
 
     Returns:
-        Sanitized IP address
+        str: Sanitized IP address
 
     Example:
         >>> sanitize_ip("192.168.1.1")
@@ -165,12 +165,12 @@ def sanitize_dict_for_logging(
     """Sanitize dictionary for safe logging.
 
     Args:
-        data: Dictionary to sanitize
-        max_value_length: Maximum length for each value
-        excluded_keys: Keys to exclude (e.g., 'password', 'token')
+        data (dict[str, Any]): Dictionary to sanitize
+        max_value_length (int): Maximum length for each value
+        excluded_keys (set[str] | None): Keys to exclude (e.g., 'password', 'token')
 
     Returns:
-        Sanitized dictionary with string values
+        dict[str, str]: Sanitized dictionary with string values
 
     Example:
         >>> sanitize_dict_for_logging(
@@ -210,11 +210,11 @@ def mask_sensitive_data(
     """Mask sensitive data in text using regex pattern.
 
     Args:
-        text: Text potentially containing sensitive data
-        pattern: Regex pattern to match sensitive data (default: email pattern)
+        text (str): Text potentially containing sensitive data
+        pattern (str): Regex pattern to match sensitive data (default: email pattern)
 
     Returns:
-        Text with sensitive data masked
+        str: Text with sensitive data masked
 
     Example:
         >>> mask_sensitive_data("Contact user@example.com for help")
@@ -244,7 +244,7 @@ def get_client_ip(request) -> str:
         request: FastAPI/Starlette Request object
 
     Returns:
-        Client IP address string
+        str: Client IP address string
 
     Example:
         >>> from fastapi import Request
