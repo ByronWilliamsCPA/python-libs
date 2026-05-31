@@ -29,15 +29,15 @@ class SyncResult:
     """Result of syncing an IP group.
 
     Attributes:
-        group_name: Name of the IP group
-        cloudflare_list_name: Cloudflare list name
-        cloudflare_list_id: Cloudflare list ID
-        ips_count: Number of IPs synced
-        added: Number of IPs added
-        removed: Number of IPs removed
-        unchanged: Whether the list was unchanged
-        error: Error message if sync failed
-        duration_seconds: Time taken to sync
+        group_name (str): Name of the IP group
+        cloudflare_list_name (str): Cloudflare list name
+        cloudflare_list_id (str | None): Cloudflare list ID
+        ips_count (int): Number of IPs synced
+        added (int): Number of IPs added
+        removed (int): Number of IPs removed
+        unchanged (bool): Whether the list was unchanged
+        error (str | None): Error message if sync failed
+        duration_seconds (float): Time taken to sync
     """
 
     group_name: str
@@ -56,9 +56,9 @@ class IPCache:
     """Cache for fetched IP ranges.
 
     Attributes:
-        ips: Cached IP addresses
-        fetched_at: When the IPs were fetched
-        source_hash: Hash of the source config for invalidation
+        ips (list[str]): Cached IP addresses
+        fetched_at (datetime): When the IPs were fetched
+        source_hash (str): Hash of the source config for invalidation
     """
 
     ips: list[str] = field(default_factory=list)
@@ -70,6 +70,10 @@ class IPGroupManager:
     """Manager for IP range groups.
 
     Handles fetching IPs from various sources and syncing them to Cloudflare.
+
+    Args:
+        config (IPGroupsConfig): IP groups configuration.
+        client (CloudflareAPIClient | None): Optional Cloudflare client. If not provided, creates one.
 
     Example:
         ```python
@@ -91,12 +95,6 @@ class IPGroupManager:
         config: IPGroupsConfig,
         client: CloudflareAPIClient | None = None,
     ) -> None:
-        """Initialize the IP Group Manager.
-
-        Args:
-            config: IP groups configuration.
-            client: Optional Cloudflare client. If not provided, creates one.
-        """
         self.config = config
         self._client = client
         self._cache: dict[str, IPCache] = {}
@@ -110,11 +108,11 @@ class IPGroupManager:
         """Create a manager from a config file.
 
         Args:
-            config_path: Path to the YAML config file.
-            client: Optional Cloudflare client.
+            config_path (str | Path): Path to the YAML config file.
+            client (CloudflareAPIClient | None): Optional Cloudflare client.
 
         Returns:
-            Configured IPGroupManager.
+            IPGroupManager: Configured IPGroupManager.
         """
         config = load_config(config_path)
         return cls(config, client)
@@ -130,10 +128,10 @@ class IPGroupManager:
         """Get a hash of the source config for cache invalidation.
 
         Args:
-            source: Source configuration.
+            source (IPSourceConfig): Source configuration.
 
         Returns:
-            Hash string.
+            str: Hash string.
         """
         config_str = json.dumps(source.model_dump(), sort_keys=True)
         # MD5 used only for cache key generation, not security purposes
@@ -143,11 +141,11 @@ class IPGroupManager:
         """Check if cached IPs are still valid.
 
         Args:
-            cache: Cached data.
-            source: Source configuration.
+            cache (IPCache): Cached data.
+            source (IPSourceConfig): Source configuration.
 
         Returns:
-            True if cache is valid.
+            bool: True if cache is valid.
         """
         # Check if source config changed
         if cache.source_hash != self._get_source_hash(source):
@@ -165,11 +163,11 @@ class IPGroupManager:
         """Fetch IPs from a single source.
 
         Args:
-            source: Source configuration.
-            use_cache: Whether to use cached results.
+            source (IPSourceConfig): Source configuration.
+            use_cache (bool): Whether to use cached results.
 
         Returns:
-            List of IP addresses.
+            list[str]: List of IP addresses.
         """
         cache_key = self._get_source_hash(source)
 
@@ -201,11 +199,14 @@ class IPGroupManager:
         """Fetch all IPs for a group from all sources.
 
         Args:
-            group: Group configuration.
-            use_cache: Whether to use cached results.
+            group (IPGroupConfig): Group configuration.
+            use_cache (bool): Whether to use cached results.
 
         Returns:
-            Deduplicated list of IP addresses.
+            list[str]: Deduplicated list of IP addresses.
+
+        Raises:
+            Exception: If fetching from any source fails.
         """
         all_ips: set[str] = set()
 
@@ -233,13 +234,10 @@ class IPGroupManager:
         """Preview what would change for a group without applying.
 
         Args:
-            group_name: Name of the group to preview.
+            group_name (str): Name of the group to preview.
 
         Returns:
-            Dict with current and new IPs, and diff.
-
-        Raises:
-            ValueError: If group not found.
+            dict[str, Any]: Dict with current and new IPs, and diff.
         """
         group = self._get_group(group_name)
 
@@ -275,14 +273,11 @@ class IPGroupManager:
         """Sync a single IP group to Cloudflare.
 
         Args:
-            group_name: Name of the group to sync.
-            dry_run: If True, preview without applying changes.
+            group_name (str): Name of the group to sync.
+            dry_run (bool): If True, preview without applying changes.
 
         Returns:
-            SyncResult with details of the operation.
-
-        Raises:
-            ValueError: If group not found or disabled.
+            SyncResult: SyncResult with details of the operation.
         """
         start_time = time.time()
         group = self._get_group(group_name)
@@ -373,10 +368,10 @@ class IPGroupManager:
         """Sync all enabled IP groups to Cloudflare.
 
         Args:
-            dry_run: If True, preview without applying changes.
+            dry_run (bool): If True, preview without applying changes.
 
         Returns:
-            List of SyncResults for each group.
+            list[SyncResult]: List of SyncResults for each group.
         """
         results = []
 
@@ -405,7 +400,7 @@ class IPGroupManager:
         """List all configured IP groups.
 
         Returns:
-            List of group summaries.
+            list[dict[str, Any]]: List of group summaries.
         """
         return [
             {
@@ -424,10 +419,10 @@ class IPGroupManager:
         """Get a group by name.
 
         Args:
-            group_name: Name of the group.
+            group_name (str): Name of the group.
 
         Returns:
-            Group configuration.
+            IPGroupConfig: Group configuration.
 
         Raises:
             ValueError: If group not found.
@@ -444,10 +439,10 @@ class IPGroupManager:
         """Get the Cloudflare list name for a group.
 
         Args:
-            group: Group configuration.
+            group (IPGroupConfig): Group configuration.
 
         Returns:
-            Cloudflare list name with optional prefix.
+            str: Cloudflare list name with optional prefix.
         """
         prefix = self.config.cloudflare_list_prefix
         if prefix:
