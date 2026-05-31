@@ -18,7 +18,10 @@ Called by:
 """
 
 import re
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from fastapi import Request
 
 # Patterns for dangerous characters in logs
 CONTROL_CHARS_PATTERN = re.compile(r"[\x00-\x1f\x7f-\x9f]")
@@ -232,7 +235,7 @@ def mask_sensitive_data(
     return re.sub(pattern, mask_match, text)
 
 
-def get_client_ip(request) -> str:
+def get_client_ip(request: "Request") -> str:
     """Extract client IP address from request.
 
     SECURITY NOTE: Only trusts CF-Connecting-IP header from Cloudflare.
@@ -241,7 +244,7 @@ def get_client_ip(request) -> str:
     Cloudflare Access.
 
     Args:
-        request: FastAPI/Starlette Request object
+        request (Request): FastAPI/Starlette Request object
 
     Returns:
         str: Client IP address string

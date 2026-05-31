@@ -20,6 +20,10 @@ Called by:
 import hmac
 import logging
 import secrets
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from fastapi import Request
 
 logger = logging.getLogger(__name__)
 
@@ -128,13 +132,13 @@ class CSRFProtection:
 
     def validate_request(
         self,
-        request,  # noqa: ANN001 - FastAPI/Starlette Request - not annotated to avoid import
+        request: "Request",
         methods_to_protect: set[str] | None = None,
     ) -> bool:
         """Validate CSRF token for a request.
 
         Args:
-            request: FastAPI/Starlette Request object
+            request (Request): FastAPI/Starlette Request object
             methods_to_protect (set[str] | None): HTTP methods that require CSRF validation
 
         Returns:
