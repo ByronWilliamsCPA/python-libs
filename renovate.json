@@ -206,7 +206,7 @@
     }
   ],
   "enabledManagers": [
-    "poetry",
+    "pep621",
     "github-actions"
   ]
 }
