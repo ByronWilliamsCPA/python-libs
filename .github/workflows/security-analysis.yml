@@ -34,6 +34,7 @@ permissions:
 
 jobs:
   security:
+    name: Security Scan
     uses: ByronWilliamsCPA/.github/.github/workflows/python-security-analysis.yml@main
     with:
       source-directory: 'src'
@@ -43,5 +44,30 @@ jobs:
       run-codeql: true
       run-dependency-review: true
       run-bandit: true
-      run-safety: true
       run-osv: true
+
+  # Required status check context: "Security Gate Validation"
+  # (matches the org ruleset; gated on the reusable security scan result).
+  security-gate-success:
+    name: Security Gate Validation
+    runs-on: ubuntu-latest
+    needs: [security]
+    if: always()
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Check security scan results
+        env:
+          SECURITY_RESULT: ${{ needs.security.result }}
+        run: |
+          if [ "$SECURITY_RESULT" == "success" ]; then
+            echo "Security Gate passed"
+          else
+            echo "Security Gate failed: $SECURITY_RESULT"
+            exit 1
+          fi
