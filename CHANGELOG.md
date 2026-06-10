@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- Filled in remaining missing docstrings to reach 100% interrogate coverage
+  (up from 99.2%): module docstring for `python_libs.middleware`, docstring +
+  type annotations for the `mask_match` inner callback in
+  `cloudflare_auth.utils.mask_sensitive_data`, and docstring for the
+  `dependency` closure returned by `cloudflare_auth.middleware_enhanced.require_tier`.
+
 ### Changed
 
 - Migrated `sonarcloud.yml` to use `python-sonarcloud.yml` reusable workflow
