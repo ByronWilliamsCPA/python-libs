@@ -70,6 +70,19 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
     - Session management
     - Development mode support
 
+    Args:
+        app (Any): ASGI application
+        settings (CloudflareSettings | None): Cloudflare configuration settings
+        validator (CloudflareJWTValidator | None): JWT token validator
+        whitelist_validator (EmailWhitelistValidator | None): Email whitelist validator (required)
+        session_manager (SimpleSessionManager | None): Session manager instance
+        excluded_paths (list[str] | None): Paths to exclude from authentication
+        enable_sessions (bool): Whether to use session cookies
+        require_auth (bool): Whether authentication is required
+        enable_rate_limiting (bool): Whether to enable rate limiting (default: True)
+        rate_limit_attempts (int): Max authentication attempts per window (default: 5)
+        rate_limit_window (int): Rate limit window in seconds (default: 60)
+
     Example:
         middleware = CloudflareAuthMiddlewareEnhanced(
             app=app,
@@ -94,21 +107,6 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
         rate_limit_attempts: int = 5,
         rate_limit_window: int = 60,
     ) -> None:
-        """Initialize enhanced authentication middleware.
-
-        Args:
-            app: ASGI application
-            settings: Cloudflare configuration settings
-            validator: JWT token validator
-            whitelist_validator: Email whitelist validator (required)
-            session_manager: Session manager instance
-            excluded_paths: Paths to exclude from authentication
-            enable_sessions: Whether to use session cookies
-            require_auth: Whether authentication is required
-            enable_rate_limiting: Whether to enable rate limiting (default: True)
-            rate_limit_attempts: Max authentication attempts per window (default: 5)
-            rate_limit_window: Rate limit window in seconds (default: 60)
-        """
         super().__init__(app)
         self.settings = settings or get_cloudflare_settings()
         self.jwt_validator = validator or CloudflareJWTValidator(self.settings)
@@ -157,10 +155,10 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
         """Check if a path should bypass authentication.
 
         Args:
-            path: Request path to check
+            path (str): Request path to check
 
         Returns:
-            True if path is excluded from auth
+            bool: True if path is excluded from auth
         """
         return any(
             path == excluded or path.startswith(excluded.rstrip("/") + "/")
@@ -184,11 +182,14 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
         7. Inject user into request.state
 
         Args:
-            request: Incoming request
-            call_next: Next middleware/endpoint
+            request (Request): Incoming request
+            call_next (Callable): Next middleware/endpoint
 
         Returns:
-            Response from application
+            Response: Response from application
+
+        Raises:
+            HTTPException: If authentication fails and is required
         """
         # Skip authentication for excluded paths
         if self._is_path_excluded(request.url.path):
@@ -375,13 +376,10 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
         """Authenticate request using JWT and whitelist.
 
         Args:
-            request: Incoming request
+            request (Request): Incoming request
 
         Returns:
-            CloudflareUser object if authenticated, None if optional
-
-        Raises:
-            HTTPException: If authentication fails and is required
+            CloudflareUser | None: CloudflareUser object if authenticated, None if optional
         """
         self._check_rate_limit(request)
 
@@ -438,11 +436,11 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
         """Recreate CloudflareUser from session data.
 
         Args:
-            session: Session data dictionary
-            session_id: Session identifier
+            session (dict[str, Any]): Session data dictionary
+            session_id (str): Session identifier
 
         Returns:
-            CloudflareUser instance
+            CloudflareUser: CloudflareUser instance
         """
         from cloudflare_auth.models import CloudflareJWTClaims
 
@@ -473,8 +471,8 @@ class CloudflareAuthMiddlewareEnhanced(BaseHTTPMiddleware):
         Uses security settings from configuration for proper cookie attributes.
 
         Args:
-            response: Response to modify
-            session_id: Session ID to set
+            response (Response): Response to modify
+            session_id (str): Session ID to set
         """
         # Prepare cookie kwargs from settings
         # Get cookie configuration
@@ -533,19 +531,19 @@ def setup_cloudflare_auth_enhanced(
     - Development mode
 
     Args:
-        app: FastAPI application
-        whitelist: List of allowed emails/domains (e.g., ["user@example.com", "@company.com"])
-        admin_emails: List of admin emails
-        full_users: List of full-tier users
-        limited_users: List of limited-tier users
-        excluded_paths: Paths to exclude from auth
-        enable_sessions: Whether to use session cookies
-        require_auth: Whether authentication is required
-        session_timeout: Session timeout in seconds
-        settings: Optional CloudflareSettings instance
+        app (Any): FastAPI application
+        whitelist (list[str] | None): List of allowed emails/domains (e.g., ["user@example.com", "@company.com"])
+        admin_emails (list[str] | None): List of admin emails
+        full_users (list[str] | None): List of full-tier users
+        limited_users (list[str] | None): List of limited-tier users
+        excluded_paths (list[str] | None): Paths to exclude from auth
+        enable_sessions (bool): Whether to use session cookies
+        require_auth (bool): Whether authentication is required
+        session_timeout (int): Session timeout in seconds
+        settings (CloudflareSettings | None): Optional CloudflareSettings instance
 
     Returns:
-        None - middleware is added directly to the app
+        None: Middleware is added directly to the app
 
     Example:
         app = FastAPI()
@@ -631,10 +629,10 @@ def get_current_user(request: Request) -> CloudflareUser:
     """FastAPI dependency to get current authenticated user.
 
     Args:
-        request: FastAPI request
+        request (Request): FastAPI request
 
     Returns:
-        CloudflareUser object
+        CloudflareUser: CloudflareUser object
 
     Raises:
         HTTPException: If user is not authenticated
@@ -660,10 +658,10 @@ def get_current_user_optional(request: Request) -> CloudflareUser | None:
     """FastAPI dependency for optional authentication.
 
     Args:
-        request: FastAPI request
+        request (Request): FastAPI request
 
     Returns:
-        CloudflareUser or None
+        CloudflareUser | None: CloudflareUser or None
 
     Example:
         @app.get("/info")
@@ -679,10 +677,10 @@ def require_admin(request: Request) -> CloudflareUser:
     """FastAPI dependency requiring admin privileges.
 
     Args:
-        request: FastAPI request
+        request (Request): FastAPI request
 
     Returns:
-        CloudflareUser object
+        CloudflareUser: CloudflareUser object
 
     Raises:
         HTTPException: If not authenticated or not admin
@@ -707,10 +705,10 @@ def require_tier(minimum_tier: UserTier) -> Callable:
     """Create a dependency that requires a minimum user tier.
 
     Args:
-        minimum_tier: Minimum required tier
+        minimum_tier (UserTier): Minimum required tier
 
     Returns:
-        Dependency function
+        Callable: Dependency function
 
     Example:
         require_full = require_tier(UserTier.FULL)
@@ -728,10 +726,10 @@ def require_tier(minimum_tier: UserTier) -> Callable:
         LIMITED < FULL < ADMIN.
 
         Args:
-            request: Incoming FastAPI/Starlette request.
+            request (Request): Incoming FastAPI/Starlette request.
 
         Returns:
-            The authenticated CloudflareUser object.
+            CloudflareUser: The authenticated user object.
 
         Raises:
             HTTPException: 403 if the user's tier is below minimum_tier; 401

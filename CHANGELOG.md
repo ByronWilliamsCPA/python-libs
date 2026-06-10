@@ -47,6 +47,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Replaced `darglint` with `pydoclint` for docstring argument/return validation
+  (faster, actively maintained; configured via `[tool.pydoclint]` with
+  `arg-type-hints-in-docstring` enforced).
 - Migrated `sonarcloud.yml` to use `python-sonarcloud.yml` reusable workflow
 - Migrated `pr-validation.yml` to use `python-supplemental-checks.yml` reusable workflow
 - Removed dependency on deprecated `python-pr-validation.yml` workflow

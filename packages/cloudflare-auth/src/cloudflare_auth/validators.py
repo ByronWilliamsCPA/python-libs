@@ -63,10 +63,12 @@ class CloudflareJWTValidator:
     - Expiration checking
     - Claim extraction and validation
 
-    Attributes:
-        settings: Cloudflare configuration settings
-        jwks_client: Client for fetching JWT signing keys
-        _last_key_refresh: Timestamp of last key refresh
+    Args:
+        settings (CloudflareSettings | None): Optional CloudflareSettings instance (uses default if not provided)
+
+    Raises:
+        ValueError: If configured ``jwt_algorithm`` is not in the allowlist
+            of safe asymmetric algorithms.
 
     Example:
         validator = CloudflareJWTValidator()
@@ -78,15 +80,6 @@ class CloudflareJWTValidator:
     """
 
     def __init__(self, settings: CloudflareSettings | None = None) -> None:
-        """Initialize JWT validator.
-
-        Args:
-            settings: Optional CloudflareSettings instance (uses default if not provided)
-
-        Raises:
-            ValueError: If configured ``jwt_algorithm`` is not in the
-                allowlist of safe asymmetric algorithms.
-        """
         self.settings = settings or get_cloudflare_settings()
 
         # #CRITICAL: Security: reject unsafe algorithms at construction time.
@@ -135,10 +128,10 @@ class CloudflareJWTValidator:
         cannot be disabled by callers.
 
         Args:
-            token: JWT token string from Cf-Access-Jwt-Assertion header
+            token (str): JWT token string from Cf-Access-Jwt-Assertion header
 
         Returns:
-            CloudflareJWTClaims object with validated claims
+            CloudflareJWTClaims: CloudflareJWTClaims object with validated claims
 
         Raises:
             ValueError: If token is invalid, expired, or claims are missing
@@ -297,7 +290,7 @@ class CloudflareJWTValidator:
         """Validate that required claims are present.
 
         Args:
-            payload: Decoded JWT payload
+            payload (dict[str, Any]): Decoded JWT payload
 
         Raises:
             ValueError: If required claims are missing
@@ -321,13 +314,10 @@ class CloudflareJWTValidator:
         is CPU-bound and not truly async.
 
         Args:
-            token: JWT token string
+            token (str): JWT token string
 
         Returns:
-            CloudflareJWTClaims object with validated claims
-
-        Raises:
-            ValueError: If token is invalid
+            CloudflareJWTClaims: CloudflareJWTClaims object with validated claims
         """
         # JWT validation is CPU-bound, not I/O bound
         # But we provide async interface for consistency
@@ -359,7 +349,7 @@ class CloudflareJWTValidator:
         """Check if validator is properly configured.
 
         Returns:
-            True if validator has necessary configuration
+            bool: True if validator has necessary configuration
         """
         return bool(
             self.settings.cloudflare_team_domain
@@ -379,10 +369,16 @@ class CloudflareJWTValidator:
         production logs.
 
         Args:
-            token: JWT token string
+            token (str): JWT token string
 
         Returns:
-            Dictionary of unverified claims, or empty dict on parse error.
+            dict[str, Any]: Dictionary of unverified claims, or an empty dict
+                on parse error.
+
+        Example:
+            # For debugging only
+            claims = validator.get_unverified_claims(token)
+            print(f"Token issued for: {claims.get('email')}")
         """
         logger.warning(
             "get_unverified_claims() called - claims are NOT verified and "

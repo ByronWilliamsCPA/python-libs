@@ -40,6 +40,18 @@ class GCSClient:
         GCS_BUCKET: Default bucket name (optional, can be specified per operation)
         GCP_PROJECT: GCP project ID (optional, extracted from service account if not provided)
 
+    Args:
+        service_account_key_b64 (str | None): Base64-encoded service account
+            JSON. If not provided, reads from GCP_SA_KEY env var.
+        bucket_name (str | None): Default bucket name. If not provided, reads
+            from GCS_BUCKET env var.
+        project_id (str | None): GCP project ID. If not provided, extracts from
+            service account.
+        auto_create_bucket (bool): If True, creates bucket if it doesn't exist.
+
+    Raises:
+        GCSAuthError: If authentication fails.
+
     Example:
         ```python
         from gcs_utilities import GCSClient
@@ -65,19 +77,6 @@ class GCSClient:
         project_id: str | None = None,
         auto_create_bucket: bool = False,
     ) -> None:
-        """Initialize GCS client.
-
-        Args:
-            service_account_key_b64: Base64-encoded service account JSON.
-                If not provided, reads from GCP_SA_KEY env var.
-            bucket_name: Default bucket name. If not provided, reads from GCS_BUCKET env var.
-            project_id: GCP project ID. If not provided, extracts from service account.
-            auto_create_bucket: If True, creates bucket if it doesn't exist.
-
-        Raises:
-            GCSAuthError: If authentication fails.
-            GCSConfigError: If required configuration is missing (raised by _setup_credentials).
-        """
         self._credentials_path: str | None = None
         self._cleanup_registered = False
         self.bucket_name = bucket_name or os.getenv("GCS_BUCKET")
@@ -107,7 +106,8 @@ class GCSClient:
         """Setup GCS credentials from base64-encoded service account key.
 
         Args:
-            service_account_key_b64: Base64-encoded service account JSON.
+            service_account_key_b64 (str | None): Base64-encoded service
+                account JSON.
 
         Raises:
             GCSAuthError: If credentials setup fails.
@@ -168,10 +168,10 @@ class GCSClient:
         """Get bucket or optionally create it if it doesn't exist.
 
         Args:
-            auto_create: If True, creates bucket if it doesn't exist.
+            auto_create (bool): If True, creates bucket if it doesn't exist.
 
         Returns:
-            Storage bucket object.
+            storage.Bucket: Storage bucket object.
 
         Raises:
             GCSNotFoundError: If bucket doesn't exist and auto_create is False.
@@ -204,8 +204,8 @@ class GCSClient:
         """Set or change the default bucket.
 
         Args:
-            bucket_name: Name of the bucket.
-            auto_create: If True, creates bucket if it doesn't exist.
+            bucket_name (str): Name of the bucket.
+            auto_create (bool): If True, creates bucket if it doesn't exist.
         """
         self.bucket_name = bucket_name
         self.bucket = self._get_or_create_bucket(auto_create)
@@ -215,11 +215,11 @@ class GCSClient:
         """Validate local file path for security.
 
         Args:
-            path: Path to validate.
-            must_exist: If True, raises error if path doesn't exist.
+            path (Path): Path to validate.
+            must_exist (bool): If True, raises error if path doesn't exist.
 
         Returns:
-            Resolved absolute path.
+            Path: Resolved absolute path.
 
         Raises:
             ValueError: If path is invalid or contains traversal attempts.
@@ -251,10 +251,10 @@ class GCSClient:
         """Sanitize GCS object path/prefix and reject traversal attempts.
 
         Args:
-            gcs_path: GCS blob path to sanitize.
+            gcs_path (str): GCS blob path to sanitize.
 
         Returns:
-            Sanitized path with leading slashes stripped.
+            str: Sanitized path with leading slashes stripped.
 
         Raises:
             ValueError: If path is empty, contains a ``..`` segment,
@@ -308,18 +308,20 @@ class GCSClient:
         """Upload a single file to GCS.
 
         Args:
-            local_path: Path to local file.
-            gcs_path: Destination path in GCS (blob name).
-            bucket_name: Bucket name (uses default if not specified).
-            content_type: Content type for the file (auto-detected if not provided).
-            metadata: Optional metadata dict to attach to the blob.
+            local_path (str): Path to local file.
+            gcs_path (str): Destination path in GCS (blob name).
+            bucket_name (str | None): Bucket name (uses default if not
+                specified).
+            content_type (str | None): Content type for the file
+                (auto-detected if not provided).
+            metadata (dict[str, str] | None): Optional metadata dict to attach
+                to the blob.
 
         Returns:
-            Full GCS URI (gs://bucket/path).
+            str: Full GCS URI (gs://bucket/path).
 
         Raises:
             GCSUploadError: If upload fails.
-            FileNotFoundError: If local file doesn't exist (raised by _validate_local_path).
         """
         # Validate and sanitize paths
         local_file = self._validate_local_path(Path(local_path), must_exist=True)
@@ -360,18 +362,18 @@ class GCSClient:
         """Upload a directory to GCS, preserving structure.
 
         Args:
-            local_dir: Path to local directory.
-            gcs_prefix: Prefix for GCS paths (like a directory).
-            bucket_name: Bucket name (uses default if not specified).
-            pattern: Glob pattern for files to include (default: all files).
-            exclude_patterns: List of glob patterns to exclude.
+            local_dir (str): Path to local directory.
+            gcs_prefix (str): Prefix for GCS paths (like a directory).
+            bucket_name (str | None): Bucket name (uses default if not
+                specified).
+            pattern (str): Glob pattern for files to include (default: all
+                files).
+            exclude_patterns (list[str] | None): List of glob patterns to
+                exclude.
 
         Returns:
-            Dict with stats: {"files_uploaded": int, "total_bytes": int, "failed": list}.
-
-        Raises:
-            GCSUploadError: If upload fails (raised indirectly).
-            FileNotFoundError: If local directory doesn't exist (raised by _validate_local_path).
+            dict[str, Any]: Dict with stats: {"files_uploaded": int,
+                "total_bytes": int, "failed": list}.
         """
         # Validate local directory path
         local_path = self._validate_local_path(Path(local_dir), must_exist=True)
@@ -451,13 +453,15 @@ class GCSClient:
         """Download a single file from GCS.
 
         Args:
-            gcs_path: Path in GCS (blob name).
-            local_path: Destination local path.
-            bucket_name: Bucket name (uses default if not specified).
-            create_dirs: If True, creates parent directories if they don't exist.
+            gcs_path (str): Path in GCS (blob name).
+            local_path (str): Destination local path.
+            bucket_name (str | None): Bucket name (uses default if not
+                specified).
+            create_dirs (bool): If True, creates parent directories if they
+                don't exist.
 
         Returns:
-            Path to downloaded file.
+            str: Path to downloaded file.
 
         Raises:
             GCSDownloadError: If download fails.
@@ -501,11 +505,12 @@ class GCSClient:
         """Download a file from GCS as bytes.
 
         Args:
-            gcs_path: Path in GCS (blob name).
-            bucket_name: Bucket name (uses default if not specified).
+            gcs_path (str): Path in GCS (blob name).
+            bucket_name (str | None): Bucket name (uses default if not
+                specified).
 
         Returns:
-            File contents as bytes.
+            bytes: File contents as bytes.
 
         Raises:
             GCSDownloadError: If download fails.
@@ -534,12 +539,13 @@ class GCSClient:
         """Download a file from GCS as text.
 
         Args:
-            gcs_path: Path in GCS (blob name).
-            bucket_name: Bucket name (uses default if not specified).
-            encoding: Text encoding (default: utf-8).
+            gcs_path (str): Path in GCS (blob name).
+            bucket_name (str | None): Bucket name (uses default if not
+                specified).
+            encoding (str): Text encoding (default: utf-8).
 
         Returns:
-            File contents as string.
+            str: File contents as string.
 
         Raises:
             GCSDownloadError: If download fails.
@@ -569,13 +575,16 @@ class GCSClient:
         """List files in GCS bucket.
 
         Args:
-            prefix: Filter to files with this prefix.
-            bucket_name: Bucket name (uses default if not specified).
-            max_results: Maximum number of results to return.
-            delimiter: Delimiter for directory-like listing (e.g., "/").
+            prefix (str | None): Filter to files with this prefix.
+            bucket_name (str | None): Bucket name (uses default if not
+                specified).
+            max_results (int | None): Maximum number of results to return.
+            delimiter (str | None): Delimiter for directory-like listing (e.g.,
+                "/").
 
         Returns:
-            List of dicts with file info: {"name": str, "size": int, "updated": datetime}.
+            list[dict[str, Any]]: List of dicts with file info: {"name": str,
+                "size": int, "updated": datetime}.
 
         Raises:
             GCSDownloadError: If listing fails.
@@ -616,12 +625,15 @@ class GCSClient:
         """Delete a file from GCS.
 
         Args:
-            gcs_path: Path in GCS (blob name).
-            bucket_name: Bucket name (uses default if not specified).
-            ignore_missing: If True, doesn't raise error if file doesn't exist.
+            gcs_path (str): Path in GCS (blob name).
+            bucket_name (str | None): Bucket name (uses default if not
+                specified).
+            ignore_missing (bool): If True, doesn't raise error if file doesn't
+                exist.
 
         Returns:
-            True if file was deleted, False if it didn't exist (when ignore_missing=True).
+            bool: True if file was deleted, False if it didn't exist (when
+                ignore_missing=True).
 
         Raises:
             GCSNotFoundError: If file doesn't exist and ignore_missing=False.
@@ -654,13 +666,13 @@ class GCSClient:
         """Delete all files with a given prefix (directory-like deletion).
 
         Args:
-            prefix: Prefix of files to delete. Must be non-empty; empty
-                prefixes are rejected to prevent accidental full-bucket
-                wipes.
-            bucket_name: Bucket name (uses default if not specified).
+            prefix (str): Prefix of files to delete. Must be non-empty; empty
+                prefixes are rejected to prevent accidental full-bucket wipes.
+            bucket_name (str | None): Bucket name (uses default if not
+                specified).
 
         Returns:
-            Number of files deleted.
+            int: Number of files deleted.
 
         Raises:
             ValueError: If ``prefix`` is empty / whitespace-only.
@@ -700,11 +712,12 @@ class GCSClient:
         """Check if a file exists in GCS.
 
         Args:
-            gcs_path: Path in GCS (blob name).
-            bucket_name: Bucket name (uses default if not specified).
+            gcs_path (str): Path in GCS (blob name).
+            bucket_name (str | None): Bucket name (uses default if not
+                specified).
 
         Returns:
-            True if file exists, False otherwise.
+            bool: True if file exists, False otherwise.
         """
         gcs_path = self._sanitize_gcs_path(gcs_path)
         bucket = self._get_bucket(bucket_name)
@@ -719,11 +732,13 @@ class GCSClient:
         """Get metadata for a file in GCS.
 
         Args:
-            gcs_path: Path in GCS (blob name).
-            bucket_name: Bucket name (uses default if not specified).
+            gcs_path (str): Path in GCS (blob name).
+            bucket_name (str | None): Bucket name (uses default if not
+                specified).
 
         Returns:
-            Dict with metadata including size, content_type, updated, etc.
+            dict[str, Any]: Dict with metadata including size, content_type,
+                updated, etc.
 
         Raises:
             GCSNotFoundError: If file doesn't exist.
@@ -754,10 +769,10 @@ class GCSClient:
         """Get bucket object, using default if not specified.
 
         Args:
-            bucket_name: Optional bucket name.
+            bucket_name (str | None): Optional bucket name.
 
         Returns:
-            Storage bucket object.
+            storage.Bucket: Storage bucket object.
 
         Raises:
             GCSConfigError: If no bucket is specified and no default is set.
@@ -794,7 +809,7 @@ class GCSClient:
         """Context manager entry.
 
         Returns:
-            The GCSClient instance.
+            GCSClient: The GCSClient instance.
         """
         return self
 
@@ -802,12 +817,12 @@ class GCSClient:
         """Context manager exit with cleanup.
 
         Args:
-            exc_type: Exception type, if any.
-            exc_val: Exception value, if any.
-            exc_tb: Exception traceback, if any.
+            exc_type (Any): Exception type, if any.
+            exc_val (Any): Exception value, if any.
+            exc_tb (Any): Exception traceback, if any.
 
         Returns:
-            False to propagate exceptions.
+            bool: False to propagate exceptions.
         """
         self.close()
         return False

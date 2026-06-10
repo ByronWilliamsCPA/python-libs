@@ -32,10 +32,10 @@ class IPFetcher(ABC):
         """Fetch IP ranges from the source.
 
         Args:
-            config: Source configuration.
+            config (IPSourceConfig): Source configuration.
 
         Returns:
-            List of IP addresses or CIDR ranges.
+            list[str]: List of IP addresses or CIDR ranges.
         """
 
     @staticmethod
@@ -43,10 +43,10 @@ class IPFetcher(ABC):
         """Validate an IP address or CIDR range.
 
         Args:
-            ip: IP address or CIDR to validate.
+            ip (str): IP address or CIDR to validate.
 
         Returns:
-            True if valid, False otherwise.
+            bool: True if valid, False otherwise.
         """
         try:
             # Try as network (CIDR)
@@ -65,10 +65,10 @@ class IPFetcher(ABC):
         """Get the IP version (4 or 6) of an address.
 
         Args:
-            ip: IP address or CIDR.
+            ip (str): IP address or CIDR.
 
         Returns:
-            4 or 6.
+            int: 4 or 6.
         """
         try:
             network = ipaddress.ip_network(ip, strict=False)
@@ -81,11 +81,11 @@ class IPFetcher(ABC):
         """Filter IPs by version.
 
         Args:
-            ips: List of IP addresses.
-            version: IP version to filter by (4, 6, or None for all).
+            ips (list[str]): List of IP addresses.
+            version (int | None): IP version to filter by (4, 6, or None for all).
 
         Returns:
-            Filtered list of IPs.
+            list[str]: Filtered list of IPs.
         """
         if version is None:
             return ips
@@ -99,10 +99,10 @@ class StaticIPFetcher(IPFetcher):
         """Return the static IP list from config.
 
         Args:
-            config: Source configuration with static IPs.
+            config (IPSourceConfig): Source configuration with static IPs.
 
         Returns:
-            List of validated IP addresses.
+            list[str]: List of validated IP addresses.
         """
         valid_ips = []
         for ip in config.ips:
@@ -115,28 +115,26 @@ class StaticIPFetcher(IPFetcher):
 
 
 class URLIPFetcher(IPFetcher):
-    """Fetcher for generic URL sources."""
+    """Fetcher for generic URL sources.
+
+    Args:
+        timeout (float): HTTP request timeout in seconds.
+    """
 
     def __init__(self, timeout: float = 30.0) -> None:
-        """Initialize the URL fetcher.
-
-        Args:
-            timeout: HTTP request timeout in seconds.
-        """
         self.timeout = timeout
 
     def fetch(self, config: IPSourceConfig) -> list[str]:
         """Fetch IPs from a URL.
 
         Args:
-            config: Source configuration with URL.
+            config (IPSourceConfig): Source configuration with URL.
 
         Returns:
-            List of IP addresses extracted from the response.
+            list[str]: List of IP addresses extracted from the response.
 
         Raises:
             ValueError: If URL is not configured.
-            httpx.HTTPError: If the request fails.
         """
         if not config.url:
             msg = "URL is required for URL source type"
@@ -156,11 +154,11 @@ class URLIPFetcher(IPFetcher):
         """Parse JSON response for IPs.
 
         Args:
-            text: JSON response text.
-            config: Source configuration.
+            text (str): JSON response text.
+            config (IPSourceConfig): Source configuration.
 
         Returns:
-            List of IP addresses.
+            list[str]: List of IP addresses.
         """
         data = json.loads(text)
 
@@ -178,11 +176,11 @@ class URLIPFetcher(IPFetcher):
         """Parse plain text response for IPs.
 
         Args:
-            text: Plain text response.
-            config: Source configuration.
+            text (str): Plain text response.
+            config (IPSourceConfig): Source configuration.
 
         Returns:
-            List of IP addresses (one per line).
+            list[str]: List of IP addresses (one per line).
         """
         ips = []
         for line in text.strip().split("\n"):
@@ -199,11 +197,11 @@ class URLIPFetcher(IPFetcher):
         Supports paths like "prefixes[*].ip_prefix" or "hooks".
 
         Args:
-            data: Parsed JSON data.
-            path: JSONPath-like expression.
+            data (Any): Parsed JSON data.
+            path (str): JSONPath-like expression.
 
         Returns:
-            List of extracted string values.
+            list[str]: List of extracted string values.
         """
         parts = path.split(".")
         current = data
@@ -240,11 +238,11 @@ class URLIPFetcher(IPFetcher):
         """Auto-extract IP-like values from JSON.
 
         Args:
-            data: Parsed JSON data.
-            results: Accumulator for results.
+            data (Any): Parsed JSON data.
+            results (list[str] | None): Accumulator for results.
 
         Returns:
-            List of IP-like strings found.
+            list[str]: List of IP-like strings found.
         """
         if results is None:
             results = []
@@ -271,24 +269,23 @@ class URLIPFetcher(IPFetcher):
 
 
 class GitHubIPFetcher(IPFetcher):
-    """Fetcher for GitHub Meta API IP ranges."""
+    """Fetcher for GitHub Meta API IP ranges.
+
+    Args:
+        timeout (float): HTTP request timeout in seconds.
+    """
 
     def __init__(self, timeout: float = 30.0) -> None:
-        """Initialize the GitHub fetcher.
-
-        Args:
-            timeout: HTTP request timeout in seconds.
-        """
         self.timeout = timeout
 
     def fetch(self, config: IPSourceConfig) -> list[str]:
         """Fetch GitHub IP ranges.
 
         Args:
-            config: Source configuration with optional service filters.
+            config (IPSourceConfig): Source configuration with optional service filters.
 
         Returns:
-            List of GitHub IP ranges.
+            list[str]: List of GitHub IP ranges.
 
         Available services: hooks, web, api, git, github_enterprise_importer,
         packages, pages, importer, actions, actions_macos, dependabot, copilot
@@ -323,24 +320,23 @@ class GitHubIPFetcher(IPFetcher):
 
 
 class GoogleCloudIPFetcher(IPFetcher):
-    """Fetcher for Google Cloud IP ranges."""
+    """Fetcher for Google Cloud IP ranges.
+
+    Args:
+        timeout (float): HTTP request timeout in seconds.
+    """
 
     def __init__(self, timeout: float = 30.0) -> None:
-        """Initialize the Google Cloud fetcher.
-
-        Args:
-            timeout: HTTP request timeout in seconds.
-        """
         self.timeout = timeout
 
     def fetch(self, config: IPSourceConfig) -> list[str]:
         """Fetch Google Cloud IP ranges.
 
         Args:
-            config: Source configuration with optional region/service filters.
+            config (IPSourceConfig): Source configuration with optional region/service filters.
 
         Returns:
-            List of Google Cloud IP ranges.
+            list[str]: List of Google Cloud IP ranges.
         """
         with httpx.Client(timeout=self.timeout) as client:
             response = client.get(GOOGLE_CLOUD_URL)
@@ -378,24 +374,23 @@ class GoogleCloudIPFetcher(IPFetcher):
 
 
 class AWSIPFetcher(IPFetcher):
-    """Fetcher for AWS IP ranges."""
+    """Fetcher for AWS IP ranges.
+
+    Args:
+        timeout (float): HTTP request timeout in seconds.
+    """
 
     def __init__(self, timeout: float = 30.0) -> None:
-        """Initialize the AWS fetcher.
-
-        Args:
-            timeout: HTTP request timeout in seconds.
-        """
         self.timeout = timeout
 
     def fetch(self, config: IPSourceConfig) -> list[str]:
         """Fetch AWS IP ranges.
 
         Args:
-            config: Source configuration with optional region/service filters.
+            config (IPSourceConfig): Source configuration with optional region/service filters.
 
         Returns:
-            List of AWS IP ranges.
+            list[str]: List of AWS IP ranges.
 
         Available services: AMAZON, EC2, S3, CLOUDFRONT, ROUTE53,
         ROUTE53_HEALTHCHECKS, API_GATEWAY, etc.
@@ -434,11 +429,11 @@ class AWSIPFetcher(IPFetcher):
         """Check if a prefix matches the configured filters.
 
         Args:
-            prefix: AWS prefix object.
-            config: Source configuration.
+            prefix (dict[str, Any]): AWS prefix object.
+            config (IPSourceConfig): Source configuration.
 
         Returns:
-            True if prefix matches filters.
+            bool: True if prefix matches filters.
         """
         # Check region filter
         if config.regions:
@@ -456,24 +451,23 @@ class AWSIPFetcher(IPFetcher):
 
 
 class CloudflareIPFetcher(IPFetcher):
-    """Fetcher for Cloudflare's own IP ranges."""
+    """Fetcher for Cloudflare's own IP ranges.
+
+    Args:
+        timeout (float): HTTP request timeout in seconds.
+    """
 
     def __init__(self, timeout: float = 30.0) -> None:
-        """Initialize the Cloudflare fetcher.
-
-        Args:
-            timeout: HTTP request timeout in seconds.
-        """
         self.timeout = timeout
 
     def fetch(self, config: IPSourceConfig) -> list[str]:
         """Fetch Cloudflare IP ranges.
 
         Args:
-            config: Source configuration.
+            config (IPSourceConfig): Source configuration.
 
         Returns:
-            List of Cloudflare IP ranges.
+            list[str]: List of Cloudflare IP ranges.
         """
         ips: list[str] = []
 
@@ -501,10 +495,10 @@ def get_fetcher(source_type: SourceType) -> IPFetcher:
     """Get the appropriate fetcher for a source type.
 
     Args:
-        source_type: Type of IP source.
+        source_type (SourceType): Type of IP source.
 
     Returns:
-        Appropriate fetcher instance.
+        IPFetcher: Appropriate fetcher instance.
 
     Raises:
         ValueError: If source type is not supported.

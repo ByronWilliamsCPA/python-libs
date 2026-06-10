@@ -32,15 +32,15 @@ class CloudflareJWTClaims(BaseModel):
     Access JWT assertion token.
 
     Attributes:
-        email: Authenticated user's email address
-        iss: Token issuer (Cloudflare team domain)
-        aud: Audience tag for the application
-        sub: Subject (user identifier)
-        iat: Issued at timestamp
-        exp: Expiration timestamp
-        nonce: Nonce for replay protection
-        identity_nonce: Identity nonce
-        custom_claims: Any additional custom claims
+        email (EmailStr): Authenticated user's email address
+        iss (str): Token issuer (Cloudflare team domain)
+        aud (list[str] | str): Audience tag for the application
+        sub (str): Subject (user identifier)
+        iat (int): Issued at timestamp
+        exp (int): Expiration timestamp
+        nonce (str | None): Nonce for replay protection
+        identity_nonce (str | None): Identity nonce
+        custom (dict[str, Any]): Any additional custom claims
 
     Example:
         claims = CloudflareJWTClaims(
@@ -73,7 +73,7 @@ class CloudflareJWTClaims(BaseModel):
         """Get issued at time as datetime.
 
         Returns:
-            Datetime when token was issued
+            datetime: Datetime when token was issued
         """
         return datetime.fromtimestamp(self.iat, tz=timezone.utc)
 
@@ -82,7 +82,7 @@ class CloudflareJWTClaims(BaseModel):
         """Get expiration time as datetime.
 
         Returns:
-            Datetime when token expires
+            datetime: Datetime when token expires
         """
         return datetime.fromtimestamp(self.exp, tz=timezone.utc)
 
@@ -91,7 +91,7 @@ class CloudflareJWTClaims(BaseModel):
         """Check if token is expired.
 
         Returns:
-            True if token is expired
+            bool: True if token is expired
         """
         return datetime.now(tz=timezone.utc) >= self.expires_at
 
@@ -99,7 +99,7 @@ class CloudflareJWTClaims(BaseModel):
         """Get audience as a list.
 
         Returns:
-            List of audience tags
+            list[str]: List of audience tags
         """
         if isinstance(self.aud, str):
             return [self.aud]
@@ -114,13 +114,13 @@ class CloudflareUser(BaseModel):
     tier-based access control and admin privileges.
 
     Attributes:
-        email: User's email address
-        user_id: Unique user identifier from JWT subject
-        claims: Full JWT claims object
-        authenticated_at: When the user was authenticated
-        user_tier: User's access tier (admin/full/limited)
-        is_admin: Whether user has admin privileges
-        session_id: Optional session identifier
+        email (EmailStr): User's email address
+        user_id (str): Unique user identifier from JWT subject
+        claims (CloudflareJWTClaims): Full JWT claims object
+        authenticated_at (datetime): When the user was authenticated
+        user_tier (UserTier): User's access tier (admin/full/limited)
+        is_admin (bool): Whether user has admin privileges
+        session_id (str | None): Optional session identifier
 
     Example:
         user = CloudflareUser(
@@ -170,13 +170,13 @@ class CloudflareUser(BaseModel):
         """Create CloudflareUser from JWT claims with tier information.
 
         Args:
-            claims: Validated JWT claims
-            user_tier: User's access tier
-            is_admin: Whether user has admin privileges
-            session_id: Optional session identifier
+            claims (CloudflareJWTClaims): Validated JWT claims
+            user_tier (UserTier): User's access tier
+            is_admin (bool): Whether user has admin privileges
+            session_id (str | None): Optional session identifier
 
         Returns:
-            CloudflareUser instance
+            CloudflareUser: CloudflareUser instance
 
         Example:
             claims = validator.validate_token(token)
@@ -201,7 +201,7 @@ class CloudflareUser(BaseModel):
         """Get the domain from user's email.
 
         Returns:
-            Email domain (e.g., 'example.com')
+            str: Email domain (e.g., 'example.com')
         """
         return self.email.split("@")[-1] if "@" in self.email else ""
 
@@ -210,7 +210,7 @@ class CloudflareUser(BaseModel):
         """Get the username portion of email.
 
         Returns:
-            Username before @ symbol
+            str: Username before @ symbol
         """
         return self.email.split("@")[0] if "@" in self.email else self.email
 
@@ -218,10 +218,10 @@ class CloudflareUser(BaseModel):
         """Check if user's email is from a specific domain.
 
         Args:
-            domain: Domain to check (case-insensitive)
+            domain (str): Domain to check (case-insensitive)
 
         Returns:
-            True if email domain matches
+            bool: True if email domain matches
 
         Example:
             if user.has_email_domain("example.com"):
@@ -235,7 +235,7 @@ class CloudflareUser(BaseModel):
         """Check if user can access premium models.
 
         Returns:
-            True for ADMIN and FULL tiers, False for LIMITED
+            bool: True for ADMIN and FULL tiers, False for LIMITED
         """
         return self.user_tier.can_access_premium_models
 
@@ -244,7 +244,7 @@ class CloudflareUser(BaseModel):
         """Get user role string.
 
         Returns:
-            'admin' or 'user'
+            str: 'admin' or 'user'
         """
         return "admin" if self.is_admin else "user"
 
@@ -252,7 +252,7 @@ class CloudflareUser(BaseModel):
         """Dump model with only safe fields for logging.
 
         Returns:
-            Dictionary with safe fields (excludes sensitive claims)
+            dict[str, Any]: Dictionary with safe fields (excludes sensitive claims)
         """
         return {
             "email": self.email,

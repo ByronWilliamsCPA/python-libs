@@ -16,7 +16,7 @@ def setup_logging(verbose: bool = False) -> None:
     """Configure logging for CLI output.
 
     Args:
-        verbose: Enable debug logging.
+        verbose (bool): Enable debug logging.
     """
     level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(
@@ -30,10 +30,10 @@ def cmd_sync(args: argparse.Namespace) -> int:
     """Sync IP groups to Cloudflare.
 
     Args:
-        args: Parsed command line arguments.
+        args (argparse.Namespace): Parsed command line arguments.
 
     Returns:
-        Exit code (0 for success).
+        int: Exit code (0 for success).
     """
     manager = IPGroupManager.from_config(args.config)
 
@@ -64,10 +64,10 @@ def cmd_preview(args: argparse.Namespace) -> int:
     """Preview changes for an IP group.
 
     Args:
-        args: Parsed command line arguments.
+        args (argparse.Namespace): Parsed command line arguments.
 
     Returns:
-        Exit code.
+        int: Exit code.
     """
     manager = IPGroupManager.from_config(args.config)
     preview = manager.preview_group(args.group)
@@ -104,10 +104,10 @@ def cmd_list(args: argparse.Namespace) -> int:
     """List all configured IP groups.
 
     Args:
-        args: Parsed command line arguments.
+        args (argparse.Namespace): Parsed command line arguments.
 
     Returns:
-        Exit code.
+        int: Exit code.
     """
     manager = IPGroupManager.from_config(args.config)
     groups = manager.list_groups()
@@ -134,10 +134,10 @@ def cmd_fetch(args: argparse.Namespace) -> int:
     """Fetch and display IPs for a group (without syncing).
 
     Args:
-        args: Parsed command line arguments.
+        args (argparse.Namespace): Parsed command line arguments.
 
     Returns:
-        Exit code.
+        int: Exit code.
     """
     manager = IPGroupManager.from_config(args.config)
 
@@ -158,10 +158,10 @@ def main(argv: list[str] | None = None) -> int:
     """Main CLI entry point.
 
     Args:
-        argv: Command line arguments.
+        argv (list[str] | None): Command line arguments.
 
     Returns:
-        Exit code.
+        int: Exit code.
     """
     parser = argparse.ArgumentParser(
         description="Manage IP range groups for Cloudflare",

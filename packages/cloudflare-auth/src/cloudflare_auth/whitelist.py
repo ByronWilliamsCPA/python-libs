@@ -65,10 +65,10 @@ class UserTier(str, Enum):
         """Create UserTier from string value.
 
         Args:
-            value: String representation of tier
+            value (str): String representation of tier
 
         Returns:
-            UserTier enum value
+            UserTier: UserTier enum value
 
         Raises:
             ValueError: If value is not a valid tier
@@ -85,7 +85,7 @@ class UserTier(str, Enum):
         """Check if tier allows access to premium models.
 
         Returns:
-            True for ADMIN and FULL tiers, False for LIMITED
+            bool: True for ADMIN and FULL tiers, False for LIMITED
         """
         return self in (UserTier.ADMIN, UserTier.FULL)
 
@@ -94,7 +94,7 @@ class UserTier(str, Enum):
         """Check if tier has admin privileges.
 
         Returns:
-            True only for ADMIN tier
+            bool: True only for ADMIN tier
         """
         return self == UserTier.ADMIN
 
@@ -104,10 +104,10 @@ class WhitelistEntry:
     """Represents a whitelist entry with metadata.
 
     Attributes:
-        value: Email address or domain pattern (@domain.com)
-        is_domain: Whether this is a domain pattern vs individual email
-        added_at: ISO timestamp when entry was added
-        description: Optional description of why this entry exists
+        value (str): Email address or domain pattern (@domain.com)
+        is_domain (bool): Whether this is a domain pattern vs individual email
+        added_at (str): ISO timestamp when entry was added
+        description (str | None): Optional description of why this entry exists
     """
 
     value: str
@@ -123,11 +123,11 @@ class EmailWhitelistConfig(BaseModel):
     from environment variables or config files.
 
     Attributes:
-        whitelist: List of allowed emails/domains
-        admin_emails: List of emails with admin privileges
-        full_users: List of emails with full tier access
-        limited_users: List of emails with limited tier access
-        case_sensitive: Whether email matching is case-sensitive
+        whitelist (list[str]): List of allowed emails/domains
+        admin_emails (list[str]): List of emails with admin privileges
+        full_users (list[str]): List of emails with full tier access
+        limited_users (list[str]): List of emails with limited tier access
+        case_sensitive (bool): Whether email matching is case-sensitive
     """
 
     whitelist: list[str] = []
@@ -144,10 +144,10 @@ class EmailWhitelistConfig(BaseModel):
         """Normalize email addresses to lowercase unless case_sensitive.
 
         Args:
-            v: String (comma-separated) or list of emails
+            v (str | list[str]): String (comma-separated) or list of emails
 
         Returns:
-            List of normalized email addresses
+            list[str]: List of normalized email addresses
         """
         if isinstance(v, str):
             v = [email.strip() for email in v.split(",") if email.strip()]
@@ -162,6 +162,13 @@ class EmailWhitelistValidator:
     - Domain patterns: @company.com (allows any email from that domain)
     - Admin privilege detection for specific admin emails
     - User tier assignment (admin/full/limited)
+
+    Args:
+        whitelist (list[str]): List of allowed emails and domains
+        admin_emails (list[str] | None): List of emails with admin privileges
+        full_users (list[str] | None): List of emails with full tier access
+        limited_users (list[str] | None): List of emails with limited tier access
+        case_sensitive (bool): Whether email matching should be case-sensitive
 
     Example:
         validator = EmailWhitelistValidator(
@@ -186,15 +193,6 @@ class EmailWhitelistValidator:
         limited_users: list[str] | None = None,
         case_sensitive: bool = False,
     ) -> None:
-        """Initialize the email whitelist validator.
-
-        Args:
-            whitelist: List of allowed emails and domains
-            admin_emails: List of emails with admin privileges
-            full_users: List of emails with full tier access
-            limited_users: List of emails with limited tier access
-            case_sensitive: Whether email matching should be case-sensitive
-        """
         self.case_sensitive = case_sensitive
         self.admin_emails = self._normalize_emails(admin_emails or [])
         self.full_users = self._normalize_emails(full_users or [])
@@ -224,10 +222,10 @@ class EmailWhitelistValidator:
         """Normalize email list based on case sensitivity setting.
 
         Args:
-            emails: List of email addresses to normalize
+            emails (list[str]): List of email addresses to normalize
 
         Returns:
-            Normalized list of emails
+            list[str]: Normalized list of emails
         """
         if not emails:
             return []
@@ -244,10 +242,10 @@ class EmailWhitelistValidator:
         """Normalize a single email address.
 
         Args:
-            email: Email address to normalize
+            email (str): Email address to normalize
 
         Returns:
-            Normalized email address
+            str: Normalized email address
         """
         return email.strip() if self.case_sensitive else email.strip().lower()
 
@@ -257,10 +255,10 @@ class EmailWhitelistValidator:
         Uses constant-time comparison to prevent timing attacks.
 
         Args:
-            email: Email address to validate
+            email (str): Email address to validate
 
         Returns:
-            True if email is authorized, False otherwise
+            bool: True if email is authorized, False otherwise
         """
         if not email:
             return False
@@ -292,10 +290,10 @@ class EmailWhitelistValidator:
         Uses constant-time comparison to prevent timing attacks.
 
         Args:
-            email: Email address to check
+            email (str): Email address to check
 
         Returns:
-            True if email is an admin, False otherwise
+            bool: True if email is an admin, False otherwise
         """
         if not email:
             return False
@@ -314,10 +312,10 @@ class EmailWhitelistValidator:
         """Get user role based on email.
 
         Args:
-            email: Email address to check
+            email (str): Email address to check
 
         Returns:
-            'admin', 'user', or 'unauthorized'
+            str: 'admin', 'user', or 'unauthorized'
         """
         if not self.is_authorized(email):
             return "unauthorized"
@@ -331,10 +329,10 @@ class EmailWhitelistValidator:
         First checks exact email matches, then domain patterns.
 
         Args:
-            email: Email address to check
+            email (str): Email address to check
 
         Returns:
-            UserTier enum value
+            UserTier: UserTier enum value
 
         Raises:
             ValueError: If email is not authorized
@@ -382,10 +380,10 @@ class EmailWhitelistValidator:
         """Check if email can access premium models.
 
         Args:
-            email: Email address to check
+            email (str): Email address to check
 
         Returns:
-            True if user can access premium models, False otherwise
+            bool: True if user can access premium models, False otherwise
         """
         try:
             tier = self.get_user_tier(email)
@@ -397,10 +395,10 @@ class EmailWhitelistValidator:
         """Check if email has admin privileges.
 
         Args:
-            email: Email address to check
+            email (str): Email address to check
 
         Returns:
-            True if user has admin privileges, False otherwise
+            bool: True if user has admin privileges, False otherwise
         """
         try:
             tier = self.get_user_tier(email)
@@ -412,7 +410,7 @@ class EmailWhitelistValidator:
         """Get statistics about the current whitelist configuration.
 
         Returns:
-            Dictionary with whitelist statistics
+            dict[str, Any]: Dictionary with whitelist statistics
         """
         return {
             "individual_emails": len(self.individual_emails),
@@ -434,7 +432,7 @@ class EmailWhitelistValidator:
         """Check if whitelist is empty.
 
         Returns:
-            List of warning messages if whitelist is empty, empty list otherwise.
+            list[str]: List of warning messages if whitelist is empty, empty list otherwise.
         """
         if not self.individual_emails and not self.domain_patterns:
             return ["Whitelist is empty - no users will be authorized"]
@@ -444,11 +442,11 @@ class EmailWhitelistValidator:
         """Check if tier emails are authorized in whitelist.
 
         Args:
-            emails: List of email addresses to check.
-            tier_name: Name of the tier for warning messages.
+            emails (list[str]): List of email addresses to check.
+            tier_name (str): Name of the tier for warning messages.
 
         Returns:
-            List of warning messages for unauthorized emails.
+            list[str]: List of warning messages for unauthorized emails.
         """
         warnings = []
         for email in emails:
@@ -460,7 +458,7 @@ class EmailWhitelistValidator:
         """Check for emails assigned to multiple tiers.
 
         Returns:
-            List of warning messages for emails in multiple tiers.
+            list[str]: List of warning messages for emails in multiple tiers.
         """
         warnings = []
         all_tier_emails = (
@@ -485,7 +483,7 @@ class EmailWhitelistValidator:
         """Check for potentially insecure public email domains.
 
         Returns:
-            List of warning messages if public domains are in whitelist.
+            list[str]: List of warning messages if public domains are in whitelist.
         """
         public_domains = {"@gmail.com", "@outlook.com"}
         if self.domain_patterns & public_domains:
@@ -498,7 +496,7 @@ class EmailWhitelistValidator:
         """Validate the whitelist configuration and return any warnings.
 
         Returns:
-            List of warning messages about the configuration
+            list[str]: List of warning messages about the configuration
         """
         warnings = []
         warnings.extend(self._check_empty_whitelist())
@@ -518,6 +516,9 @@ class WhitelistManager:
     Provides runtime management of whitelist entries. Note that changes
     are not persisted - for permanent changes, update configuration.
 
+    Args:
+        validator (EmailWhitelistValidator): EmailWhitelistValidator instance to manage
+
     Example:
         manager = WhitelistManager(validator)
         manager.add_email("newuser@company.com")
@@ -525,18 +526,13 @@ class WhitelistManager:
     """
 
     def __init__(self, validator: EmailWhitelistValidator) -> None:
-        """Initialize whitelist manager with a validator.
-
-        Args:
-            validator: EmailWhitelistValidator instance to manage
-        """
         self.validator = validator
 
     def _validate_empty_input(self, email: str) -> None:
         """Validate that email input is not empty.
 
         Args:
-            email: Email string to validate
+            email (str): Email string to validate
 
         Raises:
             ValueError: If email is empty or whitespace only
@@ -549,10 +545,10 @@ class WhitelistManager:
         """Validate email using email-validator library.
 
         Args:
-            email: Email to validate
+            email (str): Email to validate
 
         Returns:
-            Normalized email address
+            str: Normalized email address
 
         Raises:
             RuntimeError: If email-validator is not available.
@@ -572,7 +568,7 @@ class WhitelistManager:
         """Basic email validation without email-validator library.
 
         Args:
-            email: Email to validate
+            email (str): Email to validate
 
         Raises:
             ValueError: If email format is invalid
@@ -593,10 +589,10 @@ class WhitelistManager:
         May raise ValueError from helper methods if email format is invalid.
 
         Args:
-            email: Email address to validate
+            email (str): Email address to validate
 
         Returns:
-            Normalized email address
+            str: Normalized email address
         """
         if _email_validator_available and _validate_email_func is not None:
             return self._validate_email_with_library(email)
@@ -607,7 +603,7 @@ class WhitelistManager:
         """Validate domain pattern format.
 
         Args:
-            pattern: Domain pattern to validate (e.g., @domain.tld)
+            pattern (str): Domain pattern to validate (e.g., @domain.tld)
 
         Raises:
             ValueError: If domain pattern is invalid
@@ -627,9 +623,9 @@ class WhitelistManager:
         """Add email to appropriate whitelist collections.
 
         Args:
-            normalized_email: Normalized email or domain pattern
-            is_admin: Whether to add to admin list
-            original_email: Original email for logging
+            normalized_email (str): Normalized email or domain pattern
+            is_admin (bool): Whether to add to admin list
+            original_email (str): Original email for logging
         """
         if normalized_email.startswith("@"):
             self.validator.domain_patterns.add(normalized_email)
@@ -648,11 +644,11 @@ class WhitelistManager:
         update the configuration file directly.
 
         Args:
-            email: Email or domain pattern to add
-            is_admin: Whether email should have admin privileges
+            email (str): Email or domain pattern to add
+            is_admin (bool): Whether email should have admin privileges
 
         Returns:
-            True if email was added successfully
+            bool: True if email was added successfully
 
         Raises:
             ValueError: If email format is invalid
@@ -680,10 +676,10 @@ class WhitelistManager:
         """Remove email from whitelist (runtime operation).
 
         Args:
-            email: Email or domain pattern to remove
+            email (str): Email or domain pattern to remove
 
         Returns:
-            True if email was removed successfully
+            bool: True if email was removed successfully
         """
         try:
             normalized_email = self.validator._normalize_email(email)
@@ -717,10 +713,10 @@ class WhitelistManager:
         """Check email status and provide detailed information.
 
         Args:
-            email: Email to check
+            email (str): Email to check
 
         Returns:
-            Dictionary with email status information
+            dict[str, Any]: Dictionary with email status information
         """
         return {
             "email": email,
@@ -743,13 +739,13 @@ def create_validator_from_env(
     comma-separated environment variable values.
 
     Args:
-        whitelist_str: Comma-separated string of emails/domains
-        admin_emails_str: Comma-separated string of admin emails
-        full_users_str: Comma-separated string of full tier users
-        limited_users_str: Comma-separated string of limited tier users
+        whitelist_str (str): Comma-separated string of emails/domains
+        admin_emails_str (str): Comma-separated string of admin emails
+        full_users_str (str): Comma-separated string of full tier users
+        limited_users_str (str): Comma-separated string of limited tier users
 
     Returns:
-        Configured EmailWhitelistValidator
+        EmailWhitelistValidator: Configured EmailWhitelistValidator
 
     Example:
         validator = create_validator_from_env(

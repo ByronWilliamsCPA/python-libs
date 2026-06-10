@@ -27,12 +27,13 @@ class IPSourceConfig(BaseModel):
     """Configuration for an IP source.
 
     Attributes:
-        type: Type of IP source
-        ips: Static list of IPs (for static type)
-        url: URL to fetch IPs from (for url type)
-        services: Filter by service names (for provider types)
-        regions: Filter by regions (for provider types)
-        ip_version: Filter by IP version (4 or 6, or both if None)
+        type (SourceType): Type of IP source
+        ips (list[str]): Static list of IPs (for static type)
+        url (str | None): URL to fetch IPs from (for url type)
+        services (list[str]): Filter by service names (for provider types)
+        regions (list[str]): Filter by regions (for provider types)
+        ip_version (int | None): Filter by IP version (4 or 6, or both if None)
+        json_path (str | None): JSONPath to extract IPs from response
     """
 
     type: SourceType = Field(description="Type of IP source")
@@ -65,12 +66,12 @@ class IPGroupConfig(BaseModel):
     """Configuration for an IP range group.
 
     Attributes:
-        name: Human-readable name for the group
-        cloudflare_list_name: Name of the Cloudflare list to sync to
-        description: Optional description
-        sources: List of IP sources that make up this group
-        enabled: Whether this group is enabled for syncing
-        tags: Optional tags for categorization
+        name (str): Human-readable name for the group
+        cloudflare_list_name (str): Name of the Cloudflare list to sync to
+        description (str | None): Optional description
+        sources (list[IPSourceConfig]): List of IP sources that make up this group
+        enabled (bool): Whether this group is enabled for syncing
+        tags (list[str]): Optional tags for categorization
     """
 
     name: str = Field(description="Human-readable name")
@@ -87,9 +88,10 @@ class IPGroupsConfig(BaseModel):
     """Root configuration for all IP groups.
 
     Attributes:
-        version: Config schema version
-        groups: List of IP group configurations
-        defaults: Default settings for all groups
+        version (str): Config schema version
+        groups (list[IPGroupConfig]): List of IP group configurations
+        cache_ttl_seconds (int): How long to cache fetched IPs
+        cloudflare_list_prefix (str): Prefix for all Cloudflare list names
     """
 
     version: str = Field(default="1.0", description="Config schema version")
@@ -108,14 +110,13 @@ def load_config(path: str | Path) -> IPGroupsConfig:
     """Load IP groups configuration from a YAML file.
 
     Args:
-        path: Path to the YAML configuration file.
+        path (str | Path): Path to the YAML configuration file.
 
     Returns:
-        Parsed configuration.
+        IPGroupsConfig: Parsed configuration.
 
     Raises:
         FileNotFoundError: If the config file doesn't exist.
-        ValueError: If the config is invalid.
     """
     path = Path(path)
     if not path.exists():

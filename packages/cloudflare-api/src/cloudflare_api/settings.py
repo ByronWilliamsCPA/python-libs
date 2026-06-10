@@ -13,13 +13,23 @@ class CloudflareAPISettings(BaseSettings):
     All settings can be configured via environment variables or .env file.
 
     Attributes:
-        cloudflare_api_token: API token with appropriate permissions
-        cloudflare_account_id: Cloudflare account identifier
-        cloudflare_api_email: Optional email for legacy API key auth
-        cloudflare_api_key: Optional global API key (legacy)
-        default_list_kind: Default kind for new IP lists (ip, redirect, hostname, asn)
-        request_timeout: HTTP request timeout in seconds
-        max_retries: Maximum number of retries for failed requests
+        model_config: Pydantic settings configuration.
+        cloudflare_api_token (SecretStr): API token with appropriate
+            permissions
+        cloudflare_account_id (str): Cloudflare account identifier
+        cloudflare_api_email (str | None): Optional email for legacy API key
+            auth
+        cloudflare_api_key (SecretStr | None): Optional global API key (legacy)
+        cloudflare_zone_id (str | None): Default zone ID for zone-scoped
+            operations
+        default_list_kind (str): Default kind for new IP lists (ip, redirect,
+            hostname, asn)
+        request_timeout (int): HTTP request timeout in seconds
+        max_retries (int): Maximum number of retries for failed requests
+        bulk_operation_poll_interval (float): Seconds between bulk operation
+            status checks
+        bulk_operation_timeout (int): Maximum seconds to wait for bulk
+            operations
     """
 
     model_config = SettingsConfigDict(
@@ -104,7 +114,7 @@ class CloudflareAPISettings(BaseSettings):
         """Get the API token as a plain string.
 
         Returns:
-            The API token value.
+            str: The API token value.
         """
         return self.cloudflare_api_token.get_secret_value()
 
@@ -116,10 +126,7 @@ def get_cloudflare_api_settings() -> CloudflareAPISettings:
     """Get default settings (singleton, reads from environment).
 
     Returns:
-        CloudflareAPISettings instance.
-
-    Raises:
-        ValidationError: If required environment variables are missing.
+        CloudflareAPISettings: Configured settings instance.
     """
     global _settings_instance
     if _settings_instance is None:

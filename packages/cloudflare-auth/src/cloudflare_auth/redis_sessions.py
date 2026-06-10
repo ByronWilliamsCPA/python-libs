@@ -68,6 +68,15 @@ class RedisSessionManager:
     Requirements:
         pip install redis>=5.0.0
 
+    Args:
+        redis_url (str): Redis connection URL
+        session_timeout (int): Session timeout in seconds (default: 1 hour)
+        key_prefix (str): Prefix for Redis keys (default: "cf_auth_session")
+
+    Raises:
+        ImportError: If redis package is not installed
+        redis.ConnectionError: If cannot connect to Redis
+
     Example:
         manager = RedisSessionManager(
             redis_url="redis://localhost:6379/0",
@@ -88,17 +97,6 @@ class RedisSessionManager:
         session_timeout: int = 3600,
         key_prefix: str = "cf_auth_session",
     ) -> None:
-        """Initialize Redis session manager.
-
-        Args:
-            redis_url: Redis connection URL
-            session_timeout: Session timeout in seconds (default: 1 hour)
-            key_prefix: Prefix for Redis keys (default: "cf_auth_session")
-
-        Raises:
-            ImportError: If redis package is not installed
-            redis.ConnectionError: If cannot connect to Redis
-        """
         if not REDIS_AVAILABLE or redis is None:
             msg = (
                 "Redis package is required for RedisSessionManager. "
@@ -133,10 +131,10 @@ class RedisSessionManager:
         """Generate Redis key for session.
 
         Args:
-            session_id: Session identifier
+            session_id (str): Session identifier
 
         Returns:
-            Redis key with prefix
+            str: Redis key with prefix
         """
         return f"{self.key_prefix}:{session_id}"
 
@@ -150,13 +148,13 @@ class RedisSessionManager:
         """Create a new session in Redis.
 
         Args:
-            email: User email address
-            is_admin: Whether user has admin privileges
-            user_tier: User tier (admin, full, limited)
-            cf_context: Additional Cloudflare context
+            email (str): User email address
+            is_admin (bool): Whether user has admin privileges
+            user_tier (str): User tier (admin, full, limited)
+            cf_context (dict[str, Any] | None): Additional Cloudflare context
 
         Returns:
-            Session ID (cryptographically secure random token)
+            str: Session ID (cryptographically secure random token)
 
         Example:
             session_id = manager.create_session(
@@ -201,10 +199,10 @@ class RedisSessionManager:
         - Refreshes TTL
 
         Args:
-            session_id: Session identifier
+            session_id (str): Session identifier
 
         Returns:
-            Session data if valid, None if expired or not found
+            dict[str, Any] | None: Session data if valid, None if expired or not found
         """
         if not session_id:
             return None
@@ -246,10 +244,10 @@ class RedisSessionManager:
         """Invalidate (delete) a session from Redis.
 
         Args:
-            session_id: Session to invalidate
+            session_id (str): Session to invalidate
 
         Returns:
-            True if session was found and deleted
+            bool: True if session was found and deleted
         """
         key = self._make_key(session_id)
         deleted = self.redis_client.delete(key)
@@ -264,10 +262,10 @@ class RedisSessionManager:
         """Refresh a session's expiration time.
 
         Args:
-            session_id: Session to refresh
+            session_id (str): Session to refresh
 
         Returns:
-            True if session was found and refreshed
+            bool: True if session was found and refreshed
         """
         key = self._make_key(session_id)
 
@@ -288,7 +286,7 @@ class RedisSessionManager:
         """Get the current number of active sessions.
 
         Returns:
-            Number of active sessions
+            int: Number of active sessions
         """
         pattern = f"{self.key_prefix}:*"
         keys = self.redis_client.keys(pattern)
@@ -301,10 +299,10 @@ class RedisSessionManager:
         Note: This operation can be expensive on large datasets.
 
         Args:
-            email: User email address
+            email (str): User email address
 
         Returns:
-            List of session IDs for the user
+            list[str]: List of session IDs for the user
         """
         pattern = f"{self.key_prefix}:*"
         keys = self.redis_client.keys(pattern)
@@ -340,7 +338,7 @@ class RedisSessionManager:
         so this is a no-op for RedisSessionManager.
 
         Returns:
-            Always returns 0 (Redis handles cleanup automatically)
+            int: Always returns 0 (Redis handles cleanup automatically)
         """
         # Redis automatically removes expired keys
         logger.debug("Redis handles expiration automatically (no cleanup needed)")
@@ -350,7 +348,7 @@ class RedisSessionManager:
         """Get session manager statistics.
 
         Returns:
-            Dictionary with session statistics
+            dict[str, Any]: Dictionary with session statistics
         """
         active_sessions = self.get_session_count()
 
@@ -367,7 +365,7 @@ class RedisSessionManager:
         """Check if Redis connection is healthy.
 
         Returns:
-            True if Redis is reachable and responsive
+            bool: True if Redis is reachable and responsive
         """
         try:
             result = self.redis_client.ping()

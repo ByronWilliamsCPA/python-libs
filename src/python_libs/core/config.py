@@ -14,9 +14,11 @@ class Settings(BaseSettings):
     Configuration settings for the application, loaded from environment variables.
 
     Attributes:
-        log_level: The logging level for the application.
-        json_logs: Flag to enable or disable JSON formatted logs.
-        include_timestamp: Flag to include timestamps in logs.
+        model_config: Pydantic settings configuration.
+        log_level (Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]):
+            The logging level for the application.
+        json_logs (bool): Flag to enable or disable JSON formatted logs.
+        include_timestamp (bool): Flag to include timestamps in logs.
     """
 
     model_config = SettingsConfigDict(

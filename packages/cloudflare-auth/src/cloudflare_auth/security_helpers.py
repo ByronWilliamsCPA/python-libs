@@ -43,6 +43,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     - Permissions-Policy: Restrictive permissions
     - Strict-Transport-Security: HSTS (production only)
 
+    Args:
+        app (Any): ASGI application
+        csp_policy (str | None): Custom Content Security Policy
+        enable_hsts (bool): Enable HSTS headers
+
     Example:
         app.add_middleware(SecurityHeadersMiddleware)
     """
@@ -53,13 +58,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         csp_policy: str | None = None,
         enable_hsts: bool = True,
     ) -> None:
-        """Initialize security headers middleware.
-
-        Args:
-            app: ASGI application
-            csp_policy: Custom Content Security Policy
-            enable_hsts: Enable HSTS headers
-        """
         super().__init__(app)
         self.csp_policy = csp_policy or self._default_csp_policy()
         self.enable_hsts = enable_hsts
@@ -68,7 +66,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         """Generate default Content Security Policy.
 
         Returns:
-            CSP policy string
+            str: CSP policy string
         """
         return (
             "default-src 'self'; "
@@ -90,11 +88,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         """Add security headers to response.
 
         Args:
-            request: Incoming request
-            call_next: Next middleware/endpoint
+            request (Request): Incoming request
+            call_next (Callable): Next middleware/endpoint
 
         Returns:
-            Response with security headers
+            Response: Response with security headers
         """
         response = await call_next(request)
 
@@ -133,11 +131,11 @@ def create_session_cleanup_task(
     expired sessions to prevent memory leaks.
 
     Args:
-        session_manager: Session manager to clean
-        cleanup_interval: Cleanup interval in seconds (default: 5 minutes)
+        session_manager (SimpleSessionManager): Session manager to clean
+        cleanup_interval (int): Cleanup interval in seconds (default: 5 minutes)
 
     Returns:
-        Asyncio task handle
+        asyncio.Task: Asyncio task handle
 
     Example:
         @app.on_event("startup")
@@ -179,6 +177,9 @@ class AuditLogger:
     This class provides structured logging for admin actions,
     authentication events, and other security-critical operations.
 
+    Args:
+        logger_name (str): Name for the audit logger
+
     Example:
         audit = AuditLogger()
 
@@ -197,11 +198,6 @@ class AuditLogger:
     """
 
     def __init__(self, logger_name: str = "audit") -> None:
-        """Initialize audit logger.
-
-        Args:
-            logger_name: Name for the audit logger
-        """
         self.logger = logging.getLogger(logger_name)
 
     def log_admin_action(
@@ -215,11 +211,11 @@ class AuditLogger:
         """Log administrative action.
 
         Args:
-            admin_email: Email of admin performing action
-            action: Action performed (e.g., "create_user", "delete_data")
-            target: Target of action (e.g., affected user email)
-            result: Result of action ("success", "failure", "denied")
-            details: Additional details dictionary
+            admin_email (str): Email of admin performing action
+            action (str): Action performed (e.g., "create_user", "delete_data")
+            target (str | None): Target of action (e.g., affected user email)
+            result (str): Result of action ("success", "failure", "denied")
+            details (dict[str, Any] | None): Additional details dictionary
         """
         self.logger.info(
             "ADMIN_ACTION: %s performed %s on %s (result: %s)",
@@ -248,11 +244,11 @@ class AuditLogger:
         """Log authentication event.
 
         Args:
-            event_type: Type of auth event ("login", "logout", "failed_auth")
-            user_email: User's email address
-            ip_address: IP address of request
-            result: Result of event ("success", "failure")
-            details: Additional details dictionary
+            event_type (str): Type of auth event ("login", "logout", "failed_auth")
+            user_email (str | None): User's email address
+            ip_address (str | None): IP address of request
+            result (str): Result of event ("success", "failure")
+            details (dict[str, Any] | None): Additional details dictionary
         """
         self.logger.info(
             "AUTH_EVENT: %s for %s from %s (result: %s)",
@@ -280,10 +276,10 @@ class AuditLogger:
         """Log access denial.
 
         Args:
-            user_email: User's email address
-            resource: Resource that was denied
-            reason: Reason for denial
-            ip_address: IP address of request
+            user_email (str): User's email address
+            resource (str): Resource that was denied
+            reason (str): Reason for denial
+            ip_address (str | None): IP address of request
         """
         self.logger.warning(
             "ACCESS_DENIED: %s denied access to %s (reason: %s) from %s",
@@ -310,10 +306,10 @@ class AuditLogger:
         """Log general security event.
 
         Args:
-            event_type: Type of security event
-            severity: Severity level ("low", "medium", "high", "critical")
-            description: Event description
-            details: Additional details dictionary
+            event_type (str): Type of security event
+            severity (str): Severity level ("low", "medium", "high", "critical")
+            description (str): Event description
+            details (dict[str, Any] | None): Additional details dictionary
         """
         log_method = {
             "low": self.logger.info,
@@ -344,7 +340,7 @@ def get_audit_logger() -> AuditLogger:
     """Get singleton audit logger instance.
 
     Returns:
-        AuditLogger instance
+        AuditLogger: AuditLogger instance
     """
     global _audit_logger_instance  # noqa: PLW0603
     if _audit_logger_instance is None:
