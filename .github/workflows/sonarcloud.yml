@@ -36,7 +36,9 @@ jobs:
     with:
       # Repo uses hatchling; --no-build cannot install the editable root package
       no-build: false
-      sonar-organization: williaby
+      # Project ByronWilliamsCPA_python-libs lives in the byronwilliamscpa org
+      # (org williaby has no such project; the scanner 404s on analysis create)
+      sonar-organization: byronwilliamscpa
       sonar-project-key: ByronWilliamsCPA_python-libs
       python-version: '3.12'
       source-directory: 'src'
