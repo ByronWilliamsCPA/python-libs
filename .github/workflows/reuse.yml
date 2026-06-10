@@ -6,12 +6,12 @@
 name: REUSE Compliance
 
 on:
+  # No paths filter: "Check REUSE Compliance" is a REQUIRED status check, so it
+  # must report on every PR. A paths filter would skip the workflow on changes
+  # that do not match (e.g. root-only files like renovate.json, since "**/*"
+  # does not match repository-root paths), leaving the required context pending
+  # forever and silently blocking the PR.
   pull_request:
-    paths:
-      - "**/*"
-      - "REUSE.toml"
-      - "LICENSES/**"
-      - ".github/workflows/reuse.yml"
   push:
     branches:
       - main
