@@ -14,11 +14,11 @@ def get_api_key(env_file: Path | None = None) -> str:
     """Get the Gemini API key from environment or .env file.
 
     Args:
-        env_file: Optional path to .env file. If not provided, checks
-            GEMINI_API_KEY environment variable only.
+        env_file (Path | None): Optional path to .env file. If not provided,
+            checks GEMINI_API_KEY environment variable only.
 
     Returns:
-        The API key string.
+        str: The API key string.
 
     Raises:
         ValueError: If no API key is found.
@@ -48,10 +48,10 @@ def load_image_as_base64(image_path: Path) -> tuple[str, str]:
     """Load an image file and return base64 data and mime type.
 
     Args:
-        image_path: Path to the image file.
+        image_path (Path): Path to the image file.
 
     Returns:
-        Tuple of (base64_encoded_data, mime_type).
+        tuple[str, str]: Tuple of (base64_encoded_data, mime_type).
 
     Raises:
         FileNotFoundError: If the image file doesn't exist.
@@ -82,10 +82,10 @@ def decode_base64_image(base64_data: str) -> bytes:
     """Decode base64 image data to bytes.
 
     Args:
-        base64_data: Base64-encoded image data.
+        base64_data (str): Base64-encoded image data.
 
     Returns:
-        Raw image bytes.
+        bytes: Raw image bytes.
 
     """
     return base64.standard_b64decode(base64_data)
@@ -95,10 +95,10 @@ def get_file_extension(mime_type: str) -> str:
     """Get file extension for a given MIME type.
 
     Args:
-        mime_type: MIME type string (e.g., "image/png").
+        mime_type (str): MIME type string (e.g., "image/png").
 
     Returns:
-        File extension including the dot (e.g., ".png").
+        str: File extension including the dot (e.g., ".png").
 
     """
     extensions = {

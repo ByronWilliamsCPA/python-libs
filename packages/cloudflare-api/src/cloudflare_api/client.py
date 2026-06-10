@@ -5,7 +5,7 @@ Uses the official Cloudflare Python SDK for API operations.
 
 import logging
 import time
-from typing import Any
+from typing import Any, NoReturn
 
 from cloudflare import Cloudflare
 from cloudflare._exceptions import (
@@ -45,6 +45,10 @@ class CloudflareAPIClient:
     Provides methods for managing IP lists, firewall rules, and other
     Cloudflare resources using the official SDK.
 
+    Args:
+        settings (CloudflareAPISettings | None): Optional settings. If not
+            provided, reads from environment.
+
     Example:
         ```python
         client = CloudflareAPIClient()
@@ -64,14 +68,6 @@ class CloudflareAPIClient:
         self,
         settings: CloudflareAPISettings | None = None,
     ) -> None:
-        """Initialize the Cloudflare API client.
-
-        Args:
-            settings: Optional settings. If not provided, reads from environment.
-
-        Raises:
-            CloudflareAuthError: If authentication credentials are missing.
-        """
         self.settings = settings or get_cloudflare_api_settings()
         self._client = Cloudflare(
             api_token=self.settings.get_token_value(),
@@ -83,11 +79,14 @@ class CloudflareAPIClient:
             self._account_id[:8] + "...",
         )
 
-    def _handle_api_error(self, error: Exception) -> None:
-        """Convert SDK exceptions to our custom exceptions.
+    def _handle_api_error(self, error: Exception) -> NoReturn:
+        """Convert SDK exceptions to our custom exceptions and raise them.
+
+        This helper always raises; it never returns. Callers invoke it as a
+        statement (``self._handle_api_error(e)``) inside an ``except`` block.
 
         Args:
-            error: Exception from the Cloudflare SDK.
+            error (Exception): Exception from the Cloudflare SDK.
 
         Raises:
             CloudflareAuthError: For authentication failures.
@@ -136,10 +135,7 @@ class CloudflareAPIClient:
         """List all IP lists in the account.
 
         Returns:
-            List of IPList objects.
-
-        Raises:
-            CloudflareAPIError: If the API request fails.
+            list[IPList]: List of IPList objects.
         """
         try:
             response = self._client.rules.lists.list(account_id=self._account_id)
@@ -161,20 +157,15 @@ class CloudflareAPIClient:
             return lists
         except Exception as e:
             self._handle_api_error(e)
-            raise  # Unreachable but satisfies type checker
 
     def get_ip_list(self, list_id: str) -> IPList:
         """Get details of a specific IP list.
 
         Args:
-            list_id: The list identifier.
+            list_id (str): The list identifier.
 
         Returns:
-            IPList object.
-
-        Raises:
-            CloudflareNotFoundError: If the list doesn't exist.
-            CloudflareAPIError: If the API request fails.
+            IPList: IPList object.
         """
         try:
             item = self._client.rules.lists.get(
@@ -193,19 +184,15 @@ class CloudflareAPIClient:
             )
         except Exception as e:
             self._handle_api_error(e)
-            raise
 
     def get_ip_list_by_name(self, name: str) -> IPList | None:
         """Get an IP list by name.
 
         Args:
-            name: The list name to search for.
+            name (str): The list name to search for.
 
         Returns:
-            IPList if found, None otherwise.
-
-        Raises:
-            CloudflareAPIError: If the API request fails.
+            IPList | None: IPList if found, None otherwise.
         """
         lists = self.list_ip_lists()
         for ip_list in lists:
@@ -222,17 +209,15 @@ class CloudflareAPIClient:
         """Create a new IP list.
 
         Args:
-            name: List name (must be unique per account).
-            kind: Type of list (ip, redirect, hostname, asn).
-            description: Optional description.
+            name (str): List name (must be unique per account).
+            kind (str): Type of list (ip, redirect, hostname, asn).
+            description (str | None): Optional description.
 
         Returns:
-            The created IPList.
+            IPList: The created IPList.
 
         Raises:
             CloudflareConflictError: If a list with this name already exists.
-            CloudflareValidationError: If the name or kind is invalid.
-            CloudflareAPIError: If the API request fails.
         """
         try:
             response = self._client.rules.lists.create(
@@ -257,10 +242,8 @@ class CloudflareAPIClient:
                 msg = f"A list named '{name}' already exists"
                 raise CloudflareConflictError(msg, code=409) from e
             self._handle_api_error(e)
-            raise
         except Exception as e:
             self._handle_api_error(e)
-            raise
 
     def update_ip_list(
         self,
@@ -270,15 +253,11 @@ class CloudflareAPIClient:
         """Update an IP list's description.
 
         Args:
-            list_id: The list identifier.
-            description: New description.
+            list_id (str): The list identifier.
+            description (str | None): New description.
 
         Returns:
-            The updated IPList.
-
-        Raises:
-            CloudflareNotFoundError: If the list doesn't exist.
-            CloudflareAPIError: If the API request fails.
+            IPList: The updated IPList.
         """
         try:
             response = self._client.rules.lists.update(
@@ -299,21 +278,18 @@ class CloudflareAPIClient:
             )
         except Exception as e:
             self._handle_api_error(e)
-            raise
 
     def delete_ip_list(self, list_id: str) -> bool:
         """Delete an IP list and all its items.
 
         Args:
-            list_id: The list identifier.
+            list_id (str): The list identifier.
 
         Returns:
-            True if deleted successfully.
+            bool: True if deleted successfully.
 
         Raises:
-            CloudflareNotFoundError: If the list doesn't exist.
             CloudflareConflictError: If the list is in use by firewall rules.
-            CloudflareAPIError: If the API request fails.
         """
         try:
             self._client.rules.lists.delete(
@@ -329,10 +305,8 @@ class CloudflareAPIClient:
                 )
                 raise CloudflareConflictError(msg, code=409) from e
             self._handle_api_error(e)
-            raise
         except Exception as e:
             self._handle_api_error(e)
-            raise
 
     # =========================================================================
     # IP List Item Operations
@@ -342,14 +316,10 @@ class CloudflareAPIClient:
         """Get all items in an IP list.
 
         Args:
-            list_id: The list identifier.
+            list_id (str): The list identifier.
 
         Returns:
-            List of IPListItem objects.
-
-        Raises:
-            CloudflareNotFoundError: If the list doesn't exist.
-            CloudflareAPIError: If the API request fails.
+            list[IPListItem]: List of IPListItem objects.
         """
         try:
             response = self._client.rules.lists.items.list(
@@ -371,7 +341,6 @@ class CloudflareAPIClient:
             return items
         except Exception as e:
             self._handle_api_error(e)
-            raise
 
     def add_ip_list_items(
         self,
@@ -384,19 +353,17 @@ class CloudflareAPIClient:
         This is an asynchronous operation. By default, waits for completion.
 
         Args:
-            list_id: The list identifier.
-            items: List of items to add. Each item should have 'ip' and
-                   optionally 'comment'.
-            wait_for_completion: Whether to wait for the operation to complete.
+            list_id (str): The list identifier.
+            items (list[dict[str, Any] | IPListItemInput]): List of items to
+                add. Each item should have 'ip' and optionally 'comment'.
+            wait_for_completion (bool): Whether to wait for the operation to
+                complete.
 
         Returns:
-            Operation ID if not waiting, None if completed.
+            str | None: Operation ID if not waiting, None if completed.
 
         Raises:
-            CloudflareNotFoundError: If the list doesn't exist.
-            CloudflareBulkOperationError: If the operation fails.
             CloudflareConflictError: If another bulk operation is in progress.
-            CloudflareAPIError: If the API request fails.
         """
         try:
             # Convert to API format
@@ -431,10 +398,8 @@ class CloudflareAPIClient:
                 msg = "Another bulk operation is already in progress"
                 raise CloudflareConflictError(msg, code=409) from e
             self._handle_api_error(e)
-            raise
         except Exception as e:
             self._handle_api_error(e)
-            raise
 
     def replace_ip_list_items(
         self,
@@ -448,19 +413,17 @@ class CloudflareAPIClient:
         This is an asynchronous operation.
 
         Args:
-            list_id: The list identifier.
-            items: List of items to set. Each item should have 'ip' and
-                   optionally 'comment'.
-            wait_for_completion: Whether to wait for the operation to complete.
+            list_id (str): The list identifier.
+            items (list[dict[str, Any] | IPListItemInput]): List of items to
+                set. Each item should have 'ip' and optionally 'comment'.
+            wait_for_completion (bool): Whether to wait for the operation to
+                complete.
 
         Returns:
-            Operation ID if not waiting, None if completed.
+            str | None: Operation ID if not waiting, None if completed.
 
         Raises:
-            CloudflareNotFoundError: If the list doesn't exist.
-            CloudflareBulkOperationError: If the operation fails.
             CloudflareConflictError: If another bulk operation is in progress.
-            CloudflareAPIError: If the API request fails.
         """
         try:
             # Convert to API format
@@ -495,10 +458,8 @@ class CloudflareAPIClient:
                 msg = "Another bulk operation is already in progress"
                 raise CloudflareConflictError(msg, code=409) from e
             self._handle_api_error(e)
-            raise
         except Exception as e:
             self._handle_api_error(e)
-            raise
 
     def delete_ip_list_items(
         self,
@@ -509,17 +470,13 @@ class CloudflareAPIClient:
         """Delete specific items from an IP list.
 
         Args:
-            list_id: The list identifier.
-            item_ids: List of item IDs to delete.
-            wait_for_completion: Whether to wait for the operation to complete.
+            list_id (str): The list identifier.
+            item_ids (list[str]): List of item IDs to delete.
+            wait_for_completion (bool): Whether to wait for the operation to
+                complete.
 
         Returns:
-            Operation ID if not waiting, None if completed.
-
-        Raises:
-            CloudflareNotFoundError: If the list doesn't exist.
-            CloudflareBulkOperationError: If the operation fails.
-            CloudflareAPIError: If the API request fails.
+            str | None: Operation ID if not waiting, None if completed.
         """
         try:
             # Format items for deletion
@@ -546,7 +503,6 @@ class CloudflareAPIClient:
             return operation_id
         except Exception as e:
             self._handle_api_error(e)
-            raise
 
     # =========================================================================
     # Bulk Operation Helpers
@@ -556,14 +512,10 @@ class CloudflareAPIClient:
         """Get the status of a bulk operation.
 
         Args:
-            operation_id: The operation identifier.
+            operation_id (str): The operation identifier.
 
         Returns:
-            BulkOperation with current status.
-
-        Raises:
-            CloudflareNotFoundError: If the operation doesn't exist.
-            CloudflareAPIError: If the API request fails.
+            BulkOperation: BulkOperation with current status.
         """
         try:
             response = self._client.rules.lists.bulk_operations.get(
@@ -578,16 +530,15 @@ class CloudflareAPIClient:
             )
         except Exception as e:
             self._handle_api_error(e)
-            raise
 
     def _wait_for_bulk_operation(self, operation_id: str) -> BulkOperation:
         """Wait for a bulk operation to complete.
 
         Args:
-            operation_id: The operation identifier.
+            operation_id (str): The operation identifier.
 
         Returns:
-            The final BulkOperation status.
+            BulkOperation: The final BulkOperation status.
 
         Raises:
             CloudflareBulkOperationError: If the operation fails or times out.
@@ -637,15 +588,12 @@ class CloudflareAPIClient:
         """Get or create an IP list by name.
 
         Args:
-            name: List name.
-            kind: Type of list if creating.
-            description: Description if creating.
+            name (str): List name.
+            kind (str): Type of list if creating.
+            description (str | None): Description if creating.
 
         Returns:
-            The existing or newly created IPList.
-
-        Raises:
-            CloudflareAPIError: If the API request fails.
+            IPList: The existing or newly created IPList.
         """
         existing = self.get_ip_list_by_name(name)
         if existing:
@@ -663,12 +611,11 @@ class CloudflareAPIClient:
         """Sync an IP list to contain exactly the specified IPs.
 
         Args:
-            list_id: The list identifier.
-            ips: List of IP addresses/CIDRs that should be in the list.
-            comments: Optional mapping of IP to comment.
-
-        Raises:
-            CloudflareAPIError: If the API request fails.
+            list_id (str): The list identifier.
+            ips (list[str]): List of IP addresses/CIDRs that should be in the
+                list.
+            comments (dict[str, str] | None): Optional mapping of IP to
+                comment.
         """
         comments = comments or {}
         items = [{"ip": ip, "comment": comments.get(ip)} for ip in ips]

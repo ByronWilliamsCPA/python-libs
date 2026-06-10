@@ -40,6 +40,11 @@ class InMemoryRateLimiter:
         deployments. For production with multiple instances, use Redis
         or similar distributed solutions.
 
+    Args:
+        max_attempts (int): Maximum attempts allowed within window
+        window_seconds (int): Time window in seconds
+        cleanup_interval (int): Seconds between cleanup operations
+
     Example:
         limiter = InMemoryRateLimiter(
             max_attempts=5,
@@ -59,13 +64,6 @@ class InMemoryRateLimiter:
         window_seconds: int = 60,
         cleanup_interval: int = 300,
     ) -> None:
-        """Initialize rate limiter.
-
-        Args:
-            max_attempts: Maximum attempts allowed within window
-            window_seconds: Time window in seconds
-            cleanup_interval: Seconds between cleanup operations
-        """
         self.max_attempts = max_attempts
         self.window_seconds = window_seconds
         self.cleanup_interval = cleanup_interval
@@ -85,10 +83,10 @@ class InMemoryRateLimiter:
         """Check if request is allowed based on rate limit.
 
         Args:
-            identifier: IP address or other identifier
+            identifier (str): IP address or other identifier
 
         Returns:
-            True if request is allowed, False if rate limited
+            bool: True if request is allowed, False if rate limited
         """
         with self.lock:
             self._cleanup_if_needed()
@@ -121,7 +119,7 @@ class InMemoryRateLimiter:
         """Record an authentication attempt.
 
         Args:
-            identifier: IP address or other identifier
+            identifier (str): IP address or other identifier
         """
         with self.lock:
             self.attempts[identifier].append(datetime.now(tz=timezone.utc))
@@ -130,7 +128,7 @@ class InMemoryRateLimiter:
         """Reset rate limit for an identifier.
 
         Args:
-            identifier: IP address or other identifier
+            identifier (str): IP address or other identifier
         """
         with self.lock:
             if identifier in self.attempts:
@@ -141,10 +139,10 @@ class InMemoryRateLimiter:
         """Get remaining attempts for an identifier.
 
         Args:
-            identifier: IP address or other identifier
+            identifier (str): IP address or other identifier
 
         Returns:
-            Number of remaining attempts
+            int: Number of remaining attempts
         """
         with self.lock:
             current_time = datetime.now(tz=timezone.utc)
@@ -166,10 +164,10 @@ class InMemoryRateLimiter:
         """Get seconds until identifier can retry.
 
         Args:
-            identifier: IP address or other identifier
+            identifier (str): IP address or other identifier
 
         Returns:
-            Seconds until next attempt is allowed (0 if allowed now)
+            int: Seconds until next attempt is allowed (0 if allowed now)
         """
         with self.lock:
             if identifier not in self.attempts or not self.attempts[identifier]:
@@ -231,7 +229,7 @@ class InMemoryRateLimiter:
         """Get rate limiter statistics.
 
         Returns:
-            Dictionary with current statistics
+            dict: Dictionary with current statistics
         """
         with self.lock:
             total_tracked = len(self.attempts)
@@ -259,11 +257,11 @@ def get_rate_limiter(
     """Get or create global rate limiter instance.
 
     Args:
-        max_attempts: Maximum attempts per window
-        window_seconds: Time window in seconds
+        max_attempts (int): Maximum attempts per window
+        window_seconds (int): Time window in seconds
 
     Returns:
-        InMemoryRateLimiter instance
+        InMemoryRateLimiter: InMemoryRateLimiter instance
     """
     global _global_rate_limiter  # noqa: PLW0603
 

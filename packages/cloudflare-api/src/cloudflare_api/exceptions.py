@@ -9,11 +9,12 @@ from typing import Any
 class CloudflareAPIError(Exception):
     """Base exception for Cloudflare API errors.
 
-    Attributes:
-        message: Error message
-        code: Cloudflare error code (if available)
-        errors: List of error details from Cloudflare response
-        response: Raw response data (if available)
+    Args:
+        message (str): Error message
+        code (int | None): Cloudflare error code (if available)
+        errors (list[dict[str, Any]] | None): List of error details from
+            Cloudflare response
+        response (dict[str, Any] | None): Raw response data (if available)
     """
 
     def __init__(
@@ -23,14 +24,6 @@ class CloudflareAPIError(Exception):
         errors: list[dict[str, Any]] | None = None,
         response: dict[str, Any] | None = None,
     ) -> None:
-        """Initialize CloudflareAPIError.
-
-        Args:
-            message: Error message
-            code: Cloudflare error code
-            errors: List of error details
-            response: Raw response data
-        """
         super().__init__(message)
         self.message = message
         self.code = code
@@ -60,8 +53,10 @@ class CloudflareRateLimitError(CloudflareAPIError):
 
     Raised when too many requests are made in a short period.
 
-    Attributes:
-        retry_after: Seconds to wait before retrying (if provided)
+    Args:
+        message (str): Error message
+        retry_after (int | None): Seconds to wait before retrying
+        **kwargs (Any): Additional arguments for base class
     """
 
     def __init__(
@@ -70,13 +65,6 @@ class CloudflareRateLimitError(CloudflareAPIError):
         retry_after: int | None = None,
         **kwargs: Any,
     ) -> None:
-        """Initialize rate limit error.
-
-        Args:
-            message: Error message
-            retry_after: Seconds to wait before retrying
-            **kwargs: Additional arguments for base class
-        """
         super().__init__(message, **kwargs)
         self.retry_after = retry_after
 
@@ -86,9 +74,11 @@ class CloudflareNotFoundError(CloudflareAPIError):
 
     Raised when a requested resource (list, item, zone) doesn't exist.
 
-    Attributes:
-        resource_type: Type of resource not found
-        resource_id: ID of the missing resource
+    Args:
+        message (str): Error message
+        resource_type (str | None): Type of resource (e.g., "list", "item")
+        resource_id (str | None): ID of the missing resource
+        **kwargs (Any): Additional arguments for base class
     """
 
     def __init__(
@@ -98,14 +88,6 @@ class CloudflareNotFoundError(CloudflareAPIError):
         resource_id: str | None = None,
         **kwargs: Any,
     ) -> None:
-        """Initialize not found error.
-
-        Args:
-            message: Error message
-            resource_type: Type of resource (e.g., "list", "item")
-            resource_id: ID of the missing resource
-            **kwargs: Additional arguments for base class
-        """
         super().__init__(message, **kwargs)
         self.resource_type = resource_type
         self.resource_id = resource_id
@@ -116,8 +98,10 @@ class CloudflareValidationError(CloudflareAPIError):
 
     Raised when request parameters fail Cloudflare's validation.
 
-    Attributes:
-        field: Field that failed validation (if known)
+    Args:
+        message (str): Error message
+        field (str | None): Field that failed validation
+        **kwargs (Any): Additional arguments for base class
     """
 
     def __init__(
@@ -126,13 +110,6 @@ class CloudflareValidationError(CloudflareAPIError):
         field: str | None = None,
         **kwargs: Any,
     ) -> None:
-        """Initialize validation error.
-
-        Args:
-            message: Error message
-            field: Field that failed validation
-            **kwargs: Additional arguments for base class
-        """
         super().__init__(message, **kwargs)
         self.field = field
 
@@ -142,9 +119,11 @@ class CloudflareBulkOperationError(CloudflareAPIError):
 
     Raised when a bulk operation fails or times out.
 
-    Attributes:
-        operation_id: ID of the failed operation
-        status: Final status of the operation
+    Args:
+        message (str): Error message
+        operation_id (str | None): ID of the failed operation
+        status (str | None): Final status of the operation
+        **kwargs (Any): Additional arguments for base class
     """
 
     def __init__(
@@ -154,14 +133,6 @@ class CloudflareBulkOperationError(CloudflareAPIError):
         status: str | None = None,
         **kwargs: Any,
     ) -> None:
-        """Initialize bulk operation error.
-
-        Args:
-            message: Error message
-            operation_id: ID of the failed operation
-            status: Final status of the operation
-            **kwargs: Additional arguments for base class
-        """
         super().__init__(message, **kwargs)
         self.operation_id = operation_id
         self.status = status

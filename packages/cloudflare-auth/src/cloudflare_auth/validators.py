@@ -34,11 +34,24 @@ from typing import Any
 
 import jwt
 from jwt import PyJWKClient
+from jwt.exceptions import PyJWKClientError
+from pydantic import ValidationError
 
 from cloudflare_auth.config import CloudflareSettings, get_cloudflare_settings
 from cloudflare_auth.models import CloudflareJWTClaims
 
 logger = logging.getLogger(__name__)
+
+# Allowlist of safe asymmetric JWT algorithms. Cloudflare Access signs with
+# RS256; symmetric algorithms (HS*) and "none" are rejected to prevent
+# algorithm-confusion and signature-stripping attacks where an attacker
+# crafts a token using the public key (treated as HMAC secret) or no signature.
+_ALLOWED_JWT_ALGORITHMS: frozenset[str] = frozenset(
+    {"RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "PS256", "PS384", "PS512"}
+)
+
+# Maximum tolerated clock skew between issuer and verifier (seconds).
+_JWT_LEEWAY_SECONDS: int = 30
 
 
 class CloudflareJWTValidator:
@@ -50,10 +63,12 @@ class CloudflareJWTValidator:
     - Expiration checking
     - Claim extraction and validation
 
-    Attributes:
-        settings: Cloudflare configuration settings
-        jwks_client: Client for fetching JWT signing keys
-        _last_key_refresh: Timestamp of last key refresh
+    Args:
+        settings (CloudflareSettings | None): Optional CloudflareSettings instance (uses default if not provided)
+
+    Raises:
+        ValueError: If configured ``jwt_algorithm`` is not in the allowlist
+            of safe asymmetric algorithms.
 
     Example:
         validator = CloudflareJWTValidator()
@@ -65,12 +80,17 @@ class CloudflareJWTValidator:
     """
 
     def __init__(self, settings: CloudflareSettings | None = None) -> None:
-        """Initialize JWT validator.
-
-        Args:
-            settings: Optional CloudflareSettings instance (uses default if not provided)
-        """
         self.settings = settings or get_cloudflare_settings()
+
+        # #CRITICAL: Security: reject unsafe algorithms at construction time.
+        # If misconfigured to "none" or an HS* algorithm, an attacker could
+        # forge tokens or bypass signature verification entirely.
+        if self.settings.jwt_algorithm not in _ALLOWED_JWT_ALGORITHMS:
+            msg = (
+                f"Unsupported JWT algorithm: {self.settings.jwt_algorithm!r}. "
+                f"Allowed algorithms: {sorted(_ALLOWED_JWT_ALGORITHMS)}"
+            )
+            raise ValueError(msg)
 
         if not self.settings.cloudflare_team_domain:
             logger.warning(
@@ -89,26 +109,29 @@ class CloudflareJWTValidator:
 
         self._last_key_refresh: datetime | None = None
 
-    def validate_token(
+    def validate_token(  # noqa: C901, PLR0912  -- per-PyJWT-exception handlers are flat and clearer than nesting
         self,
         token: str,
-        verify_exp: bool = True,
     ) -> CloudflareJWTClaims:
         """Validate a Cloudflare Access JWT token.
 
         This method performs comprehensive validation:
         1. Signature verification using Cloudflare's public keys
-        2. Expiration time validation
-        3. Issuer validation
-        4. Audience validation
-        5. Required claims presence
+        2. Algorithm enforcement (asymmetric only, allowlist)
+        3. Expiration (``exp``) and not-before (``nbf``) checking
+        4. Issued-at (``iat``) sanity checking
+        5. Issuer validation
+        6. Audience validation
+        7. Required claims presence
+
+        Signature verification, expiration, and required-claim checks
+        cannot be disabled by callers.
 
         Args:
-            token: JWT token string from Cf-Access-Jwt-Assertion header
-            verify_exp: Whether to verify token expiration (default: True)
+            token (str): JWT token string from Cf-Access-Jwt-Assertion header
 
         Returns:
-            CloudflareJWTClaims object with validated claims
+            CloudflareJWTClaims: CloudflareJWTClaims object with validated claims
 
         Raises:
             ValueError: If token is invalid, expired, or claims are missing
@@ -136,25 +159,46 @@ class CloudflareJWTValidator:
             msg = "JWT validator not configured. Set CLOUDFLARE_TEAM_DOMAIN."
             raise RuntimeError(msg)
 
+        # #CRITICAL: Security: an unset audience tag means PyJWT skips
+        # audience verification entirely, which would let any token
+        # signed by this issuer pass -- not only tokens minted for this
+        # application. Refuse to validate at all in that case.
+        if not self.settings.cloudflare_audience_tag:
+            msg = (
+                "JWT validator misconfigured: cloudflare_audience_tag must "
+                "be set so PyJWT can enforce the audience claim."
+            )
+            raise RuntimeError(msg)
+
         try:
             # Get the signing key from the JWT header
             signing_key = self.jwks_client.get_signing_key_from_jwt(token)
 
-            # Decode and validate the token
+            # Decode and validate the token. All security-relevant options
+            # are explicit so future PyJWT default changes cannot silently
+            # weaken validation. The ``algorithms`` argument is fixed to
+            # the constructor-validated value, so PyJWT will reject any
+            # token whose header advertises an algorithm outside the
+            # asymmetric allowlist.
             payload = jwt.decode(
                 token,
                 signing_key.key,
                 algorithms=[self.settings.jwt_algorithm],
                 audience=self.settings.cloudflare_audience_tag,
                 issuer=self.settings.issuer,
+                leeway=_JWT_LEEWAY_SECONDS,
                 options={
-                    "verify_exp": verify_exp,
-                    "verify_aud": bool(self.settings.cloudflare_audience_tag),
-                    "verify_iss": bool(self.settings.issuer),
+                    "verify_signature": True,
+                    "verify_exp": True,
+                    "verify_nbf": True,
+                    "verify_iat": True,
+                    "verify_aud": True,
+                    "verify_iss": True,
+                    "require": ["exp", "iat", "iss", "sub", "aud"],
                 },
             )
 
-            # Validate required claims
+            # Validate required claims (defence-in-depth on top of "require")
             self._validate_required_claims(payload)
 
             # Create and return claims object
@@ -182,6 +226,16 @@ class CloudflareJWTValidator:
             msg = "Token has expired"
             raise ValueError(msg) from e
 
+        except jwt.ImmatureSignatureError as e:
+            logger.warning("JWT token not yet valid: %s", str(e))
+            msg = "Token is not yet valid (nbf)"
+            raise ValueError(msg) from e
+
+        except jwt.MissingRequiredClaimError as e:
+            logger.warning("JWT missing required claim: %s", str(e))
+            msg = f"Missing required claim: {e!s}"
+            raise ValueError(msg) from e
+
         except jwt.InvalidAudienceError as e:
             logger.warning("Invalid JWT audience: %s", str(e))
             msg = "Invalid token audience"
@@ -190,6 +244,11 @@ class CloudflareJWTValidator:
         except jwt.InvalidIssuerError as e:
             logger.warning("Invalid JWT issuer: %s", str(e))
             msg = "Invalid token issuer"
+            raise ValueError(msg) from e
+
+        except jwt.InvalidAlgorithmError as e:
+            logger.warning("Invalid JWT algorithm: %s", str(e))
+            msg = "Invalid token algorithm"
             raise ValueError(msg) from e
 
         except jwt.InvalidSignatureError as e:
@@ -202,16 +261,36 @@ class CloudflareJWTValidator:
             msg = "Invalid token format"
             raise ValueError(msg) from e
 
-        except Exception as e:
-            logger.exception("Unexpected error validating JWT: %s", str(e))
-            msg = f"Token validation failed: {e!s}"
+        except jwt.InvalidTokenError as e:
+            # Catch-all for any other PyJWT validation failure rather than
+            # a blanket ``except Exception`` (which would mask programmer
+            # errors and ruff BLE001).
+            logger.warning("JWT validation failed: %s", str(e))
+            msg = "Token validation failed"
+            raise ValueError(msg) from e
+
+        except PyJWKClientError as e:
+            # Raised by ``get_signing_key_from_jwt`` when the ``kid`` is
+            # missing, unknown to the JWKS endpoint, or the JWKS fetch
+            # fails. Treat as an authentication failure so the middleware
+            # returns 401 rather than 500.
+            logger.warning("JWKS lookup failed: %s", str(e))
+            msg = "Could not resolve JWT signing key"
+            raise ValueError(msg) from e
+
+        except ValidationError as e:
+            # ``CloudflareJWTClaims(**payload)`` rejected the decoded
+            # claims (e.g. malformed ``email``). Surface as an auth
+            # failure rather than a 500.
+            logger.warning("JWT claims failed schema validation: %s", str(e))
+            msg = "Invalid token claims"
             raise ValueError(msg) from e
 
     def _validate_required_claims(self, payload: dict[str, Any]) -> None:
         """Validate that required claims are present.
 
         Args:
-            payload: Decoded JWT payload
+            payload (dict[str, Any]): Decoded JWT payload
 
         Raises:
             ValueError: If required claims are missing
@@ -227,7 +306,6 @@ class CloudflareJWTValidator:
     async def validate_token_async(
         self,
         token: str,
-        verify_exp: bool = True,
     ) -> CloudflareJWTClaims:
         """Async version of validate_token.
 
@@ -236,18 +314,14 @@ class CloudflareJWTValidator:
         is CPU-bound and not truly async.
 
         Args:
-            token: JWT token string
-            verify_exp: Whether to verify token expiration
+            token (str): JWT token string
 
         Returns:
-            CloudflareJWTClaims object with validated claims
-
-        Raises:
-            ValueError: If token is invalid
+            CloudflareJWTClaims: CloudflareJWTClaims object with validated claims
         """
         # JWT validation is CPU-bound, not I/O bound
         # But we provide async interface for consistency
-        return self.validate_token(token, verify_exp=verify_exp)
+        return self.validate_token(token)
 
     def refresh_keys(self) -> None:
         """Force refresh of cached public keys.
@@ -275,7 +349,7 @@ class CloudflareJWTValidator:
         """Check if validator is properly configured.
 
         Returns:
-            True if validator has necessary configuration
+            bool: True if validator has necessary configuration
         """
         return bool(
             self.settings.cloudflare_team_domain
@@ -284,27 +358,37 @@ class CloudflareJWTValidator:
         )
 
     def get_unverified_claims(self, token: str) -> dict[str, Any]:
-        """Get claims from token without verification.
+        """Get claims from token without verification. DEBUG USE ONLY.
 
-        WARNING: This method does NOT verify the token signature.
-        Only use for debugging or non-security-critical inspection.
+        WARNING: This method does NOT verify the token signature,
+        expiration, issuer, audience, or any other claim. The returned
+        data MUST NOT be used for authentication, authorization, or any
+        security-relevant decision. Use ``validate_token`` instead.
+
+        A warning is logged on every call so misuse is visible in
+        production logs.
 
         Args:
-            token: JWT token string
+            token (str): JWT token string
 
         Returns:
-            Dictionary of unverified claims
+            dict[str, Any]: Dictionary of unverified claims, or an empty dict
+                on parse error.
 
         Example:
             # For debugging only
             claims = validator.get_unverified_claims(token)
             print(f"Token issued for: {claims.get('email')}")
         """
+        logger.warning(
+            "get_unverified_claims() called - claims are NOT verified and "
+            "MUST NOT be trusted for any security decision."
+        )
         try:
             return jwt.decode(
                 token,
                 options={"verify_signature": False},
             )
-        except Exception as e:
-            logger.exception("Failed to decode token: %s", str(e))
+        except jwt.InvalidTokenError as e:
+            logger.warning("Failed to decode unverified token: %s", str(e))
             return {}

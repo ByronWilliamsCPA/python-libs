@@ -26,7 +26,7 @@ permissions:
 
 jobs:
   scorecard:
-    uses: ByronWilliamsCPA/.github/.github/workflows/python-scorecard.yml@e067cdb7294f6221dbde74ef1f4c3ca735eed570 # main
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-scorecard.yml@f05c26a424a708a73fc445a0ebb5b3ce476c1793
     with:
       publish-results: true
       upload-sarif: true

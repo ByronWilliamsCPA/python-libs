@@ -32,11 +32,11 @@ class IPListItem(BaseModel):
     """An item in an IP list.
 
     Attributes:
-        id: Unique identifier for the item
-        ip: IP address or CIDR range
-        comment: Optional description
-        created_on: When the item was created
-        modified_on: When the item was last modified
+        id (str | None): Unique identifier for the item
+        ip (str): IP address or CIDR range
+        comment (str | None): Optional description
+        created_on (datetime | None): When the item was created
+        modified_on (datetime | None): When the item was last modified
     """
 
     id: str | None = None
@@ -50,14 +50,15 @@ class IPList(BaseModel):
     """A Cloudflare IP list.
 
     Attributes:
-        id: Unique identifier for the list
-        name: List name (must be unique per account)
-        description: Optional description
-        kind: Type of list (ip, redirect, hostname, asn)
-        num_items: Number of items in the list
-        num_referencing_filters: Number of firewall filters using this list
-        created_on: When the list was created
-        modified_on: When the list was last modified
+        id (str): Unique identifier for the list
+        name (str): List name (must be unique per account)
+        description (str | None): Optional description
+        kind (ListKind): Type of list (ip, redirect, hostname, asn)
+        num_items (int): Number of items in the list
+        num_referencing_filters (int): Number of firewall filters using this
+            list
+        created_on (datetime | None): When the list was created
+        modified_on (datetime | None): When the list was last modified
     """
 
     id: str
@@ -74,10 +75,10 @@ class BulkOperation(BaseModel):
     """Status of a bulk operation.
 
     Attributes:
-        id: Operation identifier
-        status: Current status
-        error: Error message if failed
-        completed: When the operation completed
+        id (str): Operation identifier
+        status (BulkOperationStatus): Current status
+        error (str | None): Error message if failed
+        completed (datetime | None): When the operation completed
     """
 
     id: str
@@ -90,8 +91,8 @@ class IPListItemInput(BaseModel):
     """Input model for creating/updating IP list items.
 
     Attributes:
-        ip: IP address or CIDR range
-        comment: Optional description
+        ip (str): IP address or CIDR range
+        comment (str | None): Optional description
     """
 
     ip: str = Field(description="IP address or CIDR range")
@@ -101,7 +102,7 @@ class IPListItemInput(BaseModel):
         """Convert to API request format.
 
         Returns:
-            Dictionary for API request.
+            dict[str, Any]: Dictionary for API request.
         """
         result: dict[str, Any] = {"ip": self.ip}
         if self.comment:
@@ -113,9 +114,9 @@ class CreateIPListRequest(BaseModel):
     """Request to create a new IP list.
 
     Attributes:
-        name: List name (must be unique per account)
-        kind: Type of list
-        description: Optional description
+        name (str): List name (must be unique per account)
+        kind (ListKind): Type of list
+        description (str | None): Optional description
     """
 
     name: str = Field(description="List name (must be unique)")

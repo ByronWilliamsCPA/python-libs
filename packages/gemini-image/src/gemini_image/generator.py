@@ -68,25 +68,29 @@ def generate_image(
     """Generate an image using Gemini.
 
     Args:
-        prompt: Text description of the image to generate.
-        model_key: Model to use ('flash' or 'pro').
-        reference_images: Optional list of reference images for editing/style.
-        output_path: Optional output file path. If not provided, generates
-            a timestamped filename.
-        output_dir: Optional output directory. Defaults to current directory.
-        aspect_ratio: Aspect ratio for pro model (e.g., "16:9", "1:1").
-        image_size: Image size for pro model ("1K", "2K", "4K").
-        use_search: Enable Google Search grounding (pro model only).
-        save_thoughts: Save intermediate thought images (pro model only).
-        verbose: Show detailed thinking process and thought signatures.
-        is_draft: Generate at 1K resolution for fast iteration.
+        prompt (str): Text description of the image to generate.
+        model_key (ModelKey): Model to use ('flash' or 'pro').
+        reference_images (list[Path] | None): Optional list of reference
+            images for editing/style.
+        output_path (Path | None): Optional output file path. If not provided,
+            generates a timestamped filename.
+        output_dir (Path | None): Optional output directory. Defaults to
+            current directory.
+        aspect_ratio (AspectRatio | None): Aspect ratio for pro model (e.g.,
+            "16:9", "1:1").
+        image_size (ImageSize | None): Image size for pro model ("1K", "2K",
+            "4K").
+        use_search (bool): Enable Google Search grounding (pro model only).
+        save_thoughts (bool): Save intermediate thought images (pro model
+            only).
+        verbose (bool): Show detailed thinking process and thought signatures.
+        is_draft (bool): Generate at 1K resolution for fast iteration.
 
     Returns:
-        Path to the generated image, or None on failure.
+        Path | None: Path to the generated image, or None on failure.
 
     Raises:
         ValueError: If model_key is invalid or API key is missing.
-        ImportError: If google-genai is not installed.
 
     """
     genai, types = _get_genai()
@@ -321,18 +325,18 @@ def generate_story_sequence(
     visual continuity.
 
     Args:
-        base_prompt: Base story description.
-        num_parts: Number of story parts to generate.
-        model_key: Model to use.
-        output_prefix: Prefix for output files (e.g., "story" ->
+        base_prompt (str): Base story description.
+        num_parts (int): Number of story parts to generate.
+        model_key (ModelKey): Model to use.
+        output_prefix (Path | None): Prefix for output files (e.g., "story" ->
             story_part1.png, story_part2.png).
-        output_dir: Output directory for generated images.
-        aspect_ratio: Aspect ratio for all images.
-        image_size: Image size for all images.
-        verbose: Show detailed process.
+        output_dir (Path | None): Output directory for generated images.
+        aspect_ratio (AspectRatio | None): Aspect ratio for all images.
+        image_size (ImageSize | None): Image size for all images.
+        verbose (bool): Show detailed process.
 
     Returns:
-        List of paths to generated images.
+        list[Path]: List of paths to generated images.
 
     Raises:
         ValueError: If num_parts < 1.
@@ -442,18 +446,18 @@ def finalize_draft(
     """Finalize a draft image by regenerating at higher resolution.
 
     Args:
-        draft_path: Path to the draft image.
-        prompt: Optional refinement prompt. If not provided, uses a
-            default upscaling prompt.
-        model_key: Model to use.
-        output_path: Output path for the final image.
-        output_dir: Output directory.
-        aspect_ratio: Aspect ratio (default: "16:9").
-        image_size: Target resolution (default: "2K").
-        verbose: Show detailed process.
+        draft_path (Path): Path to the draft image.
+        prompt (str | None): Optional refinement prompt. If not provided, uses
+            a default upscaling prompt.
+        model_key (ModelKey): Model to use.
+        output_path (Path | None): Output path for the final image.
+        output_dir (Path | None): Output directory.
+        aspect_ratio (AspectRatio | None): Aspect ratio (default: "16:9").
+        image_size (ImageSize | None): Target resolution (default: "2K").
+        verbose (bool): Show detailed process.
 
     Returns:
-        Path to the finalized image, or None on failure.
+        Path | None: Path to the finalized image, or None on failure.
 
     Raises:
         FileNotFoundError: If the draft image doesn't exist.
