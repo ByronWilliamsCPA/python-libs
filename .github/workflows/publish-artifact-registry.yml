@@ -48,7 +48,6 @@ concurrency:
 
 permissions:
   contents: read
-  id-token: write
 
 env:
   UV_VERSION: "0.5.x"
@@ -58,7 +57,15 @@ jobs:
   publish:
     name: Build and Publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
