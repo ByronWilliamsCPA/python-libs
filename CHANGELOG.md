@@ -57,6 +57,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Passed `no-build: false` to the org reusable workflows that gained a
+  default-on `--no-build` uv policy (`python-docs`, `python-sonarcloud`,
+  `python-fips-compatibility`, `python-mutation`, `python-compatibility`);
+  the default broke editable installation of the hatchling root package
+  ("marked as `--no-build` but has no binary distribution") on the docs,
+  SonarCloud, and FIPS runs on `main`. Same fix as `sbom.yml` in #44.
+- Replaced the unsupported `packages/*/tests/` wildcard in `sonar.tests`
+  with the enumerated package test directories; SonarCloud rejects
+  wildcards in `sonar.sources`/`sonar.tests` and failed the scan.
 - Restored the required status-check contexts the org rulesets enforce, which had
   drifted out of sync during the monorepo conversion and were silently blocking
   every open PR (the missing contexts sat permanently pending):

@@ -33,6 +33,8 @@ jobs:
       id-token: write
     uses: ByronWilliamsCPA/.github/.github/workflows/python-docs.yml@987d517d3c8e4b180f4dd15de6d9575f0df91182 # main
     with:
+      # Repo uses hatchling; --no-build cannot install the editable root package
+      no-build: false
       python-version: '3.12'
       docs-directory: 'docs'
       source-directory: 'src'
