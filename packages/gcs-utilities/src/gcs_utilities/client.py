@@ -10,6 +10,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from google.auth.exceptions import GoogleAuthError
 from google.cloud import storage
 from google.cloud.exceptions import GoogleCloudError, NotFound
 
@@ -175,8 +176,6 @@ class GCSClient:
         Raises:
             GCSNotFoundError: If bucket doesn't exist and auto_create is False.
             GCSAuthError: If bucket access fails.
-            Exception: Re-raised if it is a GCSNotFoundError caught by the
-                broad handler.
         """
         try:
             bucket = self.client.bucket(self.bucket_name)
@@ -192,9 +191,12 @@ class GCSClient:
                     )
                     raise GCSNotFoundError(msg)
             return bucket
-        except Exception as e:
-            if isinstance(e, GCSNotFoundError):
-                raise
+        except GCSNotFoundError:
+            raise
+        except (GoogleCloudError, GoogleAuthError, OSError, ValueError) as e:
+            # GoogleAuthError covers DefaultCredentialsError / RefreshError
+            # which are not subclasses of GoogleCloudError but should still
+            # surface as GCSAuthError to callers.
             msg = f"Failed to access bucket '{self.bucket_name}': {e}"
             raise GCSAuthError(msg) from e
 
@@ -223,6 +225,12 @@ class GCSClient:
             ValueError: If path is invalid or contains traversal attempts.
             FileNotFoundError: If must_exist is True and path doesn't exist.
         """
+        # #CRITICAL: Security: reject null bytes in local paths (can be used
+        # to truncate paths in some OS calls and bypass downstream checks).
+        if "\x00" in str(path):
+            msg = "Local path contains null byte"
+            raise ValueError(msg)
+
         try:
             # Resolve to absolute path to prevent traversal attacks
             resolved_path = path.resolve()
@@ -240,17 +248,32 @@ class GCSClient:
 
     @staticmethod
     def _sanitize_gcs_path(gcs_path: str) -> str:
-        """Sanitize GCS path to prevent issues.
+        """Sanitize GCS object path/prefix and reject traversal attempts.
 
         Args:
             gcs_path (str): GCS blob path to sanitize.
 
         Returns:
-            str: Sanitized path.
+            str: Sanitized path with leading slashes stripped.
 
         Raises:
-            ValueError: If path is invalid.
+            ValueError: If path is empty, contains a ``..`` segment,
+                contains backslashes, null bytes, or other control
+                characters.
         """
+        # Reject null bytes and ASCII control characters anywhere in the
+        # path -- these have no legitimate use in object names and have
+        # historically been used to bypass downstream validation.
+        if any(ord(c) < 0x20 or c == "\x7f" for c in gcs_path):
+            msg = "GCS path contains control characters"
+            raise ValueError(msg)
+
+        # Reject backslashes: GCS uses forward slashes; backslashes can
+        # confuse Windows-aware downstream tooling and obscure ``..``.
+        if "\\" in gcs_path:
+            msg = "GCS path cannot contain backslashes"
+            raise ValueError(msg)
+
         # Remove leading slashes (GCS paths shouldn't start with /)
         gcs_path = gcs_path.lstrip("/")
 
@@ -259,9 +282,17 @@ class GCSClient:
             msg = "GCS path cannot be empty"
             raise ValueError(msg)
 
-        # Check for suspicious patterns
+        # Reject any ``.`` / ``..`` path segment AND any ``..`` substring
+        # anywhere in the path. This is deliberately stricter than the
+        # POSIX traversal rule: callers with legitimate names that
+        # happen to contain ``..`` (e.g. ``v1..1``) must rename. The
+        # segment check is kept first so the more specific error wins.
+        segments = gcs_path.split("/")
+        if any(seg in {"..", "."} for seg in segments):
+            msg = "GCS path cannot contain '.' or '..' segments"
+            raise ValueError(msg)
         if ".." in gcs_path:
-            msg = "GCS path cannot contain '..' segments"
+            msg = "GCS path cannot contain '..' sequences"
             raise ValueError(msg)
 
         return gcs_path
@@ -368,8 +399,20 @@ class GCSClient:
                 logger.debug(f"Skipping excluded file: {rel_path}")
                 continue
 
-            # Construct GCS path
-            gcs_path = f"{gcs_prefix.rstrip('/')}/{rel_path}"
+            # Construct and re-sanitize the joined GCS path. ``rel_path``
+            # comes from a filesystem walk so should be safe, but symlinks
+            # or unusual filenames could still introduce traversal
+            # sequences -- defence in depth. ``as_posix()`` ensures
+            # Windows ``\`` separators don't get rejected by the
+            # sanitizer's backslash check.
+            try:
+                gcs_path = self._sanitize_gcs_path(
+                    f"{gcs_prefix.rstrip('/')}/{rel_path.as_posix()}"
+                )
+            except ValueError as e:
+                logger.warning("Skipping file with unsafe path %s: %s", rel_path, e)
+                failed.append(str(rel_path))
+                continue
 
             try:
                 blob = bucket.blob(gcs_path)
@@ -623,14 +666,28 @@ class GCSClient:
         """Delete all files with a given prefix (directory-like deletion).
 
         Args:
-            prefix (str): Prefix of files to delete.
+            prefix (str): Prefix of files to delete. Must be non-empty; empty
+                prefixes are rejected to prevent accidental full-bucket wipes.
             bucket_name (str | None): Bucket name (uses default if not
                 specified).
 
         Returns:
             int: Number of files deleted.
+
+        Raises:
+            ValueError: If ``prefix`` is empty / whitespace-only.
         """
-        prefix = self._sanitize_gcs_path(prefix) if prefix else ""
+        # #CRITICAL: Security: an empty prefix matches every object in
+        # the bucket. Reject it explicitly so a logic bug in the caller
+        # cannot trigger a bucket-wide deletion.
+        if not prefix or not prefix.strip():
+            msg = (
+                "delete_directory requires a non-empty prefix; "
+                "use explicit per-blob deletion to clear an entire bucket"
+            )
+            raise ValueError(msg)
+
+        prefix = self._sanitize_gcs_path(prefix)
         bucket = self._get_bucket(bucket_name)
 
         blobs = bucket.list_blobs(prefix=prefix)

@@ -86,3 +86,43 @@ jobs:
           else
             echo "✅ No dead code detected with 90% confidence." >> $GITHUB_STEP_SUMMARY
           fi
+
+  # ==========================================================================
+  # Validation Summary
+  # Required status check context: "Dependency & Standards Validation"
+  # (bare job name matching the org ruleset). Aggregates the PR-validation jobs
+  # and fails only if the supplemental (core) checks failed; dead-code is
+  # advisory (vulture runs warn-only).
+  # ==========================================================================
+  validate-dependencies:
+    name: Dependency & Standards Validation
+    runs-on: ubuntu-latest
+    needs: [supplemental-checks, dead-code]
+    if: always()
+    permissions:
+      contents: read
+    steps:
+      - name: Check validation results
+        env:
+          SUPPLEMENTAL_RESULT: ${{ needs.supplemental-checks.result }}
+          DEAD_CODE_RESULT: ${{ needs.dead-code.result }}
+        run: |
+          {
+            echo "## Dependency & Standards Validation"
+            echo ""
+            if [ "$SUPPLEMENTAL_RESULT" == "success" ]; then
+              echo "✅ Supplemental checks: passed"
+            else
+              echo "❌ Supplemental checks: $SUPPLEMENTAL_RESULT"
+            fi
+            if [ "$DEAD_CODE_RESULT" == "success" ]; then
+              echo "✅ Dead code check: passed"
+            else
+              echo "⚠️ Dead code check: $DEAD_CODE_RESULT"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$SUPPLEMENTAL_RESULT" == "failure" ]; then
+            echo "::error::Supplemental PR validation failed."
+            exit 1
+          fi
+          echo "Dependency & Standards Validation passed"

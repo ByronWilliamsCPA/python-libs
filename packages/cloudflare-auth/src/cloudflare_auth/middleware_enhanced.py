@@ -719,6 +719,22 @@ def require_tier(minimum_tier: UserTier) -> Callable:
     """
 
     def dependency(request: Request) -> CloudflareUser:
+        """Validate that the current user meets minimum_tier.
+
+        Resolved as a FastAPI dependency by require_tier. The user is loaded
+        from request state via get_current_user; tiers are ordered
+        LIMITED < FULL < ADMIN.
+
+        Args:
+            request (Request): Incoming FastAPI/Starlette request.
+
+        Returns:
+            CloudflareUser: The authenticated user object.
+
+        Raises:
+            HTTPException: 403 if the user's tier is below minimum_tier; 401
+                (via get_current_user) if the request is unauthenticated.
+        """
         user = get_current_user(request)
 
         tier_order = {

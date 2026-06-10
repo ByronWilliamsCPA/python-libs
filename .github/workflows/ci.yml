@@ -24,14 +24,15 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: write
-  checks: write
 
 jobs:
   # Detect which packages have changed
   detect-changes:
     name: Detect Changed Packages
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       cloudflare-auth: ${{ steps.filter.outputs.cloudflare-auth }}
       gcs-utilities: ${{ steps.filter.outputs.gcs-utilities }}
@@ -41,6 +42,11 @@ jobs:
         steps.filter.outputs.gcs-utilities == 'true' ||
         steps.filter.outputs.shared == 'true' }}
     steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
@@ -65,11 +71,18 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.cloudflare-auth == 'true' || needs.detect-changes.outputs.shared == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
         python-version: ['3.10', '3.11', '3.12', '3.13']
     steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
@@ -113,11 +126,18 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.gcs-utilities == 'true' || needs.detect-changes.outputs.shared == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
         python-version: ['3.10', '3.11', '3.12', '3.13']
     steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
@@ -161,7 +181,14 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.any-package == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
@@ -186,7 +213,14 @@ jobs:
     needs: [test-cloudflare-auth, test-gcs-utilities]
     if: always() && (needs.test-cloudflare-auth.result == 'success' || needs.test-gcs-utilities.result == 'success')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
@@ -212,7 +246,14 @@ jobs:
     runs-on: ubuntu-latest
     needs: [detect-changes, test-cloudflare-auth, test-gcs-utilities, security, coverage]
     if: always()
+    permissions:
+      contents: read
     steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
       - name: Check all jobs
         env:
           NEEDS_JSON: ${{ toJSON(needs) }}

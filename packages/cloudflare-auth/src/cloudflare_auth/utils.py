@@ -224,7 +224,19 @@ def mask_sensitive_data(
         'Contact ***@***.*** for help'
     """
 
-    def mask_match(match):
+    def mask_match(match: re.Match[str]) -> str:
+        """Replace a regex match with a masked representation.
+
+        For email-like matches (containing '@'), masks the local and domain
+        parts separately. For all other matches, replaces every character
+        with '*'.
+
+        Args:
+            match (re.Match[str]): Regex match object produced by re.sub.
+
+        Returns:
+            str: Masked replacement string for the matched text.
+        """
         matched = match.group(0)
         if "@" in matched:
             # Email-like pattern
