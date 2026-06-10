@@ -31,7 +31,7 @@ jobs:
       contents: write
       pages: write
       id-token: write
-    uses: ByronWilliamsCPA/.github/.github/workflows/python-docs.yml@e8fc83c98c2971ad1ece71573d28171463e30c16 # main
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-docs.yml@987d517d3c8e4b180f4dd15de6d9575f0df91182 # main
     with:
       python-version: '3.12'
       docs-directory: 'docs'
