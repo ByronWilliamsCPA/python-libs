@@ -32,9 +32,9 @@ permissions:
 
 jobs:
   sonarcloud:
-    uses: ByronWilliamsCPA/.github/.github/workflows/python-sonarcloud.yml@e8fc83c98c2971ad1ece71573d28171463e30c16 # main
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-sonarcloud.yml@6bad2f898be1d387b8424e9deddefa519674cb19 # main
     with:
-      sonar-organization: byronwilliamscpa
+      sonar-organization: williaby
       sonar-project-key: ByronWilliamsCPA_python-libs
       python-version: '3.12'
       source-directory: 'src'
