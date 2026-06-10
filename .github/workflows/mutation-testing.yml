@@ -41,6 +41,8 @@ jobs:
     name: Mutation Testing
     uses: ByronWilliamsCPA/.github/.github/workflows/python-mutation.yml@987d517d3c8e4b180f4dd15de6d9575f0df91182 # main
     with:
+      # Repo uses hatchling; --no-build cannot install the editable root package
+      no-build: false
       python-version: '3.12'
       source-directory: 'src'
       test-directory: 'tests'
