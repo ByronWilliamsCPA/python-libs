@@ -23,6 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Restored the required status-check contexts the org rulesets enforce, which had
+  drifted out of sync during the monorepo conversion and were silently blocking
+  every open PR (the missing contexts sat permanently pending):
+  - `security-analysis.yml`: removed the unsupported `run-safety` input that caused a
+    workflow `startup_failure`, and added the `Security Gate Validation` job.
+  - `reuse.yml`: emit the bare `Check REUSE Compliance` context via a standalone
+    `fsfe/reuse-action` job instead of the reusable workflow's slash-prefixed name.
+  - `pr-validation.yml`: added the `Dependency & Standards Validation` summary job.
 - Resolved CodeQL false positive for incomplete URL substring sanitization in test file
 
 ### Added
