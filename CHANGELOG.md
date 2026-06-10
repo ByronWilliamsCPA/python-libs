@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrated `sonarcloud.yml` to use `python-sonarcloud.yml` reusable workflow
 - Migrated `pr-validation.yml` to use `python-supplemental-checks.yml` reusable workflow
 - Removed dependency on deprecated `python-pr-validation.yml` workflow
+- Switched Renovate `enabledManagers` from `poetry` to `pep621` so Renovate can detect dependencies in the uv-managed `pyproject.toml`
 
 ### Fixed
 
