@@ -3,8 +3,6 @@
 #
 # REUSE helps with clear licensing by using SPDX headers
 # Documentation: https://reuse.software/
-#
-# Uses reusable workflow from: ByronWilliamsCPA/.github
 name: REUSE Compliance
 
 on:
@@ -20,15 +18,24 @@ on:
       - master
       - develop
 
-permissions:
-  contents: read
+permissions: read-all
 
 jobs:
+  # Required status check context: "Check REUSE Compliance" (bare job name, no
+  # reusable-workflow slash prefix), matching the org ruleset.
   reuse:
+    name: Check REUSE Compliance
+    runs-on: ubuntu-latest
     permissions:
       contents: read
-    uses: ByronWilliamsCPA/.github/.github/workflows/python-reuse.yml@e8fc83c98c2971ad1ece71573d28171463e30c16 # main
-    with:
-      generate-spdx: true
-      fail-on-missing: true
-      artifact-retention-days: 90
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: REUSE Compliance Check
+        uses: fsfe/reuse-action@676e2d560c9a403aa252096d99fcab3e1132b0f5 # v6.0.0
