@@ -12,6 +12,7 @@ on:
   # does not match repository-root paths), leaving the required context pending
   # forever and silently blocking the PR.
   pull_request:
+  merge_group:
   push:
     branches:
       - main
