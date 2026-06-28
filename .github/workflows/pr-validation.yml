@@ -14,6 +14,7 @@ on:
       - main
       - master
       - develop
+  merge_group:
 
 # Cancel in-progress runs for same PR
 concurrency:
