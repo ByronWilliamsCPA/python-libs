@@ -37,7 +37,7 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    uses: ByronWilliamsCPA/.github/.github/workflows/python-sbom.yml@987d517d3c8e4b180f4dd15de6d9575f0df91182 # main
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-sbom.yml@64ad9cf69bf17698c5f3694ec50f55a691d8a774 # main (cutover smoke test)
     with:
       python-version: '3.12'
       fail-on-vulnerabilities: true
