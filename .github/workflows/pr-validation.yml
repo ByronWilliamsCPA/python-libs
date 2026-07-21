@@ -26,15 +26,17 @@ permissions:
 
 jobs:
   # ==========================================================================
-  # Supplemental PR Checks (Changelog, Link Validation)
+  # Supplemental PR Checks (Commit Lint, Link Validation)
   # ==========================================================================
   supplemental-checks:
     uses: ByronWilliamsCPA/.github/.github/workflows/python-supplemental-checks.yml@987d517d3c8e4b180f4dd15de6d9575f0df91182 # main
     with:
-      # Changelog enforcement
-      enable-changelog-check: true
-      changelog-path: 'CHANGELOG.md'
-      changelog-skip-labels: 'skip-changelog,dependencies,documentation'
+      # Conventional-Commit PR-title validation. Replaces the deprecated
+      # enable-changelog-check gate (ByronWilliamsCPA/.github#288): the changelog
+      # is generated at release by python-semantic-release (see release.yml), so
+      # per-PR CHANGELOG.md edits are no longer required and were the sole cause
+      # of textual conflicts in the org merge queue.
+      enable-commit-lint: true
 
       # Documentation link validation
       enable-link-check: true
