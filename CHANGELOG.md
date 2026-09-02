@@ -76,6 +76,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `pr-validation.yml`: added the `Dependency & Standards Validation` summary job.
 - Resolved CodeQL false positive for incomplete URL substring sanitization in test file
 
+### Removed
+
+- `.github/workflows/codeql.yml` and `.github/workflows/dependency-review.yml`.
+  GitHub now bills Advanced Security (Code Security), so CodeQL code scanning
+  and the `dependency-review` action no longer function. Bandit and
+  OSV-Scanner (`security-analysis.yml`) continue to run and are unaffected.
+
 ### Added
 
 - Initial project setup and structure
