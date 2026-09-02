@@ -5,8 +5,10 @@
 # Note: this workflow is intentionally standalone and does NOT call the org
 # reusable python-security-analysis.yml, which has been failing at startup
 # (startup_failure) for months and silently withheld the required
-# "Security Gate Validation" status check. CodeQL and dependency review are
-# covered by codeql.yml and dependency-review.yml respectively.
+# "Security Gate Validation" status check. CodeQL (codeql.yml) and dependency
+# review (dependency-review.yml) were removed: GitHub now bills Advanced
+# Security (Code Security), so both stopped functioning fleet-wide. Bandit
+# and OSV-Scanner below continue to run and are unaffected.
 name: Security Analysis
 
 "on":
