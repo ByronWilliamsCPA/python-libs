@@ -6,6 +6,7 @@
 name: REUSE Compliance
 
 on:
+  merge_group:
   # No paths filter: "Check REUSE Compliance" is a REQUIRED status check, so it
   # must report on every PR. A paths filter would skip the workflow on changes
   # that do not match (e.g. root-only files like renovate.json, since "**/*"
