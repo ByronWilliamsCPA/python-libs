@@ -18,7 +18,12 @@ on:
 
 # Cancel in-progress runs for same PR
 concurrency:
-  group: pr-validation-${{ github.event.pull_request.number }}
+  # #ASSUME github.event.pull_request.number is null under merge_group;
+  # fall back to github.ref (unique per merge-group ref) so a merge-group
+  # build never collides with, or is cancelled by, a PR build's group.
+  # #VERIFY confirm no cross-cancellation between a PR run and its
+  # corresponding merge-group run after the first live merge-queue pass.
+  group: pr-validation-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
