@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `fsfe/reuse-action` job instead of the reusable workflow's slash-prefixed name.
   - `pr-validation.yml`: added the `Dependency & Standards Validation` summary job.
 - Resolved CodeQL false positive for incomplete URL substring sanitization in test file
+- Renovate: lock file maintenance PRs are exempt from the minimum release age gate, so they no longer stall on stability-days.
 
 ### Added
 
