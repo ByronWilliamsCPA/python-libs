@@ -9,7 +9,7 @@ authors = [
     {name = "Byron Williams", email = "byronawilliams@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.15,<3.16"
 license = {text = "MIT"}
 keywords = []
 classifiers = [

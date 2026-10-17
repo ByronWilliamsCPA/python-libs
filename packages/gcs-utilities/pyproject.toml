@@ -3,7 +3,7 @@ name = "byronwilliamscpa-gcs-utilities"
 version = "0.1.0"
 description = "Google Cloud Storage utilities and helpers for Python applications"
 readme = "README.md"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.15,<3.16"
 license = {text = "MIT"}
 authors = [
     {name = "Byron Williams", email = "byronawilliams@gmail.com"}
