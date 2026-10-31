@@ -31,7 +31,7 @@ jobs:
       contents: write
       pages: write
       id-token: write
-    uses: ByronWilliamsCPA/.github/.github/workflows/python-docs.yml@987d517d3c8e4b180f4dd15de6d9575f0df91182 # main
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-docs.yml@82ce497cae146787ea65bf892aedfe3262a4638e # main
     with:
       # Repo uses hatchling; --no-build cannot install the editable root package
       no-build: false
